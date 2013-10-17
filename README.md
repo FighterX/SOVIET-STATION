@@ -1,4 +1,4 @@
 SOVIET-STATION
 ==============
 
-Build of Soviet Staiton 13.
+Public Build of russian server, called United Kingdom of Soviet Station 13.
