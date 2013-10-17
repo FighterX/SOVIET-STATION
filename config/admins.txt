@@ -1,0 +1,28 @@
+######################################################################
+# Basically, ckey goes first. Rank goes after the "-"                #
+# Case is not important for ckey.                                    #
+# Case IS important for the rank. However punctuation/spaces are not #
+# Ranks can be anything defined in admin_ranks.txt           ~Carn   #
+######################################################################
+
+FighterX2500 - Barsikoadmin
+polion1232 - Lord Of Avernus
+opex1989 - Minister
+outworder - Royal Minister
+arhimag - Prime Minister
+krll - Royal Minister
+Ecstasy14 - Minister
+Kallemort - Minister
+Spitfire174 - Minister
+Ydaa - Nobleman
+AlexKingSmyle - Minister
+Narsi - Royal Minister
+Fox30 - Minister
+Crazy_Wolf_2012 - Minister
+Chrisik - Minister
+Yran14 - Minister
+Fallrim37 - Minister
+Hater333 - Minister
+Alakazor - Minister
+DarkExterminator - Royal Minister
+monzztro - Monzztroadmin

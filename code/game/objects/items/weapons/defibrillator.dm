@@ -1,0 +1,72 @@
+//
+/obj/item/weapon/defibrillator
+	name = "Defibrillators"
+	desc = "Medical defibrillators."
+	icon = 'icons/obj/defibrillator.dmi'
+	icon_state = "Defibunit"
+	item_state = "Defibunit"
+	flags = FPRINT | TABLEPASS
+	w_class = 1.0
+	damtype = "brute"
+	force = 4
+	var/charged = 0
+	var/charges = 3
+	origin_tech = "combat=2;biotech=2"
+	m_amt = 2000
+	g_amt = 50
+
+	attack_self(mob/user as mob)
+		if(!charged)
+			if(charges)
+				user.visible_message("[user] charges their [src].", "You charge your [src].</span>", "You hear electrical zap.")
+				charged = 1
+				spawn(25)
+					charged = 2
+					icon_state = "Defibunit_on"
+					damtype = "fire"
+					force = 20
+			else
+				user<<"Internal battery worn out. Recharge needed."
+
+	proc/discharge()
+		icon_state = "Defibunit"
+		damtype = "brute"
+		charged = 0
+		force = initial(force)
+		charges--
+
+	attack(mob/M as mob, mob/user as mob)
+		if(charged == 2 && istype(M,/mob/living/carbon))
+			var/mob/living/carbon/C = M
+			user.visible_message("[user] shocks [M] with [src].", "You shock [M] with [src].</span>", "You hear electricity zaps flesh.")
+			if(C.health<=config.health_threshold_crit || prob(10))
+				var/suff = min(C.getOxyLoss(), 20)
+				C.adjustOxyLoss(-suff)
+				C.updatehealth()
+				if(C.stat == DEAD && C.health>config.health_threshold_dead)
+					C.stat = UNCONSCIOUS
+			else
+				C.adjustFireLoss(20)
+				if(C.stat == DEAD && C.health>config.health_threshold_dead)
+					C.stat = CONSCIOUS
+			discharge()
+			C.apply_effect(10, STUN, 0)
+			C.apply_effect(10, WEAKEN, 0)
+			C.apply_effect(10, STUTTER, 0)
+			if(C.jitteriness<=100)
+				C.make_jittery(150)
+			else
+				C.make_jittery(50)
+			var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
+			s.set_up(3, 1, C)
+			s.start()
+		else return ..(M,user)
+
+datum/design/defibrillators
+	name = "Defibrillators"
+	desc = "Defibrillators to revive people."
+	id = "defibrillators"
+	req_tech = list("combat" = 2,"biotech" = 2)
+	build_type = 2 //PROTOLATHE
+	materials = list("$metal" = 2000, "$glass" = 50)
+	build_path = "/obj/item/weapon/defibrillator"
