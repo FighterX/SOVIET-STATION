@@ -7,6 +7,13 @@
 
 	var/code = ""
 	var/assigned_name = ""
+	var/expires = 0
+	
+	var/stamp = ""
+
+/obj/item/weapon/papersplease/New()
+	..()
+	expires = game_year + rand(5,15)
 
 /obj/item/weapon/papersplease/passport
 	name = "passport"
@@ -14,11 +21,11 @@
 	icon_state = "passport"
 	var/assigned_gender = ""
 	var/assigned_age = 0
-	var/expires = 0
 	var/arrival = ""
 
 /obj/item/weapon/papersplease/passport/New()
 	..()
+	expires = game_year + rand(5,15)
 	for(var/i = 0, i < 10, i++)
 		var/let = rand(1,37)				//1-10 - numbers(0-9) 11-36 - letters(a-z)
 		if(let <= 10)
@@ -48,7 +55,6 @@
 	assigned_name = use.name
 	assigned_gender = (use.gender==MALE?"male":"female")
 	assigned_age = use.age
-	expires = game_year + rand(5,15)
 
 	var/city = rand(1,3)
 	if(city == 1)
@@ -63,12 +69,6 @@
 	name = "entrance document"
 	desc = "Standart NT issued entrance ticket."
 	icon_state = "entrance"
-
-	var/expires = 0
-
-/obj/item/weapon/papersplease/entrance_doc/New()
-	..()
-	expires = game_year + rand(5,15)
 
 /obj/item/weapon/papersplease/entrance_doc/attack_self(mob/user as mob)
 	user.set_machine(src)
@@ -87,3 +87,56 @@
 /obj/item/weapon/papersplease/entrance_doc/proc/set_data(obj/item/weapon/papersplease/passport/usepass)
 	code = usepass.code
 	assigned_name = usepass.name
+	
+/obj/item/weapon/papersplease/workdoc
+	name = "Work documents"
+	desc = "Standart NT issued document, proving it's owner is a normal employee."
+	icon_state = "workdoc"
+	
+	var/job = ""
+	
+/obj/item/weapon/papersplease/workdoc/attack_self(mob/user as mob)
+	user.set_machine(src)
+
+	var/dat = "<title>Work Document</title><body bgcolor=\"#CECE40\">"
+	dat += "Name : " + assigned_name + "\n"
+	dat += "Job : " + job + "\n"
+	dat += "Expires : " + num2text(expires) + "\n"
+
+	user << browse(dat, "window=workdoc")
+	onclose(user, "workdoc")
+	add_fingerprint(usr)
+	return
+
+//Well, new employees don't have IDs, so I have to use this
+/obj/item/weapon/papersplease/workdoc/proc/set_data(var/title, var/name, var/new_code)
+	job = title
+	assigned_name = name
+	code = new_code
+	
+	
+/obj/item/weapon/papersplease/headdoc
+	name = "Head document"
+	desc = "Standart NT issued document, proving it's owner is pretty damn important."
+	icon_state = "headdoc"
+	
+	var/job = ""
+	
+/obj/item/weapon/papersplease/headdoc/attack_self(mob/user as mob)
+	user.set_machine(src)
+
+	var/dat = "<title>Head Document</title><body bgcolor=\"#CECE40\">"
+	dat += "Name : " + assigned_name + "\n"
+	dat += "Rank : " + job + "\n"
+	dat += "Expires : " + num2text(expires) + "\n"
+
+	user << browse(dat, "window=workdoc")
+	onclose(user, "workdoc")
+	add_fingerprint(usr)
+	return
+
+//Well, new employees don't have IDs, so I have to use this
+/obj/item/weapon/papersplease/headdoc/proc/set_data(var/title, var/name, var/new_code)
+	job = title
+	assigned_name = name
+	code = new_code
