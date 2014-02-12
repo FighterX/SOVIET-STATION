@@ -243,7 +243,8 @@
 		location.hotspot_expose(700, 5)
 
 
-/obj/item/weapon/weldingtool/afterattack(obj/O as obj, mob/user as mob)
+/obj/item/weapon/weldingtool/afterattack(obj/O as obj, mob/user as mob, proximity)
+	if(!proximity) return
 	if (istype(O, /obj/structure/reagent_dispensers/fueltank) && get_dist(src,O) <= 1 && !src.welding)
 		O.reagents.trans_to(src, max_fuel)
 		user << "\blue Welder refueled"
@@ -405,7 +406,6 @@
 	m_amt = 70
 	g_amt = 120
 	origin_tech = "engineering=4;plasma=3"
-	icon_state = "ewelder"
 	var/last_gen = 0
 
 
@@ -449,12 +449,12 @@
 		if(S.brute_dam)
 			S.heal_damage(15,0,0,1)
 			if(user != M)
-				user.visible_message("\red You patch some dents on \the [M]'s [S.display_name]",\
-				"\red \The [user] patches some dents on \the [M]'s [S.display_name] with \the [src]",\
+				user.visible_message("\red \The [user] patches some dents on \the [M]'s [S.display_name] with \the [src]",\
+				"\red You patch some dents on \the [M]'s [S.display_name]",\
 				"You hear a welder.")
 			else
-				user.visible_message("\red You patch some dents on your [S.display_name]",\
-				"\red \The [user] patches some dents on their [S.display_name] with \the [src]",\
+				user.visible_message("\red \The [user] patches some dents on their [S.display_name] with \the [src]",\
+				"\red You patch some dents on your [S.display_name]",\
 				"You hear a welder.")
 		else
 			user << "Nothing to fix!"

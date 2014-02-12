@@ -20,7 +20,7 @@
 	changelog_hash = md5('html/changelog.html')					//used for telling if the changelog has changed recently
 
 	if(byond_version < RECOMMENDED_VERSION)
-		world.log << "Your server's byond version does not meet the recommended requirements for TGstation code. Please update BYOND"
+		world.log << "Your server's byond version does not meet the recommended requirements for this server. Please update BYOND"
 
 	make_datum_references_lists()	//initialises global lists for referencing frequently used datums (so that we only ever do it once)
 
@@ -60,9 +60,9 @@
 		world.log << "Feedback database connection established."
 
 	if(!setup_old_database_connection())
-		world.log << "Your server failed to establish a connection with the tgstation database."
+		world.log << "Your server failed to establish a connection with the SQL database."
 	else
-		world.log << "Tgstation database connection established."
+		world.log << "SQL database connection established."
 
 	plmaster = new /obj/effect/overlay()
 	plmaster.icon = 'icons/effects/tile_effects.dmi'
@@ -81,6 +81,8 @@
 	. = ..()
 
 	sleep_offline = 1
+
+	send2mainirc("Server starting up on [config.server? "byond://[config.server]" : "byond://[world.address]:[world.port]"]")
 
 	master_controller = new /datum/controller/game_controller()
 	spawn(1)
@@ -308,6 +310,7 @@ proc/setup_database_connection()
 		failed_db_connections = 0	//If this connection succeeded, reset the failed connections counter.
 	else
 		failed_db_connections++		//If it failed, increase the failed connections counter.
+		world.log << dbcon.ErrorMsg()
 
 	return .
 
@@ -345,6 +348,7 @@ proc/setup_old_database_connection()
 		failed_old_db_connections = 0	//If this connection succeeded, reset the failed connections counter.
 	else
 		failed_old_db_connections++		//If it failed, increase the failed connections counter.
+		world.log << dbcon.ErrorMsg()
 
 	return .
 

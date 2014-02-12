@@ -18,21 +18,6 @@ datum/borrowbook // Datum used to keep track of who has borrowed what when and f
 	var/duedate
 
 /*
- * Book_entry datum
- */
-datum/book_entry	//Used to keep track of every book
-	var/uploader
-	var/title
-	var/author
-	var/contents
-	var/category
-	var/id			//Not really useful,but fail-safe
-
-var/global/list/book_db=list()				//The database itself
-var/global/list/toshow=list()		//All the settings
-//Sadly,these must be global
-
-/*
  * Library Public Computer
  */
 /obj/machinery/librarypubliccomp
@@ -42,33 +27,39 @@ var/global/list/toshow=list()		//All the settings
 	anchored = 1
 	density = 1
 	var/screenstate = 0
-	var/title=""	//Any title
+	var/title
 	var/category = "Any"
-	var/author=""	//Any author
+	var/author
+	var/SQLquery
 
 /obj/machinery/librarypubliccomp/attack_hand(var/mob/user as mob)
 	usr.set_machine(src)
 	var/dat = "<HEAD><TITLE>Library Visitor</TITLE></HEAD><BODY>\n" // <META HTTP-EQUIV='Refresh' CONTENT='10'>
 	switch(screenstate)
 		if(0)
-			dat += "<h2>Search Settings</h2><br>"
-			dat += "<A href='?src=\ref[src];settitle=1'>Filter by Title: [title]</A><BR>"
-			dat += "<A href='?src=\ref[src];setcategory=1'>Filter by Category: [category]</A><BR>"
-			dat += "<A href='?src=\ref[src];setauthor=1'>Filter by Author: [author]</A><BR>"
-			dat += "<A href='?src=\ref[src];search=1'>\[Start Search\]</A><BR>"
+			dat += {"<h2>Search Settings</h2><br>
+			<A href='?src=\ref[src];settitle=1'>Filter by Title: [title]</A><BR>
+			<A href='?src=\ref[src];setcategory=1'>Filter by Category: [category]</A><BR>
+			<A href='?src=\ref[src];setauthor=1'>Filter by Author: [author]</A><BR>
+			<A href='?src=\ref[src];search=1'>\[Start Search\]</A><BR>"}
 		if(1)
-			if (book_db.len==0)
-				dat += "<font color=red><b>ERROR</b>: External Archive is empty.</font><BR>"
+			establish_old_db_connection()
+			if(!dbcon_old.IsConnected())
+				dat += "<font color=red><b>ERROR</b>: Unable to contact External Archive. Please contact your system administrator for assistance.</font><BR>"
+			else if(!SQLquery)
+				dat += "<font color=red><b>ERROR</b>: Malformed search request. Please contact your system administrator for assistance.</font><BR>"
 			else
-				dat += "<table>"
-				dat += "<tr><td>AUTHOR</td><td>TITLE</td><td>CATEGORY</td><td>SS<sup>13</sup>BN</td></tr>"
+				dat += {"<table>
+				<tr><td>AUTHOR</td><td>TITLE</td><td>CATEGORY</td><td>SS<sup>13</sup>BN</td></tr>"}
 
-				for(var/datum/book_entry/newbook in toshow)
-					var/title = newbook.title
-					var/author = newbook.author
-					var/category = newbook.category
-					var/id = newbook.id
+				var/DBQuery/query = dbcon_old.NewQuery(SQLquery)
+				query.Execute()
 
+				while(query.NextRow())
+					var/author = query.item[1]
+					var/title = query.item[2]
+					var/category = query.item[3]
+					var/id = query.item[4]
 					dat += "<tr><td>[author]</td><td>[title]</td><td>[category]</td><td>[id]</td></tr>"
 				dat += "</table><BR>"
 			dat += "<A href='?src=\ref[src];back=1'>\[Go Back\]</A><BR>"
@@ -84,31 +75,30 @@ var/global/list/toshow=list()		//All the settings
 	if(href_list["settitle"])
 		var/newtitle = input("Enter a title to search for:") as text|null
 		if(newtitle)
-			title = newtitle	//Sanitize doesn't work for Cyrillics
+			title = sanitize(newtitle)
 		else
-			title = ""
+			title = null
+		title = sanitizeSQL(title)
 	if(href_list["setcategory"])
 		var/newcategory = input("Choose a category to search for:") in list("Any", "Fiction", "Non-Fiction", "Adult", "Reference", "Religion")
-		if(newcategory)			//category = sanitize(newcategory)	//Doesn't make sense.Categories are pre-defined
-			category = newcategory
+		if(newcategory)
+			category = sanitize(newcategory)
 		else
 			category = "Any"
+		category = sanitizeSQL(category)
 	if(href_list["setauthor"])
 		var/newauthor = input("Enter an author to search for:") as text|null
 		if(newauthor)
-			author = newauthor
+			author = sanitize(newauthor)
 		else
-			author = ""
+			author = null
+		author = sanitizeSQL(author)
 	if(href_list["search"])
-		toshow=list()
+		SQLquery = "SELECT author, title, category, id FROM library WHERE "
 		if(category == "Any")
-			for(var/datum/book_entry/newbook in book_db)
-				if(findtext(newbook.author,author)>0 && findtext(newbook.title,title)>0)	//Check if our book variables CONTAIN these
-					toshow+=newbook
+			SQLquery += "author LIKE '%[author]%' AND title LIKE '%[title]%'"
 		else
-			for(var/datum/book_entry/newbook in book_db)
-				if(findtext(newbook.author,author)>0 && findtext(newbook.title,title)>0 && newbook.category==category)	//Categories are pre-defined,so it's meaningless to search for them
-					toshow+=newbook
+			SQLquery += "author LIKE '%[author]%' AND title LIKE '%[title]%' AND category='[category]'"
 		screenstate = 1
 
 	if(href_list["back"])
@@ -142,71 +132,18 @@ var/global/list/toshow=list()		//All the settings
 
 	var/bibledelay = 0 // LOL NO SPAM (1 minute delay) -- Doohl
 
-/obj/machinery/librarycomp/proc/update_data()
-	book_db=list()		//We have to deal with multiple computers,so only the last one will actualy update the database
-	toshow=list()
-	var/book_ids=new/savefile("libbooks/ids.sav")
-	var/ids
-	book_ids["id"]>>ids
-	if(ids!=null && ids>0)
-		for(var/c=1,c<=ids,c++)
-			var/datum/book_entry/newbook=new()
-			var/book=new/savefile("libbooks/books/[c]_book.sav")
-			newbook.uploader=book["uploader"]
-			newbook.author=book["author"]
-			newbook.title=book["title"]
-			newbook.category=book["cat"]
-			newbook.contents=book["contents"]
-			newbook.id=c
-			book_db+=newbook
-		toshow=book_db.Copy()
-	else
-		book_ids["id"]<<0
-
-/obj/machinery/librarycomp/New()
-	..()
-	update_data()
-
-/obj/machinery/librarycomp/proc/add_book(author,title,category,contents,uploader)
-	var/book=new/savefile("libbooks/books/[book_db.len+1]_book.sav")
-	var/datum/book_entry/newbook=new()
-	newbook.uploader=uploader
-	newbook.author=author
-	newbook.title=title
-	newbook.category=category
-	newbook.contents=contents
-	newbook.id=book_db.len+1
-	book["uploader"]=uploader
-	book["author"]=author
-	book["title"]=title
-	book["cat"]=category
-	book["contents"]=contents
-	//var/list/newbook=list(uploader,title,author,category,contents)
-	//book_db+=newbook
-	book_db+=newbook
-	var/book_ids=new/savefile("libbooks/ids.sav")
-	book_ids["id"]<<book_db.len
-	/*
-	book_db+=list()
-	book_db[book_db.len][1]=uploader
-	book_db[book_db.len][2]=title
-	book_db[book_db.len][3]=author
-	book_db[book_db.len][4]=category
-	book_db[book_db.len][5]=contents
-	*/
-
 /obj/machinery/librarycomp/attack_hand(var/mob/user as mob)
 	usr.set_machine(src)
 	var/dat = "<HEAD><TITLE>Book Inventory Management</TITLE></HEAD><BODY>\n" // <META HTTP-EQUIV='Refresh' CONTENT='10'>
 	switch(screenstate)
 		if(0)
 			// Main Menu
-			dat += "<A href='?src=\ref[src];switchscreen=1'>1. View General Inventory</A><BR>"
-			dat += "<A href='?src=\ref[src];switchscreen=2'>2. View Checked Out Inventory</A><BR>"
-			dat += "<A href='?src=\ref[src];switchscreen=3'>3. Check out a Book</A><BR>"
-			dat += "<A href='?src=\ref[src];switchscreen=4'>4. Connect to External Archive</A><BR>"
-			dat += "<A href='?src=\ref[src];switchscreen=5'>5. Upload New Title to Archive</A><BR>"
-			dat += "<A href='?src=\ref[src];switchscreen=6'>6. Print a Bible</A><BR>"
+			dat += {"<A href='?src=\ref[src];switchscreen=1'>1. View General Inventory</A><BR>
+			<A href='?src=\ref[src];switchscreen=2'>2. View Checked Out Inventory</A><BR>
+			<A href='?src=\ref[src];switchscreen=3'>3. Check out a Book</A><BR>
+			<A href='?src=\ref[src];switchscreen=4'>4. Connect to External Archive</A><BR>
+			<A href='?src=\ref[src];switchscreen=5'>5. Upload New Title to Archive</A><BR>
+			<A href='?src=\ref[src];switchscreen=6'>6. Print a Bible</A><BR>"}
 			if(src.emagged)
 				dat += "<A href='?src=\ref[src];switchscreen=7'>7. Access the Forbidden Lore Vault</A><BR>"
 			if(src.arcanecheckout)
@@ -235,36 +172,41 @@ var/global/list/toshow=list()		//All the settings
 					timedue = "<font color=red><b>(OVERDUE)</b> [timedue]</font>"
 				else
 					timedue = round(timedue)
-				dat += "\"[b.bookname]\", Checked out to: [b.mobname]<BR>--- Taken: [timetaken] minutes ago, Due: in [timedue] minutes<BR>"
-				dat += "<A href='?src=\ref[src];checkin=\ref[b]'>(Check In)</A><BR><BR>"
+				dat += {"\"[b.bookname]\", Checked out to: [b.mobname]<BR>--- Taken: [timetaken] minutes ago, Due: in [timedue] minutes<BR>
+				<A href='?src=\ref[src];checkin=\ref[b]'>(Check In)</A><BR><BR>"}
 			dat += "<A href='?src=\ref[src];switchscreen=0'>(Return to main menu)</A><BR>"
 		if(3)
 			// Check Out a Book
-			dat += "<h3>Check Out a Book</h3><BR>"
-			dat += "Book: [src.buffer_book] "
-			dat += "<A href='?src=\ref[src];editbook=1'>\[Edit\]</A><BR>"
-			dat += "Recipient: [src.buffer_mob] "
-			dat += "<A href='?src=\ref[src];editmob=1'>\[Edit\]</A><BR>"
-			dat += "Checkout Date : [world.time/600]<BR>"
-			dat += "Due Date: [(world.time + checkoutperiod)/600]<BR>"
-			dat += "(Checkout Period: [checkoutperiod] minutes) (<A href='?src=\ref[src];increasetime=1'>+</A>/<A href='?src=\ref[src];decreasetime=1'>-</A>)"
-			dat += "<A href='?src=\ref[src];checkout=1'>(Commit Entry)</A><BR>"
-			dat += "<A href='?src=\ref[src];switchscreen=0'>(Return to main menu)</A><BR>"
+			dat += {"<h3>Check Out a Book</h3><BR>
+			Book: [src.buffer_book]
+			<A href='?src=\ref[src];editbook=1'>\[Edit\]</A><BR>
+			Recipient: [src.buffer_mob]
+			<A href='?src=\ref[src];editmob=1'>\[Edit\]</A><BR>
+			Checkout Date : [world.time/600]<BR>
+			Due Date: [(world.time + checkoutperiod)/600]<BR>
+			(Checkout Period: [checkoutperiod] minutes) (<A href='?src=\ref[src];increasetime=1'>+</A>/<A href='?src=\ref[src];decreasetime=1'>-</A>)
+			<A href='?src=\ref[src];checkout=1'>(Commit Entry)</A><BR>
+			<A href='?src=\ref[src];switchscreen=0'>(Return to main menu)</A><BR>"}
 		if(4)
 			dat += "<h3>External Archive</h3>"
-			if(book_db.len>0)
-				dat += "<A href='?src=\ref[src];orderbyid=1'>(Order book by SS<sup>13</sup>BN)</A><BR><BR>"
-				dat += "<table>"
-				dat += "<tr><td>AUTHOR</td><td>TITLE</td><td>CATEGORY</td><td></td></tr>"
-
-				for(var/datum/book_entry/b in book_db)
-					var/title = b.title
-					var/author = b.author
-					var/category = b.category
-					dat += "<tr><td>[author]</td><td>[title]</td><td>[category]</td><td><A href='?src=\ref[src];targetid=[b.id]'>\[Order\]</A></td></tr>"
-				dat += "</table>"
+			establish_old_db_connection()
+			if(!dbcon_old.IsConnected())
+				dat += "<font color=red><b>ERROR</b>: Unable to contact External Archive. Please contact your system administrator for assistance.</font>"
 			else
-				dat += "<font color=red><b>ERROR</b>: External Archive is empty.</font>"
+				dat += {"<A href='?src=\ref[src];orderbyid=1'>(Order book by SS<sup>13</sup>BN)</A><BR><BR>
+				<table>
+				<tr><td>AUTHOR</td><td>TITLE</td><td>CATEGORY</td><td></td></tr>"}
+
+				var/DBQuery/query = dbcon_old.NewQuery("SELECT id, author, title, category FROM library")
+				query.Execute()
+
+				while(query.NextRow())
+					var/id = query.item[1]
+					var/author = query.item[2]
+					var/title = query.item[3]
+					var/category = query.item[4]
+					dat += "<tr><td>[author]</td><td>[title]</td><td>[category]</td><td><A href='?src=\ref[src];targetid=[id]'>\[Order\]</A></td></tr>"
+				dat += "</table>"
 			dat += "<BR><A href='?src=\ref[src];switchscreen=0'>(Return to main menu)</A><BR>"
 		if(5)
 			dat += "<H3>Upload a New Title</H3>"
@@ -277,19 +219,19 @@ var/global/list/toshow=list()		//All the settings
 			else if(!scanner.cache)
 				dat += "<FONT color=red>No data found in scanner memory.</FONT><BR>"
 			else
-				dat += "<TT>Data marked for upload...</TT><BR>"
-				dat += "<TT>Title: </TT>[scanner.cache.name]<BR>"
+				dat += {"<TT>Data marked for upload...</TT><BR>
+				<TT>Title: </TT>[scanner.cache.name]<BR>"}
 				if(!scanner.cache.author)
 					scanner.cache.author = "Anonymous"
-				dat += "<TT>Author: </TT><A href='?src=\ref[src];setauthor=1'>[scanner.cache.author]</A><BR>"
-				dat += "<TT>Category: </TT><A href='?src=\ref[src];setcategory=1'>[upload_category]</A><BR>"
-				dat += "<A href='?src=\ref[src];upload=1'>\[Upload\]</A><BR>"
+				dat += {"<TT>Author: </TT><A href='?src=\ref[src];setauthor=1'>[scanner.cache.author]</A><BR>
+				<TT>Category: </TT><A href='?src=\ref[src];setcategory=1'>[upload_category]</A><BR>
+				<A href='?src=\ref[src];upload=1'>\[Upload\]</A><BR>"}
 			dat += "<A href='?src=\ref[src];switchscreen=0'>(Return to main menu)</A><BR>"
 		if(7)
-			dat += "<h3>Accessing Forbidden Lore Vault v 1.3</h3>"
-			dat += "Are you absolutely sure you want to proceed? EldritchTomes Inc. takes no responsibilities for loss of sanity resulting from this action.<p>"
-			dat += "<A href='?src=\ref[src];arccheckout=1'>Yes.</A><BR>"
-			dat += "<A href='?src=\ref[src];switchscreen=0'>No.</A><BR>"
+			dat += {"<h3>Accessing Forbidden Lore Vault v 1.3</h3>
+			Are you absolutely sure you want to proceed? EldritchTomes Inc. takes no responsibilities for loss of sanity resulting from this action.<p>
+			<A href='?src=\ref[src];arccheckout=1'>Yes.</A><BR>
+			<A href='?src=\ref[src];switchscreen=0'>No.</A><BR>"}
 
 	//dat += "<A HREF='?src=\ref[user];mach_close=library'>Close</A><br><br>"
 	user << browse(dat, "window=library")
@@ -387,10 +329,32 @@ var/global/list/toshow=list()		//All the settings
 			if(scanner.cache)
 				var/choice = input("Are you certain you wish to upload this title to the Archive?") in list("Confirm", "Abort")
 				if(choice == "Confirm")
-					add_book(scanner.cache.author,scanner.cache.name,upload_category,scanner.cache.dat,usr.key)
-					log_game("[usr.name]/[usr.key] has uploaded the book titled [scanner.cache.name], [length(scanner.cache.dat)] signs")
-					alert("Upload Complete.")
+					establish_old_db_connection()
+					if(!dbcon_old.IsConnected())
+						alert("Connection to Archive has been severed. Aborting.")
+					else
+						/*
+						var/sqltitle = dbcon.Quote(scanner.cache.name)
+						var/sqlauthor = dbcon.Quote(scanner.cache.author)
+						var/sqlcontent = dbcon.Quote(scanner.cache.dat)
+						var/sqlcategory = dbcon.Quote(upload_category)
+						*/
+						var/sqltitle = sanitizeSQL(scanner.cache.name)
+						var/sqlauthor = sanitizeSQL(scanner.cache.author)
+						var/sqlcontent = sanitizeSQL(scanner.cache.dat)
+						var/sqlcategory = sanitizeSQL(upload_category)
+						var/DBQuery/query = dbcon_old.NewQuery("INSERT INTO library (author, title, content, category) VALUES ('[sqlauthor]', '[sqltitle]', '[sqlcontent]', '[sqlcategory]')")
+						if(!query.Execute())
+							usr << query.ErrorMsg()
+						else
+							log_game("[usr.name]/[usr.key] has uploaded the book titled [scanner.cache.name], [length(scanner.cache.dat)] signs")
+							alert("Upload Complete.")
+
 	if(href_list["targetid"])
+		var/sqlid = sanitizeSQL(href_list["targetid"])
+		establish_old_db_connection()
+		if(!dbcon_old.IsConnected())
+			alert("Connection to Archive has been severed. Aborting.")
 		if(bibledelay)
 			for (var/mob/V in hearers(src))
 				V.show_message("<b>[src]</b>'s monitor flashes, \"Printer unavailable. Please allow a short time before attempting to print.\"")
@@ -398,16 +362,21 @@ var/global/list/toshow=list()		//All the settings
 			bibledelay = 1
 			spawn(60)
 				bibledelay = 0
-			var/id=text2num(href_list["targetid"])
-			var/datum/book_entry/newbook=book_db[id]
-			var/obj/item/weapon/book/B = new(src.loc)
-			B.name = "[newbook.title]"
-			B.title = newbook.title
-			B.author = newbook.author
-			B.dat =	newbook.contents
-			B.icon_state = "book[rand(1,7)]"
-			src.visible_message("[src]'s printer hums as it produces a completely bound book. How did it do that?")
-					//break
+			var/DBQuery/query = dbcon_old.NewQuery("SELECT * FROM library WHERE id=[sqlid]")
+			query.Execute()
+
+			while(query.NextRow())
+				var/author = query.item[2]
+				var/title = query.item[3]
+				var/content = query.item[4]
+				var/obj/item/weapon/book/B = new(src.loc)
+				B.name = "Book: [title]"
+				B.title = title
+				B.author = author
+				B.dat = content
+				B.icon_state = "book[rand(1,7)]"
+				src.visible_message("[src]'s printer hums as it produces a completely bound book. How did it do that?")
+				break
 	if(href_list["orderbyid"])
 		var/orderid = input("Enter your order:") as num|null
 		if(orderid)
@@ -428,16 +397,11 @@ var/global/list/toshow=list()		//All the settings
 	anchored = 1
 	density = 1
 	var/obj/item/weapon/book/cache		// Last scanned book
-	var/loaded = 0
 
 /obj/machinery/libraryscanner/attackby(var/obj/O as obj, var/mob/user as mob)
 	if(istype(O, /obj/item/weapon/book))
-		if(loaded == 0)
-			user.drop_item()
-			O.loc = src
-			loaded = 1
-		else
-			user<<"<font color=red>There is a book already</font>"
+		user.drop_item()
+		O.loc = src
 
 /obj/machinery/libraryscanner/attack_hand(var/mob/user as mob)
 	usr.set_machine(src)
@@ -469,7 +433,6 @@ var/global/list/toshow=list()		//All the settings
 	if(href_list["eject"])
 		for(var/obj/item/weapon/book/B in contents)
 			B.loc = src.loc
-			loaded = 0
 	src.add_fingerprint(usr)
 	src.updateUsrDialog()
 	return

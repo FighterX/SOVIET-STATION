@@ -55,7 +55,6 @@
 	var/disabilities = 0	//Carbon
 	var/atom/movable/pulling = null
 	var/next_move = null
-	var/prev_move = null
 	var/monkeyizing = null	//Carbon
 	var/other = 0.0
 	var/hand = null
@@ -69,6 +68,7 @@
 	var/flavor_text = ""
 	var/med_record = ""
 	var/sec_record = ""
+	var/gen_record = ""
 	var/blinded = null
 	var/bhunger = 0			//Carbon
 	var/ajourn = 0
@@ -85,6 +85,10 @@
 	var/lastpuke = 0
 	var/unacidable = 0
 	var/small = 0
+	var/list/pinned = list()            //List of things pinning this creature to walls (see living_defense.dm)
+	var/list/embedded = list()          //Embedded items, since simple mobs don't have organs.
+	var/list/languages = list()         // For speaking/listening.
+	var/list/speak_emote = list("says") //Verbs used when speaking. Defaults to 'say' if speak_emote is null.
 
 	var/name_archive //For admin things like possession
 
@@ -111,7 +115,6 @@
 	var/a_intent = "help"//Living
 	var/m_int = null//Living
 	var/m_intent = "run"//Living
-	var/lastDblClick = 0
 	var/lastKnownIP = null
 	var/obj/structure/stool/bed/buckled = null//Living
 	var/obj/item/l_hand = null//Living
@@ -152,8 +155,6 @@
 	//see: setup.dm for list of mutations
 
 	var/voice_name = "unidentifiable voice"
-	var/voice_message = null // When you are not understood by others (replaced with just screeches, hisses, chimpers etc.)
-	var/say_message = null // When you are understood by others. Currently only used by aliens and monkeys in their say_quote procs
 
 	var/faction = "neutral" //Used for checking whether hostile simple animals will attack you, possibly more stuff later
 
@@ -206,14 +207,13 @@
 
 	//Whether or not mobs can understand other mobtypes. These stay in /mob so that ghosts can hear everything.
 	var/universal_speak = 0 // Set to 1 to enable the mob to speak to everyone -- TLE
+	var/universal_understand = 0 // Set to 1 to enable the mob to understand everyone, not necessarily speak
 	var/robot_talk_understand = 0
 	var/alien_talk_understand = 0
-	var/tajaran_talk_understand = 0
-	var/soghun_talk_understand = 0
-	var/skrell_talk_understand = 0
-	var/vox_talk_understand = 0
 
 	var/has_limbs = 1 //Whether this mob have any limbs he can move with
 	var/can_stand = 1 //Whether this mob have ability to stand
 
 	var/immune_to_ssd = 0
+
+	var/turf/listed_turf = null  //the current turf being examined in the stat panel

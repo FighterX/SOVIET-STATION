@@ -54,6 +54,14 @@
 /*
  * ID CARDS
  */
+
+/obj/item/weapon/card/emag_broken
+	desc = "It's a card with a magnetic strip attached to some circuitry. It looks too busted to be used for anything but salvage."
+	name = "broken cryptographic sequencer"
+	icon_state = "emag"
+	item_state = "card-id"
+	origin_tech = "magnets=2;syndicate=2"
+
 /obj/item/weapon/card/emag
 	desc = "It's a card with a magnetic strip attached to some circuitry."
 	name = "cryptographic sequencer"
@@ -61,6 +69,57 @@
 	item_state = "card-id"
 	origin_tech = "magnets=2;syndicate=2"
 	var/uses = 10
+	// List of devices that cost a use to emag.
+	var/list/devices = list(
+		/obj/item/robot_parts,
+		/obj/item/weapon/storage/lockbox,
+		/obj/item/weapon/storage/secure,
+		/obj/item/weapon/circuitboard,
+		/obj/item/device/eftpos,
+		/obj/item/device/lightreplacer,
+		/obj/item/device/taperecorder,
+		/obj/item/device/hailer,
+		/obj/item/device/megaphone,
+		/obj/item/clothing/tie/holobadge,
+		/obj/structure/closet/crate/secure,
+		/obj/structure/closet/secure_closet,
+		/obj/machinery/librarycomp,
+		/obj/machinery/computer,
+		/obj/machinery/power,
+		/obj/machinery/suspension_gen,
+		/obj/machinery/shield_capacitor,
+		/obj/machinery/shield_gen,
+		/obj/machinery/zero_point_emitter,
+		/obj/machinery/clonepod,
+		/obj/machinery/deployable,
+		/obj/machinery/door_control,
+		/obj/machinery/porta_turret,
+		/obj/machinery/shieldgen,
+		/obj/machinery/turretid,
+		/obj/machinery/vending,
+		/obj/machinery/bot,
+		/obj/machinery/door,
+		/obj/machinery/telecomms,
+		/obj/machinery/mecha_part_fabricator
+		)
+
+
+/obj/item/weapon/card/emag/afterattack(var/obj/item/weapon/O as obj, mob/user as mob)
+
+	for(var/type in devices)
+		if(istype(O,type))
+			uses--
+			break
+
+	if(uses<1)
+		user.visible_message("[src] fizzles and sparks - it seems it's been used once too often, and is now broken.")
+		user.drop_item()
+		var/obj/item/weapon/card/emag_broken/junk = new(user.loc)
+		junk.add_fingerprint(user)
+		del(src)
+		return
+
+	..()
 
 /obj/item/weapon/card/id
 	name = "identification card"
@@ -68,7 +127,7 @@
 	icon_state = "id"
 	item_state = "card-id"
 	var/access = list()
-	var/registered_name = null // The name registered_name on the card
+	var/registered_name = "Unknown" // The name registered_name on the card
 	slot_flags = SLOT_ID
 
 	var/blood_type = "\[UNSET\]"
@@ -101,6 +160,17 @@
 /obj/item/weapon/card/id/GetID()
 	return src
 
+/obj/item/weapon/card/id/attackby(obj/item/weapon/W as obj, mob/user as mob)
+	..()
+	if(istype(W,/obj/item/weapon/id_wallet))
+		user << "You slip [src] into [W]."
+		src.name = "[src.registered_name]'s [W.name] ([src.assignment])"
+		src.desc = W.desc
+		src.icon = W.icon
+		src.icon_state = W.icon_state
+		del(W)
+		return
+
 /obj/item/weapon/card/id/verb/read()
 	set name = "Read ID Card"
 	set category = "Object"
@@ -129,15 +199,25 @@
 	name = "agent card"
 	access = list(access_maint_tunnels, access_syndicate, access_external_airlocks)
 	origin_tech = "syndicate=3"
+	var/registered_user=null
+	
+/obj/item/weapon/card/id/syndicate/New(mob/user as mob)
+	..()
+	if(!isnull(user)) // Runtime prevention on laggy starts or where users log out because of lag at round start.
+		registered_name = ishuman(user) ? user.real_name : user.name
+	else
+		registered_name = "Agent Card"
+	assignment = "Agent"
+	name = "[registered_name]'s ID Card ([assignment])"		
 
-/obj/item/weapon/card/id/syndicate/afterattack(var/obj/item/weapon/O as obj, mob/user as mob)
+/obj/item/weapon/card/id/syndicate/afterattack(var/obj/item/weapon/O as obj, mob/user as mob, proximity)
+	if(!proximity) return
 	if(istype(O, /obj/item/weapon/card/id))
 		var/obj/item/weapon/card/id/I = O
 		src.access |= I.access
 		if(istype(user, /mob/living) && user.mind)
 			if(user.mind.special_role)
 				usr << "\blue The card's microscanners activate as you pass it over the ID, copying its access."
-
 
 /obj/item/weapon/card/id/syndicate/attack_self(mob/user as mob)
 	if(!src.registered_name)
@@ -148,7 +228,7 @@
 			return
 		src.registered_name = t
 
-		var u = copytext(sanitize(input(user, "What occupation would you like to put on this card?\nNote: This will not grant any access levels other than Maintenance.", "Agent card job assignment", "Assistant")),1,MAX_MESSAGE_LEN)
+		var u = copytext(sanitize(input(user, "What occupation would you like to put on this card?\nNote: This will not grant any access levels other than Maintenance.", "Agent card job assignment", "Agent")),1,MAX_MESSAGE_LEN)
 		if(!u)
 			alert("Invalid assignment.")
 			src.registered_name = ""
@@ -156,8 +236,33 @@
 		src.assignment = u
 		src.name = "[src.registered_name]'s ID Card ([src.assignment])"
 		user << "\blue You successfully forge the ID card."
+		registered_user = user
+	else if(!registered_user || registered_user == user)
+
+		if(!registered_user) registered_user = user  // 
+
+		switch(alert("Would you like to display the ID, or retitle it?","Choose.","Rename","Show"))
+			if("Rename")
+				var t = copytext(sanitize(input(user, "What name would you like to put on this card?", "Agent card name", ishuman(user) ? user.real_name : user.name)),1,26)
+				if(!t || t == "Unknown" || t == "floor" || t == "wall" || t == "r-wall") //Same as mob/new_player/prefrences.dm
+					alert("Invalid name.")
+					return
+				src.registered_name = t
+
+				var u = copytext(sanitize(input(user, "What occupation would you like to put on this card?\nNote: This will not grant any access levels other than Maintenance.", "Agent card job assignment", "Assistant")),1,MAX_MESSAGE_LEN)
+				if(!u)
+					alert("Invalid assignment.")
+					return
+				src.assignment = u
+				src.name = "[src.registered_name]'s ID Card ([src.assignment])"
+				user << "\blue You successfully forge the ID card."
+				return
+			if("Show")
+				..()
 	else
 		..()
+
+
 
 /obj/item/weapon/card/id/syndicate_command
 	name = "syndicate ID card"
@@ -177,17 +282,6 @@
 		var/datum/job/captain/J = new/datum/job/captain
 		access = J.get_access()
 		..()
-
-/obj/item/weapon/card/id/soviet_maximum
-    name = "strange card"
-    desc = "A card, with Soviet Symvols"
-    icon_state = "sovietid"
-    item_state = "soviet_id"
-    assignment = "Soviet Leader"
-    New()
-        var/datum/job/captain/J = new/datum/job/captain
-        access = J.get_access()
-        ..()
 
 /obj/item/weapon/card/id/centcom
 	name = "\improper CentCom. ID"

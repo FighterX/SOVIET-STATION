@@ -25,75 +25,6 @@
 	flags = TABLEPASS
 	w_class = 3.0
 
-
-/obj/item/weapon/spacecash
-	name = "1 credit chip"
-	desc = "It's worth 1 credit."
-	gender = PLURAL
-	icon = 'icons/obj/items.dmi'
-	icon_state = "spacecash"
-	opacity = 0
-	density = 0
-	anchored = 0.0
-	force = 1.0
-	throwforce = 1.0
-	throw_speed = 1
-	throw_range = 2
-	w_class = 1.0
-	var/access = list()
-	access = access_crate_cash
-	var/worth = 1
-
-/obj/item/weapon/spacecash/c10
-	name = "10 credit chip"
-	icon_state = "spacecash10"
-	access = access_crate_cash
-	desc = "It's worth 10 credits."
-	worth = 10
-
-/obj/item/weapon/spacecash/c20
-	name = "20 credit chip"
-	icon_state = "spacecash20"
-	access = access_crate_cash
-	desc = "It's worth 20 credits."
-	worth = 20
-
-/obj/item/weapon/spacecash/c50
-	name = "50 credit chip"
-	icon_state = "spacecash50"
-	access = access_crate_cash
-	desc = "It's worth 50 credits."
-	worth = 50
-
-/obj/item/weapon/spacecash/c100
-	name = "100 credit chip"
-	icon_state = "spacecash100"
-	access = access_crate_cash
-	desc = "It's worth 100 credits."
-	worth = 100
-
-/obj/item/weapon/spacecash/c200
-	name = "200 credit chip"
-	icon_state = "spacecash200"
-	access = access_crate_cash
-	desc = "It's worth 200 credits."
-	worth = 200
-
-/obj/item/weapon/spacecash/c500
-	name = "500 credit chip"
-	icon_state = "spacecash500"
-	access = access_crate_cash
-	desc = "It's worth 500 credits."
-	worth = 500
-
-/obj/item/weapon/spacecash/c1000
-	name = "1000 credit chip"
-	icon_state = "spacecash1000"
-	access = access_crate_cash
-	desc = "It's worth 1000 credits."
-	worth = 1000
-
-
 /obj/item/weapon/bananapeel
 	name = "banana peel"
 	desc = "A peel from a banana."
@@ -187,20 +118,6 @@
 	icon_state = "nucleardisk"
 	item_state = "card-id"
 	w_class = 1.0
-
-//TODO: Figure out wtf this is and possibly remove it -Nodrak
-/obj/item/weapon/dummy
-	name = "dummy"
-	invisibility = 101.0
-	anchored = 1.0
-	flags = TABLEPASS
-
-/obj/item/weapon/dummy/ex_act()
-	return
-
-/obj/item/weapon/dummy/blob_act()
-	return
-
 
 /*
 /obj/item/weapon/game_kit
@@ -310,10 +227,11 @@
 	name = "shard"
 	icon = 'icons/obj/shards.dmi'
 	icon_state = "large"
+	sharp = 1
 	desc = "Could probably be used as ... a throwing weapon?"
 	w_class = 1.0
 	force = 5.0
-	throwforce = 15.0
+	throwforce = 8.0
 	item_state = "shard-glass"
 	g_amt = 3750
 	attack_verb = list("stabbed", "slashed", "sliced", "cut")
@@ -345,6 +263,28 @@
 	throw_range = 20
 	m_amt = 100
 	origin_tech = "magnets=2;syndicate=3"*/
+
+/obj/item/weapon/shard/shrapnel
+	name = "shrapnel"
+	icon = 'icons/obj/shards.dmi'
+	icon_state = "shrapnellarge"
+	desc = "A bunch of tiny bits of shattered metal."
+
+/obj/item/weapon/shard/shrapnel/New()
+
+	src.icon_state = pick("shrapnellarge", "shrapnelmedium", "shrapnelsmall")
+	switch(src.icon_state)
+		if("shrapnelsmall")
+			src.pixel_x = rand(-12, 12)
+			src.pixel_y = rand(-12, 12)
+		if("shrapnelmedium")
+			src.pixel_x = rand(-8, 8)
+			src.pixel_y = rand(-8, 8)
+		if("shrapnellarge")
+			src.pixel_x = rand(-5, 5)
+			src.pixel_y = rand(-5, 5)
+		else
+	return
 
 /obj/item/weapon/SWF_uplink
 	name = "station-bounced radio"
@@ -522,7 +462,7 @@
 	icon_state = "hatchet"
 	flags = FPRINT | TABLEPASS | CONDUCT
 	force = 12.0
-	w_class = 1.0
+	w_class = 2.0
 	throwforce = 15.0
 	throw_speed = 4
 	throw_range = 4
@@ -533,6 +473,13 @@
 /obj/item/weapon/hatchet/attack(mob/living/carbon/M as mob, mob/living/carbon/user as mob)
 	playsound(loc, 'sound/weapons/bladeslice.ogg', 50, 1, -1)
 	return ..()
+
+/obj/item/weapon/hatchet/unathiknife
+	name = "duelling knife"
+	desc = "A length of leather-bound wood studded with razor-sharp teeth. How crude."
+	icon = 'icons/obj/weapons.dmi'
+	icon_state = "unathiknife"
+	attack_verb = list("ripped", "torn", "cut")
 
 /obj/item/weapon/scythe
 	icon_state = "scythe0"
@@ -548,7 +495,8 @@
 	origin_tech = "materials=2;combat=2"
 	attack_verb = list("chopped", "sliced", "cut", "reaped")
 
-/obj/item/weapon/scythe/afterattack(atom/A, mob/user as mob)
+/obj/item/weapon/scythe/afterattack(atom/A, mob/user as mob, proximity)
+	if(!proximity) return
 	if(istype(A, /obj/effect/spacevine))
 		for(var/obj/effect/spacevine/B in orange(A,1))
 			if(prob(80))
@@ -582,7 +530,7 @@
 	icon = 'icons/obj/assemblies.dmi'
 	icon_state = "plastic-explosive0"
 	item_state = "plasticx"
-	flags = FPRINT | TABLEPASS | USEDELAY
+	flags = FPRINT | TABLEPASS | NOBLUDGEON
 	w_class = 2.0
 	origin_tech = "syndicate=2"
 	var/timer = 10

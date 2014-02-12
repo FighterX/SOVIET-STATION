@@ -30,6 +30,17 @@
 		T = get_turf(body)				//Where is the body located?
 		attack_log = body.attack_log	//preserve our attack logs by copying them to our ghost
 
+		if (ishuman(body))
+			var/mob/living/carbon/human/H = body
+			icon = H.stand_icon
+			overlays = H.overlays_standing
+		else
+			icon = body.icon
+			icon_state = body.icon_state
+			overlays = body.overlays
+
+		alpha = 127
+
 		gender = body.gender
 		if(body.mind && body.mind.name)
 			name = body.mind.name
@@ -52,6 +63,23 @@
 	real_name = name
 	..()
 
+
+/mob/dead/attackby(obj/item/W, mob/user)
+	if(istype(W,/obj/item/weapon/tome))
+		var/mob/dead/M = src
+		if(src.invisibility != 0)
+			M.invisibility = 0
+			user.visible_message( \
+				"\red [user] drags ghost, [M], to our plan of reality!", \
+				"\red You drag [M] to our plan of reality!" \
+			)
+		else
+			user.visible_message ( \
+				"\red [user] just tried to smash his book into that ghost!  It's not very effective", \
+				"\red You get the feeling that the ghost can't become any more visible." \
+			)
+
+
 /mob/dead/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
 	return 1
 /*
@@ -63,7 +91,7 @@ Works together with spawning an observer, noted above.
 	if(key)
 		var/mob/dead/observer/ghost = new(src)	//Transfer safety to observer spawning proc.
 		ghost.can_reenter_corpse = can_reenter_corpse
-		ghost.timeofdeath = timeofdeath //BS12 EDIT
+		ghost.timeofdeath = src.timeofdeath //BS12 EDIT
 		ghost.key = key
 		return ghost
 
@@ -78,14 +106,16 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	if(stat == DEAD)
 		ghostize(1)
 	else
-		var/response = alert(src, "Are you -sure- you want to ghost?\n(You are alive. If you ghost whilst still alive you may not play again this round! You can't change your mind so choose wisely!!)","Are you sure you want to ghost?","Ghost","Stay in body")
+		var/response = alert(src, "Are you -sure- you want to ghost?\n(You are alive. If you ghost, you won't be able to play this round for another 30 minutes! You can't change your mind so choose wisely!)","Are you sure you want to ghost?","Ghost","Stay in body")
 		if(response != "Ghost")	return	//didn't want to ghost after-all
 		resting = 1
-		ghostize(0)						//0 parameter is so we can never re-enter our body, "Charlie, you can never come baaaack~" :3
+		var/mob/dead/observer/ghost = ghostize(0)						//0 parameter is so we can never re-enter our body, "Charlie, you can never come baaaack~" :3
+		ghost.timeofdeath = world.time // Because the living mob won't have a time of death and we want the respawn timer to work properly.
 	return
 
 
 /mob/dead/observer/Move(NewLoc, direct)
+	dir = direct
 	if(NewLoc)
 		loc = NewLoc
 		for(var/obj/effect/step_trigger/S in NewLoc)
@@ -263,12 +293,20 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	set name = "Become mouse"
 	set category = "Ghost"
 
+	if(config.disable_player_mice)
+		src << "<span class='warning'>Spawning as a mouse is currently disabled.</span>"
+		return
+
 	var/timedifference = world.time - client.time_died_as_mouse
 	if(client.time_died_as_mouse && timedifference <= mouse_respawn_time * 600)
 		var/timedifference_text
 		timedifference_text = time2text(mouse_respawn_time * 600 - timedifference,"mm:ss")
 		src << "<span class='warning'>You may only spawn again as a mouse more than [mouse_respawn_time] minutes after your death. You have [timedifference_text] left.</span>"
 		return
+
+	var/response = alert(src, "Are you -sure- you want to become a mouse?","Are you sure you want to squeek?","Squeek!","Nope!")
+	if(response != "Squeek!") return  //Hit the wrong key...again.
+
 
 	//find a viable mouse candidate
 	var/mob/living/simple_animal/mouse/host
@@ -284,5 +322,17 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		src << "<span class='warning'>Unable to find any unwelded vents to spawn mice at.</span>"
 
 	if(host)
+		if(config.uneducated_mice)
+			host.universal_understand = 0
 		host.ckey = src.ckey
 		host << "<span class='info'>You are now a mouse. Try to avoid interaction with players, and do not give hints away that you are more than a simple rodent.</span>"
+
+/mob/dead/observer/verb/view_manfiest()
+	set name = "View Crew Manifest"
+	set category = "Ghost"
+
+	var/dat
+	dat += "<h4>Crew Manifest</h4>"
+	dat += data_core.get_manifest()
+
+	src << browse(dat, "window=manifest;size=370x420;can_close=1")

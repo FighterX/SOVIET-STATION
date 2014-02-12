@@ -99,8 +99,9 @@
 		new /obj/item/weapon/book/manual/engineering_particle_accelerator(src)
 		new /obj/item/weapon/book/manual/engineering_hacking(src)
 		new /obj/item/weapon/book/manual/engineering_guide(src)
+		new /obj/item/weapon/book/manual/atmospipes(src)
 		new /obj/item/weapon/book/manual/engineering_singularity_safety(src)
-		new /obj/item/weapon/book/manual/robotics_cyborgs(src)
+		new /obj/item/weapon/book/manual/evaguide(src)
 		update_icon()
 
 /obj/structure/bookcase/manuals/research_and_development
@@ -184,29 +185,7 @@
 					usr << "The content is invalid."
 					return
 				else
-					var/obj/item/weapon/pen/P=W
-
-					/*Parsing*/
-					content = replacetext(content, "\[center\]", "<center>")
-					content = replacetext(content, "\[/center\]", "</center>")
-					content = replacetext(content, "\[br\]", "<BR>")
-					content = replacetext(content, "\[b\]", "<B>")
-					content = replacetext(content, "\[/b\]", "</B>")
-					content = replacetext(content, "\[i\]", "<I>")
-					content = replacetext(content, "\[/i\]", "</I>")
-					content = replacetext(content, "\[u\]", "<U>")
-					content = replacetext(content, "\[/u\]", "</U>")
-					content = replacetext(content, "\[large\]", "<font size=\"4\">")
-					content = replacetext(content, "\[/large\]", "</font>")
-					content = replacetext(content, "\[sign\]", "<font face=\"Times New Roman\"><i>[user.real_name]</i></font>")
-					content = replacetext(content, "\[hr\]", "<HR>")
-					content = replacetext(content, "\[small\]", "<font size = \"1\">")
-					content = replacetext(content, "\[/small\]", "</font>")
-					content = replacetext(content, "\[*\]", "<li>")
-					content = replacetext(content, "\[list\]", "<ul>")
-					content = replacetext(content, "\[/list\]", "</ul>")
-					src.dat +="<font face=\"Verdana\" color=[P.colour]>[content]</font>"
-
+					src.dat += content
 			if("Author")
 				var/newauthor = stripped_input(usr, "Write the author's name:")
 				if(!newauthor)

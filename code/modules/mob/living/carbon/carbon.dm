@@ -135,10 +135,10 @@
 	if(istext(selhand))
 		selhand = lowertext(selhand)
 
-	if(selhand == "right" || selhand == "r")
-		selhand = 0
-	if(selhand == "left" || selhand == "l")
-		selhand = 1
+		if(selhand == "right" || selhand == "r")
+			selhand = 0
+		if(selhand == "left" || selhand == "l")
+			selhand = 1
 
 	if(selhand != src.hand)
 		swap_hand()
@@ -221,86 +221,97 @@
 
 // ++++ROCKDTBEN++++ MOB PROCS //END
 
-/mob/living/carbon/proc/handle_ventcrawl() // -- TLE -- Merged by Carn
-
-	if(!stat)
-		if(!lying)
-
-			var/obj/machinery/atmospherics/unary/vent_pump/vent_found
-			for(var/obj/machinery/atmospherics/unary/vent_pump/v in range(1,src))
-				if(!v.welded)
-					vent_found = v
-				else
-					src << "\red That vent is welded."
-
-			if(vent_found)
-				if(vent_found.network&&vent_found.network.normal_members.len)
-					var/list/vents[0]
-					for(var/obj/machinery/atmospherics/unary/vent_pump/temp_vent in vent_found.network.normal_members)
-						if(temp_vent.loc == loc)
-							continue
-						if(temp_vent.welded)
-							continue
-						var/turf/T = get_turf(temp_vent)
-
-						if(!T || T.z != loc.z)
-							continue
-
-						var/i = 1
-						var/index = "[T.loc.name]\[[i]\]"
-						while(index in vents)
-							i++
-							index = "[T.loc.name]\[[i]\]"
-						vents[index] = temp_vent
-
-					var/turf/startloc = loc
-					var/obj/selection = input("Select a destination.", "Duct System") as null|anything in sortList(vents)
-					if(!selection)	return
-					if(loc==startloc)
-						if(contents.len)
-							for(var/obj/item/carried_item in contents)//If the monkey got on objects.
-								if( !istype(carried_item, /obj/item/weapon/implant) && !istype(carried_item, /obj/item/clothing/mask/facehugger) )//If it's not an implant or a facehugger
-									src << "\red You can't be carrying items or have items equipped when vent crawling!"
-									return
-						var/obj/machinery/atmospherics/unary/vent_pump/target_vent = vents[selection]
-						if(target_vent)
-							for(var/mob/O in viewers(src, null))
-								O.show_message(text("<B>[src] scrambles into the ventillation ducts!</B>"), 1)
-							loc = target_vent
-
-							var/travel_time = round(get_dist(loc, target_vent.loc) / 2)
-
-							spawn(travel_time)
-
-								if(!target_vent)	return
-								for(var/mob/O in hearers(target_vent,null))
-									O.show_message("You hear something squeezing through the ventilation ducts.",2)
-
-								sleep(travel_time)
-
-								if(!target_vent)	return
-								if(target_vent.welded)			//the vent can be welded while alien scrolled through the list or travelled.
-									target_vent = vent_found 	//travel back. No additional time required.
-									src << "\red The vent you were heading to appears to be welded."
-								loc = target_vent.loc
-								var/area/new_area = get_area(loc)
-								if(new_area)
-									new_area.Entered(src)
-
-					else
-						src << "You need to remain still while entering a vent."
-				else
-					src << "This vent is not connected to anything."
-
-			else
-				src << "You must be standing on or beside an air vent to enter it."
-
-		else
-			src << "You can't vent crawl while you're stunned!"
-
-	else
+/mob/living/carbon/proc/handle_ventcrawl(var/obj/machinery/atmospherics/unary/vent_pump/vent_found = null) // -- TLE -- Merged by Carn
+	if(stat)
 		src << "You must be conscious to do this!"
-	return
+		return
+	if(lying)
+		src << "You can't vent crawl while you're stunned!"
+		return
+
+	if(vent_found) // one was passed in, probably from vent/AltClick()
+		if(vent_found.welded)
+			src << "That vent is welded shut."
+			return
+		if(!vent_found.Adjacent(src))
+			return // don't even acknowledge that
+	else
+		for(var/obj/machinery/atmospherics/unary/vent_pump/v in range(1,src))
+			if(!v.welded)
+				if(v.Adjacent(src))
+					vent_found = v
+	if(!vent_found)
+		src << "You'll need a non-welded vent to crawl into!"
+		return
+
+	if(!vent_found.network || !vent_found.network.normal_members.len)
+		src << "This vent is not connected to anything."
+		return
+
+	var/list/vents = list()
+	for(var/obj/machinery/atmospherics/unary/vent_pump/temp_vent in vent_found.network.normal_members)
+		if(temp_vent.welded)
+			continue
+		if(temp_vent in loc)
+			continue
+		var/turf/T = get_turf(temp_vent)
+
+		if(!T || T.z != loc.z)
+			continue
+
+		var/i = 1
+		var/index = "[T.loc.name]\[[i]\]"
+		while(index in vents)
+			i++
+			index = "[T.loc.name]\[[i]\]"
+		vents[index] = temp_vent
+	if(!vents.len)
+		src << "\red There are no available vents to travel to, they could be welded."
+		return
+
+	var/obj/selection = input("Select a destination.", "Duct System") as null|anything in sortAssoc(vents)
+	if(!selection)	return
+
+	if(!vent_found.Adjacent(src))
+		src << "Never mind, you left."
+		return
+
+	for(var/obj/item/carried_item in contents)//If the monkey got on objects.
+		if( !istype(carried_item, /obj/item/weapon/implant) && !istype(carried_item, /obj/item/clothing/mask/facehugger) )//If it's not an implant or a facehugger
+			src << "\red You can't be carrying items or have items equipped when vent crawling!"
+			return
+	if(isslime(src))
+		var/mob/living/carbon/slime/S = src
+		if(S.Victim)
+			src << "\red You'll have to let [S.Victim] go or finish eating \him first."
+			return
+
+	var/obj/machinery/atmospherics/unary/vent_pump/target_vent = vents[selection]
+	if(!target_vent)
+		return
+
+	for(var/mob/O in viewers(src, null))
+		O.show_message(text("<B>[src] scrambles into the ventillation ducts!</B>"), 1)
+	loc = target_vent
+
+	var/travel_time = round(get_dist(loc, target_vent.loc) / 2)
+
+	spawn(travel_time)
+
+		if(!target_vent)	return
+		for(var/mob/O in hearers(target_vent,null))
+			O.show_message("You hear something squeezing through the ventilation ducts.",2)
+
+		sleep(travel_time)
+
+		if(!target_vent)	return
+		if(target_vent.welded)			//the vent can be welded while alien scrolled through the list or travelled.
+			target_vent = vent_found 	//travel back. No additional time required.
+			src << "\red The vent you were heading to appears to be welded."
+		loc = target_vent.loc
+		var/area/new_area = get_area(loc)
+		if(new_area)
+			new_area.Entered(src)
 
 
 /mob/living/carbon/clean_blood()
@@ -322,19 +333,6 @@
 //Throwing stuff
 
 /mob/living/carbon/proc/toggle_throw_mode()
-	var/obj/item/W = get_active_hand()
-	if( !W )//Not holding anything
-		if( client && (TK in mutations) )
-			var/obj/item/tk_grab/O = new(src)
-			put_in_active_hand(O)
-			O.host = src
-		return
-
-	if( istype(W,/obj/item/tk_grab) )
-		if(hand)	del(l_hand)
-		else		del(r_hand)
-		return
-
 	if (src.in_throw_mode)
 		throw_mode_off()
 	else
@@ -348,7 +346,10 @@
 	src.in_throw_mode = 1
 	src.throw_icon.icon_state = "act_throw_on"
 
-/mob/living/carbon/proc/throw_item(atom/target)
+/mob/proc/throw_item(atom/target)
+	return
+
+/mob/living/carbon/throw_item(atom/target)
 	src.throw_mode_off()
 	if(usr.stat || !target)
 		return
@@ -371,8 +372,7 @@
 
 				M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been thrown by [usr.name] ([usr.ckey]) from [start_T_descriptor] with the target [end_T_descriptor]</font>")
 				usr.attack_log += text("\[[time_stamp()]\] <font color='red'>Has thrown [M.name] ([M.ckey]) from [start_T_descriptor] with the target [end_T_descriptor]</font>")
-
-				log_attack("<font color='red'>[usr.name] ([usr.ckey]) Has thrown [M.name] ([M.ckey]) from [start_T_descriptor] with the target [end_T_descriptor]</font>")
+				msg_admin_attack("[usr.name] ([usr.ckey]) has thrown [M.name] ([M.ckey]) from [start_T_descriptor] with the target [end_T_descriptor] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[usr.x];Y=[usr.y];Z=[usr.z]'>JMP</a>)")
 
 	if(!item) return //Grab processing has a chance of returning null
 
@@ -456,3 +456,109 @@
 	user << browse(dat, text("window=mob[];size=325x500", name))
 	onclose(user, "mob[name]")
 	return
+
+//generates realistic-ish pulse output based on preset levels
+/mob/living/carbon/proc/get_pulse(var/method)	//method 0 is for hands, 1 is for machines, more accurate
+	var/temp = 0								//see setup.dm:694
+	switch(src.pulse)
+		if(PULSE_NONE)
+			return "0"
+		if(PULSE_SLOW)
+			temp = rand(40, 60)
+			return num2text(method ? temp : temp + rand(-10, 10))
+		if(PULSE_NORM)
+			temp = rand(60, 90)
+			return num2text(method ? temp : temp + rand(-10, 10))
+		if(PULSE_FAST)
+			temp = rand(90, 120)
+			return num2text(method ? temp : temp + rand(-10, 10))
+		if(PULSE_2FAST)
+			temp = rand(120, 160)
+			return num2text(method ? temp : temp + rand(-10, 10))
+		if(PULSE_THREADY)
+			return method ? ">250" : "extremely weak and fast, patient's artery feels like a thread"
+//			output for machines^	^^^^^^^output for people^^^^^^^^^
+
+/mob/living/carbon/verb/mob_sleep()
+	set name = "Sleep"
+	set category = "IC"
+
+	if(usr.sleeping)
+		usr << "\red You are already sleeping"
+		return
+	if(alert(src,"You sure you want to sleep for a while?","Sleep","Yes","No") == "Yes")
+		usr.sleeping = 20 //Short nap
+
+//Brain slug proc for voluntary removal of control.
+/mob/living/carbon/proc/release_control()
+
+	set category = "Alien"
+	set name = "Release Control"
+	set desc = "Release control of your host's body."
+
+	var/mob/living/simple_animal/borer/B = has_brain_worms()
+
+	if(!B)
+		return
+
+	if(B.controlling)
+		src << "\red <B>You withdraw your probosci, releasing control of [B.host_brain]</B>"
+		B.host_brain << "\red <B>Your vision swims as the alien parasite releases control of your body.</B>"
+		B.ckey = ckey
+		B.controlling = 0
+	if(B.host_brain.ckey)
+		ckey = B.host_brain.ckey
+		B.host_brain.ckey = null
+		B.host_brain.name = "host brain"
+		B.host_brain.real_name = "host brain"
+
+	verbs -= /mob/living/carbon/proc/release_control
+	verbs -= /mob/living/carbon/proc/punish_host
+	verbs -= /mob/living/carbon/proc/spawn_larvae
+
+//Brain slug proc for tormenting the host.
+/mob/living/carbon/proc/punish_host()
+	set category = "Alien"
+	set name = "Torment host"
+	set desc = "Punish your host with agony."
+
+	var/mob/living/simple_animal/borer/B = has_brain_worms()
+
+	if(!B)
+		return
+
+	if(B.host_brain.ckey)
+		src << "\red <B>You send a punishing spike of psychic agony lancing into your host's brain.</B>"
+		B.host_brain << "\red <B><FONT size=3>Horrific, burning agony lances through you, ripping a soundless scream from your trapped mind!</FONT></B>"
+
+//Check for brain worms in head.
+/mob/living/carbon/proc/has_brain_worms()
+
+	for(var/I in contents)
+		if(istype(I,/mob/living/simple_animal/borer))
+			return I
+
+	return 0
+
+/mob/living/carbon/proc/spawn_larvae()
+	set category = "Alien"
+	set name = "Reproduce"
+	set desc = "Spawn several young."
+
+	var/mob/living/simple_animal/borer/B = has_brain_worms()
+
+	if(!B)
+		return
+
+	if(B.chemicals >= 100)
+		src << "\red <B>Your host twitches and quivers as you rapdly excrete several larvae from your sluglike body.</B>"
+		visible_message("\red <B>[src] heaves violently, expelling a rush of vomit and a wriggling, sluglike creature!</B>")
+		B.chemicals -= 100
+
+		new /obj/effect/decal/cleanable/vomit(get_turf(src))
+		playsound(loc, 'sound/effects/splat.ogg', 50, 1)
+		new /mob/living/simple_animal/borer(get_turf(src))
+
+	else
+		src << "You do not have enough chemicals stored to reproduce."
+		return

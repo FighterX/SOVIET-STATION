@@ -243,7 +243,7 @@ ________________________________________________________________________________
 	var/mob/living/silicon/ai/A = AI
 	var/display_to = s_control ? U : A//Who do we want to display certain messages to?
 
-	var/dat = "<html><head><title>SpiderOS</title></head><body bgcolor=\"#3D5B43\" text=\"#DB2929\"><style>a, a:link, a:visited, a:active, a:hover { color: #DB2929; }img {border-style:none;}</style>"
+	var/dat = "<html><head><title>SpiderOS</title></head><body bgcolor=\"#3D5B43\" text=\"#B65B5B\"><style>a, a:link, a:visited, a:active, a:hover { color: #B65B5B; }img {border-style:none;}</style>"
 	dat += "<a href='byond://?src=\ref[src];choice=Refresh'><img src=sos_7.png> Refresh</a>"
 	if(spideros)
 		dat += " | <a href='byond://?src=\ref[src];choice=Return'><img src=sos_1.png> Return</a>"
@@ -520,7 +520,10 @@ ________________________________________________________________________________
 			if(damage>1)//So they don't spam it when energy is a factor.
 				spark_system.start()//SPARKS THERE SHALL BE SPARKS
 				U.electrocute_act(damage, src,0.1,1)//The last argument is a safety for the human proc that checks for gloves.
-				cell.charge -= damage
+				if(cell.charge < damage)
+					cell.use(cell.charge)
+				else
+					cell.use(damage)
 			else
 				A << "\red <b>ERROR</b>: \black Not enough energy remaining."
 
@@ -869,25 +872,27 @@ ________________________________________________________________________________
 	if(s_active)
 		cancel_stealth()
 	else
-		spawn(0)
-			anim(U.loc,U,'icons/mob/mob.dmi',,"cloak",,U.dir)
+		anim(U.loc,U,'icons/mob/mob.dmi',,"cloak",,U.dir)
 		s_active=!s_active
-		U.update_icons()	//update their icons
+		icon_state = U.gender==FEMALE ? "s-ninjasf" : "s-ninjas"
+		U.regenerate_icons()	//update their icons
 		U << "\blue You are now invisible to normal detection."
 		for(var/mob/O in oviewers(U))
 			O.show_message("[U.name] vanishes into thin air!",1)
+		U.invisibility = INVISIBILITY_OBSERVER
 	return
 
 /obj/item/clothing/suit/space/space_ninja/proc/cancel_stealth()
 	var/mob/living/carbon/human/U = affecting
 	if(s_active)
-		spawn(0)
-			anim(U.loc,U,'icons/mob/mob.dmi',,"uncloak",,U.dir)
+		anim(U.loc,U,'icons/mob/mob.dmi',,"uncloak",,U.dir)
 		s_active=!s_active
-		U.update_icons()	//update their icons
 		U << "\blue You are now visible."
+		U.invisibility = 0
 		for(var/mob/O in oviewers(U))
 			O.show_message("[U.name] appears from thin air!",1)
+		icon_state = U.gender==FEMALE ? "s-ninjanf" : "s-ninjan"
+		U.regenerate_icons()	//update their icons
 		return 1
 	return 0
 
@@ -1209,7 +1214,7 @@ ________________________________________________________________________________
 					U.client.images += image(tempHud,target,"hudoperative")
 				if("Death Commando")
 					U.client.images += image(tempHud,target,"huddeathsquad")
-				if("Space Ninja")
+				if("Ninja")
 					U.client.images += image(tempHud,target,"hudninja")
 				else//If we don't know what role they have but they have one.
 					U.client.images += image(tempHud,target,"hudunknown1")
@@ -1333,10 +1338,10 @@ It is possible to destroy the net by the occupant or someone else.
 			return
 
 	process(var/mob/living/carbon/M as mob)
-		var/check = 30//30 seconds before teleportation. Could be extended I guess.
+		var/check = 60//30 seconds before teleportation. Could be extended I guess. - Extended to one minute
 		var/mob_name = affecting.name//Since they will report as null if terminated before teleport.
 		//The person can still try and attack the net when inside.
-		while(!isnull(M)&&!isnull(src)&&check>0)//While M and net exist, and 30 seconds have not passed.
+		while(!isnull(M)&&!isnull(src)&&check>0)//While M and net exist, and 60 seconds have not passed.
 			check--
 			sleep(10)
 

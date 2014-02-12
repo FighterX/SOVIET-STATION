@@ -97,7 +97,7 @@
 		"/obj/item/device/flashlight/pen",
 		"/obj/item/clothing/mask/surgical",
 		"/obj/item/clothing/gloves/latex",
-        "/obj/item/weapon/reagent_containers/hypospray/autoinjector"
+	        "/obj/item/weapon/reagent_containers/hypospray"
 	)
 
 
@@ -127,7 +127,7 @@
 		"/obj/item/device/flashlight",
 		"/obj/item/device/pda",
 		"/obj/item/device/radio/headset",
-		"/obj/item/weapon/melee/baton",
+		"/obj/item/weapon/melee",
 		"/obj/item/taperoll/police",
 		"/obj/item/weapon/gun/energy/taser"
 		)
@@ -161,3 +161,9 @@
 	can_hold = list(
 		"/obj/item/clothing/mask/luchador"
 		)
+
+/obj/item/weapon/storage/belt/inflatable
+	name = "inflatable duck"
+	desc = "No bother to sink or swim when you can just float!"
+	icon_state = "inflatable"
+	item_state = "inflatable"

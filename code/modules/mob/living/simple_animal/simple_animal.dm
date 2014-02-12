@@ -9,7 +9,6 @@
 	var/icon_gib = null	//We only try to show a gibbing animation if this exists.
 
 	var/list/speak = list()
-	var/list/speak_emote = list()//	Emotes while speaking IE: Ian [emote], [text] -- Ian barks, "WOOF!". Spoken text is generated from the speak variable.
 	var/speak_chance = 0
 	var/list/emote_hear = list()	//Hearable emotes
 	var/list/emote_see = list()		//Unlike speak_emote, the list of things in this variable only show by themselves with no spoken text. IE: Ian barks, Ian yaps
@@ -96,7 +95,7 @@
 		AdjustParalysis(-1)
 
 	//Movement
-	if(!client && !stop_automated_movement && wander)
+	if(!client && !stop_automated_movement && wander && !anchored)
 		if(isturf(src.loc) && !resting && !buckled && canmove)		//This is so it only moves if it's not inside a closet, gentics machine, etc.
 			turns_since_move++
 			if(turns_since_move >= turns_per_move)
@@ -217,13 +216,6 @@
 			new meat_type(src.loc)
 	..()
 
-/mob/living/simple_animal/say_quote(var/text)
-	if(speak_emote && speak_emote.len)
-		var/emote = pick(speak_emote)
-		if(emote)
-			return "[emote], \"[text]\""
-	return "says, \"[text]\"";
-
 /mob/living/simple_animal/emote(var/act, var/type, var/desc)
 	if(act)
 		if(act == "scream")	act = "whimper" //ugly hack to stop animals screaming when crushed :P
@@ -270,7 +262,7 @@
 
 			grabbed_by += G
 			G.synch()
-
+			G.affecting = src
 			LAssailant = M
 
 			for(var/mob/O in viewers(src, null))
@@ -306,6 +298,7 @@
 
 			grabbed_by += G
 			G.synch()
+			G.affecting = src
 			LAssailant = M
 
 			playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)

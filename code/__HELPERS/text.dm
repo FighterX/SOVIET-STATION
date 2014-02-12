@@ -35,7 +35,7 @@
 	return t
 
 //Removes a few problematic characters
-/proc/sanitize_simple(var/t,var/list/repl_chars = list("\n"="#","\t"="#","ÿ"="____255;"))
+/proc/sanitize_simple(var/t,var/list/repl_chars = list("\n"="#","\t"="#","ï¿½"="ï¿½"))
 	for(var/char in repl_chars)
 		var/index = findtext(t, char)
 		while(index)
@@ -45,17 +45,7 @@
 
 //Runs byond's sanitization proc along-side sanitize_simple
 /proc/sanitize(var/t,var/list/repl_chars = null)
-   t = html_encode(sanitize_simple(t,repl_chars))
-   var/index = findtext(t, "____255;")
-   if(0)
-      while(index)
-         t = copytext(t, 1, index) + "&#1103;" + copytext(t, index+8)
-         index = findtext(t, "____255;")
-   else
-      while(index)
-         t = copytext(t, 1, index) + "&#255;" + copytext(t, index+8)
-         index = findtext(t, "____255;")
-   return t
+	return html_encode(sanitize_simple(t,repl_chars))
 
 //Runs sanitize and strip_html_simple
 //I believe strip_html_simple() is required to run first to prevent '<' from displaying as '&lt;' after sanitize() calls byond's html_encode()
@@ -150,7 +140,24 @@
 
 	return t_out
 
-
+//checks text for html tags
+//if tag is not in whitelist (var/list/paper_tag_whitelist in global.dm)
+//relpaces < with &lt;
+proc/checkhtml(var/t)
+	t = sanitize_simple(t, list("&#"="."))
+	var/p = findtext(t,"<",1)
+	while (p)	//going through all the tags
+		var/start = p++
+		var/tag = copytext(t,p, p+1)
+		if (tag != "/")
+			while (reject_bad_text(copytext(t, p, p+1), 1))
+				tag = copytext(t,start, p)
+				p++
+			tag = copytext(t,start+1, p)
+			if (!(tag in paper_tag_whitelist))	//if it's unkown tag, disarming it
+				t = copytext(t,1,start-1) + "&lt;" + copytext(t,start+1)
+		p = findtext(t,"<",p)
+	return t
 /*
  * Text searches
  */

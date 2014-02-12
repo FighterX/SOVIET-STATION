@@ -309,6 +309,11 @@ proc/process_ghost_teleport_locs()
 /area/shuttle/research/outpost
 	icon_state = "shuttle"
 
+/area/shuttle/vox/station
+	name = "\improper Vox Skipjack"
+	icon_state = "yellow"
+	requires_power = 0
+
 /area/airtunnel1/      // referenced in airtunnel.dm:759
 
 /area/dummy/           // Referenced in engine.dm:261
@@ -489,10 +494,35 @@ proc/process_ghost_teleport_locs()
 	icon_state = "yellow"
 	requires_power = 0
 
+/area/vox_station/transit
+	name = "\improper hyperspace"
+	icon_state = "shuttle"
+	requires_power = 0
 
+/area/vox_station/southwest_solars
+	name = "\improper aft port solars"
+	icon_state = "southwest"
+	requires_power = 0
 
+/area/vox_station/northwest_solars
+	name = "\improper fore port solars"
+	icon_state = "northwest"
+	requires_power = 0
 
+/area/vox_station/northeast_solars
+	name = "\improper fore starboard solars"
+	icon_state = "northeast"
+	requires_power = 0
 
+/area/vox_station/southeast_solars
+	name = "\improper aft starboard solars"
+	icon_state = "southeast"
+	requires_power = 0
+
+/area/vox_station/mining
+	name = "\improper nearby mining asteroid"
+	icon_state = "north"
+	requires_power = 0
 
 //PRISON
 /area/prison
@@ -765,6 +795,14 @@ proc/process_ghost_teleport_locs()
 	name = "\improper Dormitories"
 	icon_state = "Sleep"
 
+/area/crew_quarters/sleep/engi
+	name = "\improper Engineering Dormitories"
+	icon_state = "Sleep"
+
+/area/crew_quarters/sleep/sec
+	name = "\improper Security Dormitories"
+	icon_state = "Sleep"
+
 /area/crew_quarters/sleep_male
 	name = "\improper Male Dorm"
 	icon_state = "Sleep"
@@ -1003,18 +1041,39 @@ proc/process_ghost_teleport_locs()
 //MedBay
 
 /area/medical/medbay
-	name = "Medbay"
+	name = "\improper Medbay"
 	icon_state = "medbay"
 	music = 'sound/ambience/signal.ogg'
 
 //Medbay is a large area, these additional areas help level out APC load.
 /area/medical/medbay2
-	name = "Medbay"
+	name = "\improper Medbay"
 	icon_state = "medbay2"
 	music = 'sound/ambience/signal.ogg'
 
 /area/medical/medbay3
-	name = "Medbay"
+	name = "\improper Medbay"
+	icon_state = "medbay3"
+	music = 'sound/ambience/signal.ogg'
+
+
+/area/medical/biostorage
+	name = "\improper Secondary Storage"
+	icon_state = "medbay2"
+	music = 'sound/ambience/signal.ogg'
+
+/area/medical/reception
+	name = "\improper Medbay Reception"
+	icon_state = "medbay"
+	music = 'sound/ambience/signal.ogg'
+
+/area/medical/psych
+	name = "\improper Psych Room"
+	icon_state = "medbay3"
+	music = 'sound/ambience/signal.ogg'
+
+/area/medical/medbreak
+	name = "\improper Break Room"
 	icon_state = "medbay3"
 	music = 'sound/ambience/signal.ogg'
 
@@ -1022,20 +1081,44 @@ proc/process_ghost_teleport_locs()
 	name = "\improper Patient's Rooms"
 	icon_state = "patients"
 
+/area/medical/ward
+	name = "\improper Medbay Patient Ward"
+	icon_state = "patients"
+
+/area/medical/patient_a
+	name = "\improper Isolation A"
+	icon_state = "patients"
+
+/area/medical/patient_b
+	name = "\improper Isolation B"
+	icon_state = "patients"
+
+/area/medical/patient_c
+	name = "\improper Isolation C"
+	icon_state = "patients"
+
+/area/medical/iso_access
+	name = "\improper Isolation Access"
+	icon_state = "patients"
+
 /area/medical/cmo
 	name = "\improper Chief Medical Officer's office"
 	icon_state = "CMO"
 
+/area/medical/cmostore
+	name = "\improper Secure Storage"
+	icon_state = "CMO"
+
 /area/medical/robotics
-	name = "Robotics"
+	name = "\improper Robotics"
 	icon_state = "medresearch"
 
 /area/medical/research
-	name = "Medical Research"
+	name = "\improper Medical Research"
 	icon_state = "medresearch"
 
 /area/medical/virology
-	name = "Virology"
+	name = "\improper Virology"
 	icon_state = "virology"
 
 /area/medical/morgue
@@ -1043,15 +1126,19 @@ proc/process_ghost_teleport_locs()
 	icon_state = "morgue"
 
 /area/medical/chemistry
-	name = "Chemistry"
+	name = "\improper Chemistry"
 	icon_state = "chem"
 
 /area/medical/surgery
-	name = "Surgery"
+	name = "\improper Surgery"
+	icon_state = "surgery"
+
+/area/medical/surgeryobs
+	name = "\improper Surgery Observation"
 	icon_state = "surgery"
 
 /area/medical/cryo
-	name = "Cryogenics"
+	name = "\improper Cryogenics"
 	icon_state = "cryo"
 
 /area/medical/exam_room
@@ -1059,15 +1146,15 @@ proc/process_ghost_teleport_locs()
 	icon_state = "exam_room"
 
 /area/medical/genetics
-	name = "Genetics Lab"
+	name = "\improper Genetics Lab"
 	icon_state = "genetics"
 
 /area/medical/genetics_cloning
-	name = "Cloning Lab"
+	name = "\improper Cloning Lab"
 	icon_state = "cloning"
 
 /area/medical/sleeper
-	name = "Medbay Treatment Center"
+	name = "\improper Medical Treatment Center"
 	icon_state = "exam_room"
 
 //Security
@@ -1241,6 +1328,10 @@ proc/process_ghost_teleport_locs()
 
 /area/toxins/misc_lab
 	name = "\improper Miscellaneous Research"
+	icon_state = "toxmisc"
+
+/area/toxins/telesci
+	name = "\improper Telescience Lab"
 	icon_state = "toxmisc"
 
 /area/toxins/server

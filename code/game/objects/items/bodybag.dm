@@ -34,6 +34,7 @@
 	icon_state = "bodybag_closed"
 	icon_closed = "bodybag_closed"
 	icon_opened = "bodybag_open"
+	var/item_path = /obj/item/bodybag
 	density = 0
 
 
@@ -74,7 +75,7 @@
 			if(opened)	return 0
 			if(contents.len)	return 0
 			visible_message("[usr] folds up the [src.name]")
-			new/obj/item/bodybag(get_turf(src))
+			new item_path(get_turf(src))
 			spawn(0)
 				del(src)
 			return
@@ -88,10 +89,9 @@
 
 /obj/item/bodybag/cryobag
 	name = "stasis bag"
-	desc = "A folded, non-reusable bag designed for the preservation of an occupant's brain by stasis."
+	desc = "A folded, non-reusable bag designed to prevent additional damage to an occupant at the cost of genetic damage."
 	icon = 'icons/obj/cryobag.dmi'
 	icon_state = "bodybag_folded"
-
 
 	attack_self(mob/user)
 		var/obj/structure/closet/body_bag/cryobag/R = new /obj/structure/closet/body_bag/cryobag(user.loc)
@@ -102,13 +102,9 @@
 
 /obj/structure/closet/body_bag/cryobag
 	name = "stasis bag"
-	desc = "A non-reusable plastic bag designed for the preservation of an occupant's brain by stasis."
+	desc = "A non-reusable plastic bag designed to prevent additional damage to an occupant at the cost of genetic damage."
 	icon = 'icons/obj/cryobag.dmi'
-	icon_state = "bodybag_closed"
-	icon_closed = "bodybag_closed"
-	icon_opened = "bodybag_open"
-	density = 0
-
+	item_path = /obj/item/bodybag/cryobag
 	var/used = 0
 
 	open()

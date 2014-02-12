@@ -5,15 +5,46 @@
 	icon = 'icons/mob/human.dmi'
 	icon_state = "body_m_s"
 	var/list/hud_list = list()
-
+	var/datum/species/species //Contains icon generation and language information, set during New().
 
 /mob/living/carbon/human/dummy
 	real_name = "Test Dummy"
 	status_flags = GODMODE|CANPUSH
 
+/mob/living/carbon/human/skrell/New()
+	h_style = "Skrell Male Tentacles"
+	set_species("Skrell")
+	..()
 
+/mob/living/carbon/human/tajaran/New()
+	h_style = "Tajaran Ears"
+	set_species("Tajaran")
+	..()
+
+/mob/living/carbon/human/unathi/New()
+	h_style = "Unathi Horns"
+	set_species("Unathi")
+	..()
+
+/mob/living/carbon/human/vox/New()
+	h_style = "Short Vox Quills"
+	set_species("Vox")
+	..()
+
+/mob/living/carbon/human/diona/New()
+	species = new /datum/species/diona(src)
+	..()
 
 /mob/living/carbon/human/New()
+
+	if(!species)
+		set_species()
+
+	if(species.language)
+		var/datum/language/L = all_languages[species.language]
+		if(L)
+			languages += L
+
 	var/datum/reagents/R = new/datum/reagents(1000)
 	reagents = R
 	R.my_atom = src
@@ -40,12 +71,14 @@
 	if (ismob(AM))
 		var/mob/tmob = AM
 
+		if( istype(tmob, /mob/living/carbon) && prob(10) )
+			src.spread_disease_to(AM, "Contact")
 //BubbleWrap - Should stop you pushing a restrained person out of the way
 
 		if(istype(tmob, /mob/living/carbon/human))
 
 			for(var/mob/M in range(tmob, 1))
-				if( ((M.pulling == tmob && ( tmob.restrained() && !( M.restrained() ) && M.stat == 0)) || locate(/obj/item/weapon/grab, tmob.grabbed_by.len)) )
+				if(tmob.pinned.len ||  ((M.pulling == tmob && ( tmob.restrained() && !( M.restrained() ) && M.stat == 0)) || locate(/obj/item/weapon/grab, tmob.grabbed_by.len)) )
 					if ( !(world.time % 5) )
 						src << "\red [tmob] is restrained, you cannot push past"
 					now_pushing = 0
@@ -167,7 +200,7 @@
 				b_loss = b_loss/1.5
 				f_loss = f_loss/1.5
 
-			if (!istype(ears, /obj/item/clothing/ears/earmuffs))
+			if (!istype(l_ear, /obj/item/clothing/ears/earmuffs) && !istype(r_ear, /obj/item/clothing/ears/earmuffs))
 				ear_damage += 30
 				ear_deaf += 120
 			if (prob(70) && !shielded)
@@ -177,7 +210,7 @@
 			b_loss += 30
 			if (prob(getarmor(null, "bomb")))
 				b_loss = b_loss/2
-			if (!istype(ears, /obj/item/clothing/ears/earmuffs))
+			if (!istype(l_ear, /obj/item/clothing/ears/earmuffs) && !istype(r_ear, /obj/item/clothing/ears/earmuffs))
 				ear_damage += 15
 				ear_deaf += 60
 			if (prob(50) && !shielded)
@@ -245,23 +278,6 @@
 	return
 
 
-/mob/living/carbon/human/hand_p(mob/M as mob)
-	var/dam_zone = pick("chest", "l_hand", "r_hand", "l_leg", "r_leg")
-	var/datum/organ/external/affecting = get_organ(ran_zone(dam_zone))
-	var/armor = run_armor_check(affecting, "melee")
-	apply_damage(rand(1,2), BRUTE, affecting, armor)
-	if(armor >= 2)	return
-
-	for(var/datum/disease/D in M.viruses)
-		if(istype(D, /datum/disease/jungle_fever))
-			var/mob/living/carbon/human/H = src
-			src = null
-			src = H.monkeyize()
-			contract_disease(D,1,0)
-	return
-
-
-
 /mob/living/carbon/human/attack_animal(mob/living/simple_animal/M as mob)
 	if(M.melee_damage_upper == 0)
 		M.emote("[M.friendly] [src]")
@@ -279,6 +295,14 @@
 		apply_damage(damage, BRUTE, affecting, armor)
 		if(armor >= 2)	return
 
+
+/mob/living/carbon/human/proc/is_loyalty_implanted(mob/living/carbon/human/M)
+	for(var/L in M.contents)
+		if(istype(L, /obj/item/weapon/implant/loyalty))
+			for(var/datum/organ/external/O in M.organs)
+				if(L in O.implants)
+					return 1
+	return 0
 
 /mob/living/carbon/human/attack_slime(mob/living/carbon/slime/M as mob)
 	if(M.Victim) return // can't attack while eating!
@@ -367,7 +391,8 @@
 	<BR><B>Right Hand:</B> <A href='?src=\ref[src];item=r_hand'>[(r_hand ? r_hand : "Nothing")]</A>
 	<BR><B>Gloves:</B> <A href='?src=\ref[src];item=gloves'>[(gloves ? gloves : "Nothing")]</A>
 	<BR><B>Eyes:</B> <A href='?src=\ref[src];item=eyes'>[(glasses ? glasses : "Nothing")]</A>
-	<BR><B>Ears:</B> <A href='?src=\ref[src];item=ears'>[(ears ? ears : "Nothing")]</A>
+	<BR><B>Left Ear:</B> <A href='?src=\ref[src];item=l_ear'>[(l_ear ? l_ear : "Nothing")]</A>
+	<BR><B>Right Ear:</B> <A href='?src=\ref[src];item=r_ear'>[(r_ear ? r_ear : "Nothing")]</A>
 	<BR><B>Head:</B> <A href='?src=\ref[src];item=head'>[(head ? head : "Nothing")]</A>
 	<BR><B>Shoes:</B> <A href='?src=\ref[src];item=shoes'>[(shoes ? shoes : "Nothing")]</A>
 	<BR><B>Belt:</B> <A href='?src=\ref[src];item=belt'>[(belt ? belt : "Nothing")]</A>
@@ -379,6 +404,7 @@
 	<BR>[(handcuffed ? text("<A href='?src=\ref[src];item=handcuff'>Handcuffed</A>") : text("<A href='?src=\ref[src];item=handcuff'>Not Handcuffed</A>"))]
 	<BR>[(legcuffed ? text("<A href='?src=\ref[src];item=legcuff'>Legcuffed</A>") : text(""))]
 	<BR>[(internal ? text("<A href='?src=\ref[src];item=internal'>Remove Internal</A>") : "")]
+	<BR><A href='?src=\ref[src];item=splints'>Remove Splints</A>
 	<BR><A href='?src=\ref[src];item=pockets'>Empty Pockets</A>
 	<BR><A href='?src=\ref[user];refresh=1'>Refresh</A>
 	<BR><A href='?src=\ref[user];mach_close=mob[name]'>Close</A>
@@ -450,21 +476,20 @@
 //gets name from ID or PDA itself, ID inside PDA doesn't matter
 //Useful when player is being seen by other mobs
 /mob/living/carbon/human/proc/get_id_name(var/if_no_id = "Unknown")
-	var/obj/item/device/pda/pda = wear_id
-	var/obj/item/weapon/card/id/id = wear_id
-	if(istype(pda))		. = pda.owner
-	else if(istype(id))	. = id.registered_name
-	if(!.) 				. = if_no_id	//to prevent null-names making the mob unclickable
+	. = if_no_id
+	if(istype(wear_id,/obj/item/device/pda))
+		var/obj/item/device/pda/P = wear_id
+		return P.owner
+	if(wear_id)
+		var/obj/item/weapon/card/id/I = wear_id.GetID()
+		if(I)
+			return I.registered_name
 	return
 
 //gets ID card object from special clothes slot or null.
 /mob/living/carbon/human/proc/get_idcard()
-	var/obj/item/weapon/card/id/id = wear_id
-	var/obj/item/device/pda/pda = wear_id
-	if (istype(pda) && pda.id)
-		id = pda.id
-	if (istype(id))
-		return id
+	if(wear_id)
+		return wear_id.GetID()
 
 //Added a safety check in case you want to shock a human mob directly through electrocute_act.
 /mob/living/carbon/human/electrocute_act(var/shock_damage, var/obj/source, var/siemens_coeff = 1.0, var/safety = 0)
@@ -499,267 +524,258 @@
 			return
 
 	if (href_list["criminal"])
-		if(istype(usr, /mob/living/carbon/human))
-			var/mob/living/carbon/human/H = usr
-			if(istype(H.glasses, /obj/item/clothing/glasses/hud/security) || istype(H.glasses, /obj/item/clothing/glasses/sunglasses/sechud))
+		if(hasHUD(usr,"security"))
 
-				/* // Uncomment if you want sechuds to need security access
-				var/allowed_access = 0
-				if(H.wear_id)
-					var/list/access = H.wear_id.GetAccess()
-					if(access_security in access)
-						allowed_access = 1
-						return
-
-				if(!allowed_access)
-					H << "<span class='warning'>ERROR: Invalid Access</span>"
-					return
-				*/
-
-				var/modified = 0
-				var/perpname = "wot"
-				if(wear_id)
-					var/obj/item/weapon/card/id/I = wear_id.GetID()
-					if(I)
-						perpname = I.registered_name
-					else
-						perpname = name
+			var/modified = 0
+			var/perpname = "wot"
+			if(wear_id)
+				var/obj/item/weapon/card/id/I = wear_id.GetID()
+				if(I)
+					perpname = I.registered_name
 				else
 					perpname = name
+			else
+				perpname = name
 
-				if(perpname)
-					for (var/datum/data/record/E in data_core.general)
-						if (E.fields["name"] == perpname)
-							for (var/datum/data/record/R in data_core.security)
-								if (R.fields["id"] == E.fields["id"])
-
-									var/setcriminal = input(usr, "Specify a new criminal status for this person.", "Security HUD", R.fields["criminal"]) in list("None", "*Arrest*", "Incarcerated", "Parolled", "Released", "Cancel")
-
-									if(istype(H.glasses, /obj/item/clothing/glasses/hud/security) || istype(H.glasses, /obj/item/clothing/glasses/sunglasses/sechud))
-										if(setcriminal != "Cancel")
-											R.fields["criminal"] = setcriminal
-											modified = 1
-
-											spawn()
-												H.handle_regular_hud_updates()
-
-				if(!modified)
-					usr << "\red Unable to locate a data core entry for this person."
-
-	if (href_list["secrecord"])
-		if(istype(usr, /mob/living/carbon/human))
-			var/mob/living/carbon/human/H = usr
-			if(istype(H.glasses, /obj/item/clothing/glasses/hud/security) || istype(H.glasses, /obj/item/clothing/glasses/sunglasses/sechud))
-				var/perpname = "wot"
-				var/read = 0
-
-				if(wear_id)
-					if(istype(wear_id,/obj/item/weapon/card/id))
-						perpname = wear_id:registered_name
-					else if(istype(wear_id,/obj/item/device/pda))
-						var/obj/item/device/pda/tempPda = wear_id
-						perpname = tempPda.owner
-				else
-					perpname = src.name
+			if(perpname)
 				for (var/datum/data/record/E in data_core.general)
 					if (E.fields["name"] == perpname)
 						for (var/datum/data/record/R in data_core.security)
 							if (R.fields["id"] == E.fields["id"])
-								if(istype(H.glasses, /obj/item/clothing/glasses/hud/security) || istype(H.glasses, /obj/item/clothing/glasses/sunglasses/sechud))
-									usr << "<b>Name:</b> [R.fields["name"]]	<b>Criminal Status:</b> [R.fields["criminal"]]"
-									usr << "<b>Minor Crimes:</b> [R.fields["mi_crim"]]"
-									usr << "<b>Details:</b> [R.fields["mi_crim_d"]]"
-									usr << "<b>Major Crimes:</b> [R.fields["ma_crim"]]"
-									usr << "<b>Details:</b> [R.fields["ma_crim_d"]]"
-									usr << "<b>Notes:</b> [R.fields["notes"]]"
-									usr << "<a href='?src=\ref[src];secrecordComment=`'>\[View Comment Log\]</a>"
-									read = 1
 
-				if(!read)
-					usr << "\red Unable to locate a data core entry for this person."
+								var/setcriminal = input(usr, "Specify a new criminal status for this person.", "Security HUD", R.fields["criminal"]) in list("None", "*Arrest*", "Incarcerated", "Parolled", "Released", "Cancel")
 
-	if (href_list["secrecordComment"])
-		if(istype(usr, /mob/living/carbon/human))
-			var/mob/living/carbon/human/H = usr
-			if(istype(H.glasses, /obj/item/clothing/glasses/hud/security) || istype(H.glasses, /obj/item/clothing/glasses/sunglasses/sechud))
-				var/perpname = "wot"
-				var/read = 0
-
-				if(wear_id)
-					if(istype(wear_id,/obj/item/weapon/card/id))
-						perpname = wear_id:registered_name
-					else if(istype(wear_id,/obj/item/device/pda))
-						var/obj/item/device/pda/tempPda = wear_id
-						perpname = tempPda.owner
-				else
-					perpname = src.name
-				for (var/datum/data/record/E in data_core.general)
-					if (E.fields["name"] == perpname)
-						for (var/datum/data/record/R in data_core.security)
-							if (R.fields["id"] == E.fields["id"])
-								if(istype(H.glasses, /obj/item/clothing/glasses/hud/security) || istype(H.glasses, /obj/item/clothing/glasses/sunglasses/sechud))
-									read = 1
-									var/counter = 1
-									while(R.fields[text("com_[]", counter)])
-										usr << text("[]", R.fields[text("com_[]", counter)])
-										counter++
-									if (counter == 1)
-										usr << "No comment found"
-									usr << "<a href='?src=\ref[src];secrecordadd=`'>\[Add comment\]</a>"
-
-				if(!read)
-					usr << "\red Unable to locate a data core entry for this person."
-
-	if (href_list["secrecordadd"])
-		if(istype(usr, /mob/living/carbon/human))
-			var/mob/living/carbon/human/H = usr
-			if(istype(H.glasses, /obj/item/clothing/glasses/hud/security) || istype(H.glasses, /obj/item/clothing/glasses/sunglasses/sechud))
-				var/perpname = "wot"
-				if(wear_id)
-					if(istype(wear_id,/obj/item/weapon/card/id))
-						perpname = wear_id:registered_name
-					else if(istype(wear_id,/obj/item/device/pda))
-						var/obj/item/device/pda/tempPda = wear_id
-						perpname = tempPda.owner
-				else
-					perpname = src.name
-				for (var/datum/data/record/E in data_core.general)
-					if (E.fields["name"] == perpname)
-						for (var/datum/data/record/R in data_core.security)
-							if (R.fields["id"] == E.fields["id"])
-								if(istype(H.glasses, /obj/item/clothing/glasses/hud/security) || istype(H.glasses, /obj/item/clothing/glasses/sunglasses/sechud))
-									var/t1 = copytext(sanitize(input("Add Comment:", "Sec. records", null, null)  as message),1,MAX_MESSAGE_LEN)
-									if ((!( t1 ) || src.stat || src.restrained() || !(istype(H.glasses, /obj/item/clothing/glasses/hud/security) || istype(H.glasses, /obj/item/clothing/glasses/sunglasses/sechud))))
-										return
-									var/counter = 1
-									while(R.fields[text("com_[]", counter)])
-										counter++
-									R.fields[text("com_[]", counter)] = text("Made by [] ([]) on [], 2053<BR>[]",H.get_authentification_name(), H.get_assignment(), time2text(world.realtime, "DDD MMM DD hh:mm:ss"), t1)
-
-	if (href_list["medical"])
-		if(istype(usr, /mob/living/carbon/human))
-			var/mob/living/carbon/human/H = usr
-			if(istype(H.glasses, /obj/item/clothing/glasses/hud/health))
-				var/perpname = "wot"
-				var/modified = 0
-
-				if(wear_id)
-					if(istype(wear_id,/obj/item/weapon/card/id))
-						perpname = wear_id:registered_name
-					else if(istype(wear_id,/obj/item/device/pda))
-						var/obj/item/device/pda/tempPda = wear_id
-						perpname = tempPda.owner
-				else
-					perpname = src.name
-
-				for (var/datum/data/record/E in data_core.general)
-					if (E.fields["name"] == perpname)
-						for (var/datum/data/record/R in data_core.general)
-							if (R.fields["id"] == E.fields["id"])
-
-								var/setmedical = input(usr, "Specify a new medical status for this person.", "Medical HUD", R.fields["p_stat"]) in list("*Deceased*", "*Unconscious*", "Physically Unfit", "Active", "Cancel")
-
-								if(istype(H.glasses, /obj/item/clothing/glasses/hud/health))
-									if(setmedical != "Cancel")
-										R.fields["p_stat"] = setmedical
+								if(hasHUD(usr, "security"))
+									if(setcriminal != "Cancel")
+										R.fields["criminal"] = setcriminal
 										modified = 1
 
 										spawn()
-											H.handle_regular_hud_updates()
+											if(istype(usr,/mob/living/carbon/human))
+												var/mob/living/carbon/human/U = usr
+												U.handle_regular_hud_updates()
+											if(istype(usr,/mob/living/silicon/robot))
+												var/mob/living/silicon/robot/U = usr
+												U.handle_regular_hud_updates()
 
-				if(!modified)
-					usr << "\red Unable to locate a data core entry for this person."
+			if(!modified)
+				usr << "\red Unable to locate a data core entry for this person."
+
+	if (href_list["secrecord"])
+		if(hasHUD(usr,"security"))
+			var/perpname = "wot"
+			var/read = 0
+
+			if(wear_id)
+				if(istype(wear_id,/obj/item/weapon/card/id))
+					perpname = wear_id:registered_name
+				else if(istype(wear_id,/obj/item/device/pda))
+					var/obj/item/device/pda/tempPda = wear_id
+					perpname = tempPda.owner
+			else
+				perpname = src.name
+			for (var/datum/data/record/E in data_core.general)
+				if (E.fields["name"] == perpname)
+					for (var/datum/data/record/R in data_core.security)
+						if (R.fields["id"] == E.fields["id"])
+							if(hasHUD(usr,"security"))
+								usr << "<b>Name:</b> [R.fields["name"]]	<b>Criminal Status:</b> [R.fields["criminal"]]"
+								usr << "<b>Minor Crimes:</b> [R.fields["mi_crim"]]"
+								usr << "<b>Details:</b> [R.fields["mi_crim_d"]]"
+								usr << "<b>Major Crimes:</b> [R.fields["ma_crim"]]"
+								usr << "<b>Details:</b> [R.fields["ma_crim_d"]]"
+								usr << "<b>Notes:</b> [R.fields["notes"]]"
+								usr << "<a href='?src=\ref[src];secrecordComment=`'>\[View Comment Log\]</a>"
+								read = 1
+
+			if(!read)
+				usr << "\red Unable to locate a data core entry for this person."
+
+	if (href_list["secrecordComment"])
+		if(hasHUD(usr,"security"))
+			var/perpname = "wot"
+			var/read = 0
+
+			if(wear_id)
+				if(istype(wear_id,/obj/item/weapon/card/id))
+					perpname = wear_id:registered_name
+				else if(istype(wear_id,/obj/item/device/pda))
+					var/obj/item/device/pda/tempPda = wear_id
+					perpname = tempPda.owner
+			else
+				perpname = src.name
+			for (var/datum/data/record/E in data_core.general)
+				if (E.fields["name"] == perpname)
+					for (var/datum/data/record/R in data_core.security)
+						if (R.fields["id"] == E.fields["id"])
+							if(hasHUD(usr,"security"))
+								read = 1
+								var/counter = 1
+								while(R.fields[text("com_[]", counter)])
+									usr << text("[]", R.fields[text("com_[]", counter)])
+									counter++
+								if (counter == 1)
+									usr << "No comment found"
+								usr << "<a href='?src=\ref[src];secrecordadd=`'>\[Add comment\]</a>"
+
+			if(!read)
+				usr << "\red Unable to locate a data core entry for this person."
+
+	if (href_list["secrecordadd"])
+		if(hasHUD(usr,"security"))
+			var/perpname = "wot"
+			if(wear_id)
+				if(istype(wear_id,/obj/item/weapon/card/id))
+					perpname = wear_id:registered_name
+				else if(istype(wear_id,/obj/item/device/pda))
+					var/obj/item/device/pda/tempPda = wear_id
+					perpname = tempPda.owner
+			else
+				perpname = src.name
+			for (var/datum/data/record/E in data_core.general)
+				if (E.fields["name"] == perpname)
+					for (var/datum/data/record/R in data_core.security)
+						if (R.fields["id"] == E.fields["id"])
+							if(hasHUD(usr,"security"))
+								var/t1 = copytext(sanitize(input("Add Comment:", "Sec. records", null, null)  as message),1,MAX_MESSAGE_LEN)
+								if ( !(t1) || usr.stat || usr.restrained() || !(hasHUD(usr,"security")) )
+									return
+								var/counter = 1
+								while(R.fields[text("com_[]", counter)])
+									counter++
+								if(istype(usr,/mob/living/carbon/human))
+									var/mob/living/carbon/human/U = usr
+									R.fields[text("com_[counter]")] = text("Made by [U.get_authentification_name()] ([U.get_assignment()]) on [time2text(world.realtime, "DDD MMM DD hh:mm:ss")], [game_year]<BR>[t1]")
+								if(istype(usr,/mob/living/silicon/robot))
+									var/mob/living/silicon/robot/U = usr
+									R.fields[text("com_[counter]")] = text("Made by [U.name] ([U.modtype] [U.braintype]) on [time2text(world.realtime, "DDD MMM DD hh:mm:ss")], [game_year]<BR>[t1]")
+
+	if (href_list["medical"])
+		if(hasHUD(usr,"medical"))
+			var/perpname = "wot"
+			var/modified = 0
+
+			if(wear_id)
+				if(istype(wear_id,/obj/item/weapon/card/id))
+					perpname = wear_id:registered_name
+				else if(istype(wear_id,/obj/item/device/pda))
+					var/obj/item/device/pda/tempPda = wear_id
+					perpname = tempPda.owner
+			else
+				perpname = src.name
+
+			for (var/datum/data/record/E in data_core.general)
+				if (E.fields["name"] == perpname)
+					for (var/datum/data/record/R in data_core.general)
+						if (R.fields["id"] == E.fields["id"])
+
+							var/setmedical = input(usr, "Specify a new medical status for this person.", "Medical HUD", R.fields["p_stat"]) in list("*SSD*", "*Deceased*", "Physically Unfit", "Active", "Disabled", "Cancel")
+
+							if(hasHUD(usr,"medical"))
+								if(setmedical != "Cancel")
+									R.fields["p_stat"] = setmedical
+									modified = 1
+
+									spawn()
+										if(istype(usr,/mob/living/carbon/human))
+											var/mob/living/carbon/human/U = usr
+											U.handle_regular_hud_updates()
+										if(istype(usr,/mob/living/silicon/robot))
+											var/mob/living/silicon/robot/U = usr
+											U.handle_regular_hud_updates()
+
+			if(!modified)
+				usr << "\red Unable to locate a data core entry for this person."
 
 	if (href_list["medrecord"])
-		if(istype(usr, /mob/living/carbon/human))
-			var/mob/living/carbon/human/H = usr
-			if(istype(H.glasses, /obj/item/clothing/glasses/hud/health))
-				var/perpname = "wot"
-				var/read = 0
+		if(hasHUD(usr,"medical"))
+			var/perpname = "wot"
+			var/read = 0
 
-				if(wear_id)
-					if(istype(wear_id,/obj/item/weapon/card/id))
-						perpname = wear_id:registered_name
-					else if(istype(wear_id,/obj/item/device/pda))
-						var/obj/item/device/pda/tempPda = wear_id
-						perpname = tempPda.owner
-				else
-					perpname = src.name
-				for (var/datum/data/record/E in data_core.general)
-					if (E.fields["name"] == perpname)
-						for (var/datum/data/record/R in data_core.medical)
-							if (R.fields["id"] == E.fields["id"])
-								if(istype(H.glasses, /obj/item/clothing/glasses/hud/health))
-									usr << "<b>Name:</b> [R.fields["name"]]	<b>Blood Type:</b> [R.fields["b_type"]]"
-									usr << "<b>DNA:</b> [R.fields["b_dna"]]"
-									usr << "<b>Minor Disabilities:</b> [R.fields["mi_dis"]]"
-									usr << "<b>Details:</b> [R.fields["mi_dis_d"]]"
-									usr << "<b>Major Disabilities:</b> [R.fields["ma_dis"]]"
-									usr << "<b>Details:</b> [R.fields["ma_dis_d"]]"
-									usr << "<b>Notes:</b> [R.fields["notes"]]"
-									usr << "<a href='?src=\ref[src];medrecordComment=`'>\[View Comment Log\]</a>"
-									read = 1
+			if(wear_id)
+				if(istype(wear_id,/obj/item/weapon/card/id))
+					perpname = wear_id:registered_name
+				else if(istype(wear_id,/obj/item/device/pda))
+					var/obj/item/device/pda/tempPda = wear_id
+					perpname = tempPda.owner
+			else
+				perpname = src.name
+			for (var/datum/data/record/E in data_core.general)
+				if (E.fields["name"] == perpname)
+					for (var/datum/data/record/R in data_core.medical)
+						if (R.fields["id"] == E.fields["id"])
+							if(hasHUD(usr,"medical"))
+								usr << "<b>Name:</b> [R.fields["name"]]	<b>Blood Type:</b> [R.fields["b_type"]]"
+								usr << "<b>DNA:</b> [R.fields["b_dna"]]"
+								usr << "<b>Minor Disabilities:</b> [R.fields["mi_dis"]]"
+								usr << "<b>Details:</b> [R.fields["mi_dis_d"]]"
+								usr << "<b>Major Disabilities:</b> [R.fields["ma_dis"]]"
+								usr << "<b>Details:</b> [R.fields["ma_dis_d"]]"
+								usr << "<b>Notes:</b> [R.fields["notes"]]"
+								usr << "<a href='?src=\ref[src];medrecordComment=`'>\[View Comment Log\]</a>"
+								read = 1
 
-				if(!read)
-					usr << "\red Unable to locate a data core entry for this person."
+			if(!read)
+				usr << "\red Unable to locate a data core entry for this person."
 
 	if (href_list["medrecordComment"])
-		if(istype(usr, /mob/living/carbon/human))
-			var/mob/living/carbon/human/H = usr
-			if(istype(H.glasses, /obj/item/clothing/glasses/hud/health))
-				var/perpname = "wot"
-				var/read = 0
+		if(hasHUD(usr,"medical"))
+			var/perpname = "wot"
+			var/read = 0
 
-				if(wear_id)
-					if(istype(wear_id,/obj/item/weapon/card/id))
-						perpname = wear_id:registered_name
-					else if(istype(wear_id,/obj/item/device/pda))
-						var/obj/item/device/pda/tempPda = wear_id
-						perpname = tempPda.owner
-				else
-					perpname = src.name
-				for (var/datum/data/record/E in data_core.general)
-					if (E.fields["name"] == perpname)
-						for (var/datum/data/record/R in data_core.medical)
-							if (R.fields["id"] == E.fields["id"])
-								if(istype(H.glasses, /obj/item/clothing/glasses/hud/health))
-									read = 1
-									var/counter = 1
-									while(R.fields[text("com_[]", counter)])
-										usr << text("[]", R.fields[text("com_[]", counter)])
-										counter++
-									if (counter == 1)
-										usr << "No comment found"
-									usr << "<a href='?src=\ref[src];medrecordadd=`'>\[Add comment\]</a>"
+			if(wear_id)
+				if(istype(wear_id,/obj/item/weapon/card/id))
+					perpname = wear_id:registered_name
+				else if(istype(wear_id,/obj/item/device/pda))
+					var/obj/item/device/pda/tempPda = wear_id
+					perpname = tempPda.owner
+			else
+				perpname = src.name
+			for (var/datum/data/record/E in data_core.general)
+				if (E.fields["name"] == perpname)
+					for (var/datum/data/record/R in data_core.medical)
+						if (R.fields["id"] == E.fields["id"])
+							if(hasHUD(usr,"medical"))
+								read = 1
+								var/counter = 1
+								while(R.fields[text("com_[]", counter)])
+									usr << text("[]", R.fields[text("com_[]", counter)])
+									counter++
+								if (counter == 1)
+									usr << "No comment found"
+								usr << "<a href='?src=\ref[src];medrecordadd=`'>\[Add comment\]</a>"
 
-				if(!read)
-					usr << "\red Unable to locate a data core entry for this person."
+			if(!read)
+				usr << "\red Unable to locate a data core entry for this person."
 
 	if (href_list["medrecordadd"])
-		if(istype(usr, /mob/living/carbon/human))
-			var/mob/living/carbon/human/H = usr
-			if(istype(H.glasses, /obj/item/clothing/glasses/hud/health))
-				var/perpname = "wot"
-				if(wear_id)
-					if(istype(wear_id,/obj/item/weapon/card/id))
-						perpname = wear_id:registered_name
-					else if(istype(wear_id,/obj/item/device/pda))
-						var/obj/item/device/pda/tempPda = wear_id
-						perpname = tempPda.owner
-				else
-					perpname = src.name
-				for (var/datum/data/record/E in data_core.general)
-					if (E.fields["name"] == perpname)
-						for (var/datum/data/record/R in data_core.medical)
-							if (R.fields["id"] == E.fields["id"])
-								if(istype(H.glasses, /obj/item/clothing/glasses/hud/health))
-									var/t1 = copytext(sanitize(input("Add Comment:", "Med. records", null, null)  as message),1,MAX_MESSAGE_LEN)
-									if ((!( t1 ) || src.stat || src.restrained() || !(istype(H.glasses, /obj/item/clothing/glasses/hud/health))))
-										return
-									var/counter = 1
-									while(R.fields[text("com_[]", counter)])
-										counter++
-									R.fields[text("com_[]", counter)] = text("Made by [] ([]) on [], 2053<BR>[]",H.get_authentification_name(), H.get_assignment(), time2text(world.realtime, "DDD MMM DD hh:mm:ss"), t1)
+		if(hasHUD(usr,"medical"))
+			var/perpname = "wot"
+			if(wear_id)
+				if(istype(wear_id,/obj/item/weapon/card/id))
+					perpname = wear_id:registered_name
+				else if(istype(wear_id,/obj/item/device/pda))
+					var/obj/item/device/pda/tempPda = wear_id
+					perpname = tempPda.owner
+			else
+				perpname = src.name
+			for (var/datum/data/record/E in data_core.general)
+				if (E.fields["name"] == perpname)
+					for (var/datum/data/record/R in data_core.medical)
+						if (R.fields["id"] == E.fields["id"])
+							if(hasHUD(usr,"medical"))
+								var/t1 = copytext(sanitize(input("Add Comment:", "Med. records", null, null)  as message),1,MAX_MESSAGE_LEN)
+								if ( !(t1) || usr.stat || usr.restrained() || !(hasHUD(usr,"medical")) )
+									return
+								var/counter = 1
+								while(R.fields[text("com_[]", counter)])
+									counter++
+								if(istype(usr,/mob/living/carbon/human))
+									var/mob/living/carbon/human/U = usr
+									R.fields[text("com_[counter]")] = text("Made by [U.get_authentification_name()] ([U.get_assignment()]) on [time2text(world.realtime, "DDD MMM DD hh:mm:ss")], [game_year]<BR>[t1]")
+								if(istype(usr,/mob/living/silicon/robot))
+									var/mob/living/silicon/robot/U = usr
+									R.fields[text("com_[counter]")] = text("Made by [U.name] ([U.modtype] [U.braintype]) on [time2text(world.realtime, "DDD MMM DD hh:mm:ss")], [game_year]<BR>[t1]")
 	..()
 	return
 
@@ -789,7 +805,7 @@
 
 
 /mob/living/carbon/human/abiotic(var/full_body = 0)
-	if(full_body && ((src.l_hand && !( src.l_hand.abstract )) || (src.r_hand && !( src.r_hand.abstract )) || (src.back || src.wear_mask || src.head || src.shoes || src.w_uniform || src.wear_suit || src.glasses || src.ears || src.gloves)))
+	if(full_body && ((src.l_hand && !( src.l_hand.abstract )) || (src.r_hand && !( src.r_hand.abstract )) || (src.back || src.wear_mask || src.head || src.shoes || src.w_uniform || src.wear_suit || src.glasses || src.l_ear || src.r_ear || src.gloves)))
 		return 1
 
 	if( (src.l_hand && !src.l_hand.abstract) || (src.r_hand && !src.r_hand.abstract) )
@@ -803,44 +819,14 @@
 	return
 
 /mob/living/carbon/human/get_species()
-	if(dna)
-		switch(dna.mutantrace)
-			if("lizard")
-				return "Unathi"
-			if("tajaran")
-				return "Tajaran"
-			if("skrell")
-				return "Skrell"
-			if("vox")
-				return "Vox"
-			if("plant")
-				return "Mobile vegetation"
-			if("golem")
-				return "Animated Construct"
-			else
-				return "Human"
 
-/mob/living/carbon/get_species()
-	if(src.dna)
-		if(src.dna.mutantrace == "lizard")
-			return "Unathi"
-		else if(src.dna.mutantrace == "skrell")
-			return "Skrell"
-		else if(src.dna.mutantrace == "tajaran")
-			return "Tajaran"
-		else if(src.dna.mutantrace == "vox")
-			return "vox"
+	if(!species)
+		set_species()
 
-/mob/living/carbon/proc/update_mutantrace_languages()
-	if(src.dna)
-		if(src.dna.mutantrace == "lizard")
-			src.soghun_talk_understand = 1
-		else if(src.dna.mutantrace == "skrell")
-			src.skrell_talk_understand = 1
-		else if(src.dna.mutantrace == "tajaran")
-			src.tajaran_talk_understand = 1
-		else if(src.dna.mutantrace == "vox")
-			src.vox_talk_understand = 1
+	if(dna && dna.mutantrace == "golem")
+		return "Animated Construct"
+
+	return species.name
 
 /mob/living/carbon/human/proc/play_xylophone()
 	if(!src.xylophone)
@@ -1037,6 +1023,7 @@
 		if (!O.amputated)
 			O.status &= ~ORGAN_DESTROYED
 		O.wounds.Cut()
+		O.heal_damage(1000,1000,1,1)
 
 	var/datum/organ/external/head/h = organs_by_name["head"]
 	h.disfigured = 0
@@ -1056,6 +1043,10 @@
 
 	for (var/datum/disease/virus in viruses)
 		virus.cure()
+	for (var/ID in virus2)
+		var/datum/disease2/disease/V = virus2[ID]
+		V.cure(src)
+
 	..()
 
 /mob/living/carbon/human/proc/is_lung_ruptured()
@@ -1116,3 +1107,162 @@
 	if(istype(feet_blood_DNA, /list) && feet_blood_DNA.len)
 		del(feet_blood_DNA)
 		return 1
+
+mob/living/carbon/human/yank_out_object()
+	set category = "Object"
+	set name = "Yank out object"
+	set desc = "Remove an embedded item at the cost of bleeding and pain."
+	set src in view(1)
+
+	if(!isliving(usr) || usr.next_move > world.time)
+		return
+	usr.next_move = world.time + 20
+
+	if(usr.stat == 1)
+		usr << "You are unconcious and cannot do that!"
+		return
+
+	if(usr.restrained())
+		usr << "You are restrained and cannot do that!"
+		return
+
+	var/list/valid_objects = list()
+	var/datum/organ/external/affected = null
+	var/mob/living/carbon/human/S = src
+	var/mob/living/carbon/human/U = usr
+	var/self = null
+
+	if(S == U)
+		self = 1 // Removing object from yourself.
+
+	valid_objects = get_visible_implants(1)
+
+	if(!valid_objects.len)
+		if(self)
+			src << "You have nothing stuck in your wounds that is large enough to remove without surgery."
+		else
+			U << "[src] has nothing stuck in their wounds that is large enough to remove without surgery."
+		return
+
+	var/obj/item/weapon/selection = input("What do you want to yank out?", "Embedded objects") in valid_objects
+
+	for(var/datum/organ/external/organ in organs) //Grab the organ holding the implant.
+		for(var/obj/item/weapon/O in organ.implants)
+			if(O == selection)
+				affected = organ
+	if(self)
+		src << "<span class='warning'>You attempt to get a good grip on the [selection] in your [affected.display_name] with bloody fingers.</span>"
+	else
+		U << "<span class='warning'>You attempt to get a good grip on the [selection] in [S]'s [affected.display_name] with bloody fingers.</span>"
+
+	if(istype(U,/mob/living/carbon/human/)) U.bloody_hands(S)
+
+	if(!do_after(U, 80))
+		return
+
+	if(!selection || !affected || !S || !U)
+		return
+
+	if(self)
+		visible_message("<span class='warning'><b>[src] rips [selection] out of their [affected.display_name] in a welter of blood.</b></span>","<span class='warning'><b>You rip [selection] out of your [affected] in a welter of blood.</b></span>")
+	else
+		visible_message("<span class='warning'><b>[usr] rips [selection] out of [src]'s [affected.display_name] in a welter of blood.</b></span>","<span class='warning'><b>[usr] rips [selection] out of your [affected] in a welter of blood.</b></span>")
+
+	selection.loc = get_turf(src)
+	affected.implants -= selection
+	shock_stage+=10
+
+	for(var/obj/item/weapon/O in pinned)
+		if(O == selection)
+			pinned -= O
+		if(!pinned.len)
+			anchored = 0
+
+	if(prob(10)) //I'M SO ANEMIC I COULD JUST -DIE-.
+		var/datum/wound/internal_bleeding/I = new (15)
+		affected.wounds += I
+		custom_pain("Something tears wetly in your [affected] as [selection] is pulled free!", 1)
+	return 1
+
+/mob/living/carbon/human/proc/get_visible_implants(var/class = 0)
+
+	var/list/visible_implants = list()
+	for(var/datum/organ/external/organ in src.organs)
+		for(var/obj/item/weapon/O in organ.implants)
+			if(!istype(O,/obj/item/weapon/implant) && O.w_class > class)
+				visible_implants += O
+
+	return(visible_implants)
+
+/mob/living/carbon/human/proc/handle_embedded_objects()
+
+	for(var/datum/organ/external/organ in src.organs)
+		if(organ.status & ORGAN_SPLINTED) //Splints prevent movement.
+			continue
+		for(var/obj/item/weapon/O in organ.implants)
+			if(!istype(O,/obj/item/weapon/implant) && prob(5)) //Moving with things stuck in you could be bad.
+				// All kinds of embedded objects cause bleeding.
+				var/msg = null
+				switch(rand(1,3))
+					if(1)
+						msg ="<span class='warning'>A spike of pain jolts your [organ.display_name] as you bump [O] inside.</span>"
+					if(2)
+						msg ="<span class='warning'>Your movement jostles [O] in your [organ.display_name] painfully.</span>"
+					if(3)
+						msg ="<span class='warning'>[O] in your [organ.display_name] twists painfully as you move.</span>"
+				src << msg
+
+				organ.take_damage(rand(1,3), 0, 0)
+				if(!(organ.status & ORGAN_ROBOT)) //There is no blood in protheses.
+					organ.status |= ORGAN_BLEEDING
+					src.adjustToxLoss(rand(1,3))
+
+/mob/living/carbon/human/verb/check_pulse()
+	set category = "Object"
+	set name = "Check pulse"
+	set desc = "Approximately count somebody's pulse. Requires you to stand still at least 6 seconds."
+	set src in view(1)
+	var/self = 0
+
+	if(usr.stat == 1 || usr.restrained() || !isliving(usr)) return
+
+	if(usr == src)
+		self = 1
+	if(!self)
+		usr.visible_message("\blue [usr] kneels down, puts \his hand on [src]'s wrist and begins counting their pulse.",\
+		"You begin counting [src]'s pulse")
+	else
+		usr.visible_message("\blue [usr] begins counting their pulse.",\
+		"You begin counting your pulse.")
+
+	if(src.pulse)
+		usr << "\blue [self ? "You have a" : "[src] has a"] pulse! Counting..."
+	else
+		usr << "\red [src] has no pulse!"	//it is REALLY UNLIKELY that a dead person would check his own pulse
+		return
+
+	usr << "Don't move until counting is finished."
+	var/time = world.timeofday
+	sleep(60)
+	if(usr.l_move_time >= time)	//checks if our mob has moved during the sleep()
+		usr << "You moved while counting. Try again."
+	else
+		usr << "\blue [self ? "Your" : "[src]'s"] pulse is [src.get_pulse(GETPULSE_HAND)]."
+
+/mob/living/carbon/human/proc/set_species(var/new_species)
+
+	if(!new_species)
+		new_species = "Human"
+
+	if(species && (species.name && species.name == new_species))
+		return
+
+	species = all_species[new_species]
+
+	spawn(0)
+		update_icons()
+
+	if(species)
+		return 1
+	else
+		return 0

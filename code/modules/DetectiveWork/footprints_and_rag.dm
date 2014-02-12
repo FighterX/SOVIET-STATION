@@ -23,6 +23,8 @@
 	volume = 5
 	can_be_placed_into = null
 
+/obj/item/weapon/reagent_containers/glass/rag/attack_self(mob/user as mob)
+	return
 
 /obj/item/weapon/reagent_containers/glass/rag/attack(atom/target as obj|turf|area, mob/user as mob , flag)
 	if(ismob(target) && target.reagents && reagents.total_volume)
@@ -33,7 +35,8 @@
 	else
 		..()
 
-/obj/item/weapon/reagent_containers/glass/rag/afterattack(atom/A as obj|turf|area, mob/user as mob)
+/obj/item/weapon/reagent_containers/glass/rag/afterattack(atom/A as obj|turf|area, mob/user as mob, proximity)
+	if(!proximity) return
 	if(istype(A) && src in user)
 		user.visible_message("[user] starts to wipe down [A] with [src]!")
 		if(do_after(user,30))

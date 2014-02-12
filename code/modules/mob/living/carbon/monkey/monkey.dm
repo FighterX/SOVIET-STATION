@@ -1,24 +1,47 @@
 /mob/living/carbon/monkey
 	name = "monkey"
 	voice_name = "monkey"
-	voice_message = "chimpers"
-	say_message = "chimpers"
-	icon = 'icons/mob/monkey.dmi'
+	speak_emote = list("chimpers")
 	icon_state = "monkey1"
+	icon = 'icons/mob/monkey.dmi'
 	gender = NEUTER
 	pass_flags = PASSTABLE
 	update_icon = 0		///no need to call regenerate_icon
 
 	var/obj/item/weapon/card/id/wear_id = null // Fix for station bounced radios -- Skie
+	var/greaterform = "Human"                  // Used when humanizing a monkey.
+	var/uni_append = "12C4E2"                  // Small appearance modifier for different species.
+
+/mob/living/carbon/monkey/tajara
+	name = "farwa"
+	voice_name = "farwa"
+	speak_emote = list("mews")
+	icon_state = "tajkey1"
+	uni_append = "0A0E00"
+
+/mob/living/carbon/monkey/skrell
+	name = "neaera"
+	voice_name = "neaera"
+	speak_emote = list("squicks")
+	icon_state = "skrellkey1"
+	uni_append = "01CC92"
+
+/mob/living/carbon/monkey/unathi
+	name = "stok"
+	voice_name = "stok"
+	speak_emote = list("hisses")
+	icon_state = "stokkey1"
+	uni_append = "044C5D"
 
 /mob/living/carbon/monkey/New()
 	var/datum/reagents/R = new/datum/reagents(1000)
 	reagents = R
 	R.my_atom = src
 
-	if(name == "monkey")
-		name = text("monkey ([rand(1, 1000)])")
-	real_name = name
+	if(name == initial(name)) //To stop Pun-Pun becoming generic.
+		name = "[name] ([rand(1, 1000)])"
+		real_name = name
+
 	if (!(dna))
 		if(gender == NEUTER)
 			gender = pick(MALE, FEMALE)
@@ -33,11 +56,39 @@
 			gendervar = add_zero2(num2hex((rand(1,2049)),1), 3)
 		else
 			gendervar = add_zero2(num2hex((rand(2051,4094)),1), 3)
-		dna.uni_identity += gendervar
-		dna.uni_identity += "12C"
-		dna.uni_identity += "4E2"
+		dna.uni_identity += "[gendervar][uni_append]"
 	..()
+	update_icons()
 	return
+
+/mob/living/carbon/monkey/unathi/New()
+
+	..()
+	dna.mutantrace = "lizard"
+	greaterform = "Unathi"
+	add_language("Sinta'unathi")
+
+/mob/living/carbon/monkey/skrell/New()
+
+	..()
+	dna.mutantrace = "skrell"
+	greaterform = "Skrell"
+	add_language("Skrellian")
+
+/mob/living/carbon/monkey/tajara/New()
+
+	..()
+	dna.mutantrace = "tajaran"
+	greaterform = "Tajaran"
+	add_language("Siik'tajr")
+
+/mob/living/carbon/monkey/diona/New()
+
+	..()
+	gender = NEUTER
+	dna.mutantrace = "plant"
+	greaterform = "Diona"
+	add_language("Rootspeak")
 
 /mob/living/carbon/monkey/movement_delay()
 	var/tally = 0
@@ -123,23 +174,6 @@
 
 //mob/living/carbon/monkey/bullet_act(var/obj/item/projectile/Proj)taken care of in living
 
-/mob/living/carbon/monkey/hand_p(mob/M as mob)
-	if ((M.a_intent == "hurt" && !( istype(wear_mask, /obj/item/clothing/mask/muzzle) )))
-		if ((prob(75) && health > 0))
-			for(var/mob/O in viewers(src, null))
-				O.show_message(text("\red <B>[M.name] has bit []!</B>", src), 1)
-			var/damage = rand(1, 5)
-			if (HULK in mutations) damage += 10
-			adjustBruteLoss(damage)
-			updatehealth()
-
-			for(var/datum/disease/D in M.viruses)
-				if(istype(D, /datum/disease/jungle_fever))
-					contract_disease(D,1,0)
-		else
-			for(var/mob/O in viewers(src, null))
-				O.show_message(text("\red <B>[M.name] has attempted to bite []!</B>", src), 1)
-	return
 
 /mob/living/carbon/monkey/attack_paw(mob/M as mob)
 	..()
@@ -177,7 +211,7 @@
 		if(G.cell)
 			if(M.a_intent == "hurt")//Stungloves. Any contact will stun the alien.
 				if(G.cell.charge >= 2500)
-					G.cell.charge -= 2500
+					G.cell.use(2500)
 					Weaken(5)
 					if (stuttering < 5)
 						stuttering = 5
@@ -220,10 +254,10 @@
 						O.show_message(text("\red <B>[] has attempted to punch [name]!</B>", M), 1)
 		else
 			if (M.a_intent == "grab")
-				if (M == src)
+				if (M == src || anchored)
 					return
 
-				var/obj/item/weapon/grab/G = new /obj/item/weapon/grab( M, M, src )
+				var/obj/item/weapon/grab/G = new /obj/item/weapon/grab(M, src )
 
 				M.put_in_active_hand(G)
 

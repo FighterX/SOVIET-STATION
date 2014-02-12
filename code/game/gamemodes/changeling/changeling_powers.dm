@@ -86,7 +86,7 @@
 		src << "<span class='warning'>This creature's DNA is ruined beyond useability!</span>"
 		return
 
-	if(!G.killing)
+	if(!G.state == GRAB_KILL)
 		src << "<span class='warning'>We must have a tighter grip to absorb this creature.</span>"
 		return
 
@@ -106,7 +106,10 @@
 				src << "<span class='notice'>We stab [T] with the proboscis.</span>"
 				src.visible_message("<span class='danger'>[src] stabs [T] with the proboscis!</span>")
 				T << "<span class='danger'>You feel a sharp stabbing pain!</span>"
-				T.take_overall_damage(40)
+				var/datum/organ/external/affecting = T.get_organ(src.zone_sel.selecting)
+				if(affecting.take_damage(39,0,1,"large organic needle"))
+					T:UpdateDamageIcon()
+					continue
 
 		feedback_add_details("changeling_powers","A[stage]")
 		if(!do_mob(src, T, 150))
@@ -183,6 +186,7 @@
 	changeling.geneticdamage = 30
 	src.dna = chosen_dna
 	src.real_name = chosen_dna.real_name
+	src.flavor_text = ""
 	updateappearance(src, src.dna.uni_identity)
 	domutcheck(src, null)
 
@@ -364,27 +368,26 @@
 
 	spawn(rand(800,2000))
 		if(changeling_power(20,1,100,DEAD))
+			// charge the changeling chemical cost for stasis
 			changeling.chem_charges -= 20
-			if(C.stat == DEAD)
-				dead_mob_list -= C
-				living_mob_list += C
-			C.stat = CONSCIOUS
-			C.tod = null
-			C.setToxLoss(0)
-			C.setOxyLoss(0)
-			C.setCloneLoss(0)
-			C.SetParalysis(0)
-			C.SetStunned(0)
-			C.SetWeakened(0)
-			C.radiation = 0
-			C.heal_overall_damage(C.getBruteLoss(), C.getFireLoss())
-			C.reagents.clear_reagents()
+			
+			// restore us to health
+			C.rejuvenate()
+			
+			// remove our fake death flag
+			C.status_flags &= ~(FAKEDEATH)
+			
+			// let us move again
+			C.update_canmove()
+			
+			// re-add out changeling powers
+			C.make_changeling()		
+			
+			// sending display messages
 			C << "<span class='notice'>We have regenerated.</span>"
 			C.visible_message("<span class='warning'>[src] appears to wake from the dead, having healed all wounds.</span>")
-
-			C.status_flags &= ~(FAKEDEATH)
-			C.update_canmove()
-			C.make_changeling()
+			
+			
 	feedback_add_details("changeling_powers","FD")
 	return 1
 

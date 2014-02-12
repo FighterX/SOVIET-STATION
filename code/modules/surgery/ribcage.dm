@@ -31,8 +31,8 @@
 		..()
 
 	end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-		user.visible_message("\blue [user] has cut through [target]'s ribcage open with \the [tool].",		\
-		"\blue You have cut through [target]'s ribcage open with \the [tool].")
+		user.visible_message("\blue [user] has cut [target]'s ribcage open with \the [tool].",		\
+		"\blue You have cut [target]'s ribcage open with \the [tool].")
 		target.op_stage.ribcage = 1
 
 	fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
@@ -111,14 +111,14 @@
 		target.op_stage.ribcage = 1
 
 	fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-		var/msg = "\red [user]'s hand slips, bending [target]'s ribcage in a wrong shape!"
-		var/self_msg = "\red Your hand slips, bending [target]'s ribcage in a wrong shape!"
+		var/msg = "\red [user]'s hand slips, bending [target]'s ribs the wrong way!"
+		var/self_msg = "\red Your hand slips, bending [target]'s ribs the wrong way!"
 		user.visible_message(msg, self_msg)
 		var/datum/organ/external/chest/affected = target.get_organ("chest")
 		affected.createwound(BRUISE, 20)
 		affected.fracture()
 		if (prob(40))
-			user.visible_message("\red Rib pierces the lung!")
+			user.visible_message("\red A rib pierces the lung!")
 			target.rupture_lung()
 
 /datum/surgery_step/ribcage/mend_ribcage
@@ -238,17 +238,17 @@
 
 		if(heart.damage > 0)
 			user.visible_message("\blue [user] treats the bruises on [target]'s heart with \the [tool].", \
-			"\blue You treats the bruises on [target]'s heart with \the [tool]." )
+			"\blue You treat the bruises on [target]'s heart with \the [tool]." )
 			heart.damage = 0
 
 		if(liver.damage > 0)
 			user.visible_message("\blue [user] treats the bruises on [target]'s liver with \the [tool].", \
-			"\blue You treats the bruises on [target]'s liver with \the [tool]." )
+			"\blue You treat the bruises on [target]'s liver with \the [tool]." )
 			liver.damage = 0
 
 		if(kidney.damage > 0)
 			user.visible_message("\blue [user] treats the bruises on [target]'s kidney with \the [tool].", \
-			"\blue You treats the bruises on [target]'s kidney with \the [tool]." )
+			"\blue You treat the bruises on [target]'s kidney with \the [tool]." )
 			kidney.damage = 0
 
 	fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)

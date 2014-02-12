@@ -2,6 +2,7 @@
 	desc = "Magnetic boots, often used during extravehicular activity to ensure the user remains safely attached to the vehicle."
 	name = "magboots"
 	icon_state = "magboots0"
+	species_restricted = null
 	var/magpulse = 0
 //	flags = NOSLIP //disabled by default
 
@@ -10,6 +11,8 @@
 		set name = "Toggle Magboots"
 		set category = "Object"
 		set src in usr
+		if(usr.stat)
+			return
 		if(src.magpulse)
 			src.flags &= ~NOSLIP
 			src.slowdown = SHOES_SLOWDOWN

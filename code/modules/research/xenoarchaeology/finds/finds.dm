@@ -26,7 +26,7 @@
 /obj/item/weapon/ore/strangerock
 	name = "Strange rock"
 	desc = "Seems to have some unusal strata evident throughout it."
-	icon = 'xenoarchaeology.dmi'
+	icon = 'icons/obj/xenoarchaeology.dmi'
 	icon_state = "strange"
 	var/obj/item/weapon/inside
 	var/method = 0// 0 = fire, 1 = brush, 2 = pick
@@ -51,7 +51,7 @@
 		if(w.isOn())
 			if(w.get_fuel() >= 4 && !src.method)
 				if(inside)
-					inside.loc = src.loc
+					inside.loc = get_turf(src)
 					for(var/mob/M in viewers(world.view, user))
 						M.show_message("<span class='info'>[src] burns away revealing [inside].</span>",1)
 				else
@@ -80,7 +80,7 @@
 
 /obj/item/weapon/archaeological_find
 	name = "object"
-	icon = 'xenoarchaeology.dmi'
+	icon = 'icons/obj/xenoarchaeology.dmi'
 	icon_state = "ano01"
 	var/find_type = 0
 
@@ -114,7 +114,7 @@
 		if(1)
 			item_type = "bowl"
 			new_item = new /obj/item/weapon/reagent_containers/glass(src.loc)
-			new_item.icon = 'xenoarchaeology.dmi'
+			new_item.icon = 'icons/obj/xenoarchaeology.dmi'
 			new_item.icon_state = "bowl"
 			apply_image_decorations = 1
 			if(prob(20))
@@ -122,7 +122,7 @@
 		if(2)
 			item_type = "urn"
 			new_item = new /obj/item/weapon/reagent_containers/glass(src.loc)
-			new_item.icon = 'xenoarchaeology.dmi'
+			new_item.icon = 'icons/obj/xenoarchaeology.dmi'
 			new_item.icon_state = "urn"
 			apply_image_decorations = 1
 			if(prob(20))
@@ -192,7 +192,7 @@
 		if(11)
 			item_type = "box"
 			new_item = new /obj/item/weapon/storage/box(src.loc)
-			new_item.icon = 'xenoarchaeology.dmi'
+			new_item.icon = 'icons/obj/xenoarchaeology.dmi'
 			new_item.icon_state = "box"
 			if(prob(30))
 				apply_image_decorations = 1
@@ -271,7 +271,7 @@
 			new_item = new /obj/item/device/radio/beacon(src.loc)
 			talkative = 0
 			new_item.icon_state = "unknown[rand(1,4)]"
-			new_item.icon = 'xenoarchaeology.dmi'
+			new_item.icon = 'icons/obj/xenoarchaeology.dmi'
 			new_item.desc = ""
 		if(19)
 			apply_prefix = 0
@@ -324,26 +324,27 @@
 		if(26)
 			//energy gun
 			var/spawn_type = pick(\
-			/obj/item/weapon/gun/energy/laser/practice;100,\
-			/obj/item/weapon/gun/energy/laser;75,\
-			/obj/item/weapon/gun/energy/xray;50,\
-			/obj/item/weapon/gun/energy/laser/captain;25,\
-			)
-			var/obj/item/weapon/gun/energy/new_gun = new spawn_type(src.loc)
-			new_item = new_gun
-			new_item.icon_state = "egun[rand(1,6)]"
+			/obj/item/weapon/gun/energy/laser/practice,\
+			/obj/item/weapon/gun/energy/laser,\
+			/obj/item/weapon/gun/energy/xray,\
+			/obj/item/weapon/gun/energy/laser/captain)
+			if(spawn_type)
+				var/obj/item/weapon/gun/energy/new_gun = new spawn_type(src.loc)
+				new_item = new_gun
+				new_item.icon_state = "egun[rand(1,6)]"
+				new_gun.desc = "This is an antique energy weapon, you're not sure if it will fire or not."
 
-			//5% chance to explode when first fired
-			//10% chance to have an unchargeable cell
-			//15% chance to gain a random amount of starting energy, otherwise start with an empty cell
-			if(prob(5))
-				new_gun.power_supply.rigged = 1
-			if(prob(10))
-				new_gun.power_supply.maxcharge = 0
-			if(prob(15))
-				new_gun.power_supply.charge = rand(0, new_gun.power_supply.maxcharge)
-			else
-				new_gun.power_supply.charge = 0
+				//5% chance to explode when first fired
+				//10% chance to have an unchargeable cell
+				//15% chance to gain a random amount of starting energy, otherwise start with an empty cell
+				if(prob(5))
+					new_gun.power_supply.rigged = 1
+				if(prob(10))
+					new_gun.power_supply.maxcharge = 0
+				if(prob(15))
+					new_gun.power_supply.charge = rand(0, new_gun.power_supply.maxcharge)
+				else
+					new_gun.power_supply.charge = 0
 
 			item_type = "gun"
 		if(27)
@@ -351,7 +352,7 @@
 			var/obj/item/weapon/gun/projectile/new_gun = new /obj/item/weapon/gun/projectile(src.loc)
 			new_item = new_gun
 			new_item.icon_state = "gun[rand(1,4)]"
-			new_item.icon = 'xenoarchaeology.dmi'
+			new_item.icon = 'icons/obj/xenoarchaeology.dmi'
 
 			//33% chance to be able to reload the gun with human ammunition
 			if(prob(66))
@@ -420,7 +421,7 @@
 			//humanoid remains
 			apply_prefix = 0
 			item_type = "humanoid [pick("remains","skeleton")]"
-			icon = 'blood.dmi'
+			icon = 'icons/effects/blood.dmi'
 			icon_state = "remains"
 			additional_desc = pick("They appear almost human.",\
 			"They are contorted in a most gruesome way.",\
@@ -435,7 +436,7 @@
 			//robot remains
 			apply_prefix = 0
 			item_type = "[pick("mechanical","robotic","cyborg")] [pick("remains","chassis","debris")]"
-			icon = 'blood.dmi'
+			icon = 'icons/effects/blood.dmi'
 			icon_state = "remainsrobot"
 			additional_desc = pick("Almost mistakeable for the remains of a modern cyborg.",\
 			"They are barely recognisable as anything other than a pile of waste metals.",\
@@ -450,7 +451,7 @@
 			//xenos remains
 			apply_prefix = 0
 			item_type = "alien [pick("remains","skeleton")]"
-			icon = 'blood.dmi'
+			icon = 'icons/effects/blood.dmi'
 			icon_state = "remainsxeno"
 			additional_desc = pick("It looks vaguely reptilian, but with more teeth.",\
 			"They are faintly unsettling.",\

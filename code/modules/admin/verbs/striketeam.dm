@@ -2,6 +2,7 @@
 
 var/const/commandos_possible = 6 //if more Commandos are needed in the future
 var/global/sent_strike_team = 0
+
 /client/proc/strike_team()
 	if(!ticker)
 		usr << "<font color='red'>The game hasn't started yet!</font>"
@@ -124,7 +125,7 @@ var/global/sent_strike_team = 0
 
 	var/obj/item/device/radio/R = new /obj/item/device/radio/headset(src)
 	R.set_frequency(1441)
-	equip_to_slot_or_del(R, slot_ears)
+	equip_to_slot_or_del(R, slot_l_ear)
 	if (leader_selected == 0)
 		equip_to_slot_or_del(new /obj/item/clothing/under/color/green(src), slot_w_uniform)
 	else

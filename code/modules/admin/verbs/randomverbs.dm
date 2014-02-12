@@ -132,7 +132,7 @@ proc/cmd_admin_mute(mob/M as mob, mute_type, automute = 0)
 		if(!M.client)
 			usr << "<font color='red'>Error: cmd_admin_mute: This mob doesn't have a client tied to it.</font>"
 		if(M.client.holder)
-			usr << "<font color='red'>Error: cmd_admin_mute: You cannot mute an admin.</font>"
+			usr << "<font color='red'>Error: cmd_admin_mute: You cannot mute an admin/mod.</font>"
 	if(!M.client)		return
 	if(M.client.holder)	return
 
@@ -357,17 +357,22 @@ Traitors and the like can also be revived with the previous role mostly intact.
 			if(synd_spawn)
 				new_character.loc = get_turf(synd_spawn)
 			call(/datum/game_mode/proc/equip_syndicate)(new_character)
-		if("Space Ninja")
-			var/ninja_spawn[] = list()
-			for(var/obj/effect/landmark/L in landmarks_list)
-				if(L.name=="carpspawn")
-					ninja_spawn += L
+		if("Ninja")
 			new_character.equip_space_ninja()
 			new_character.internal = new_character.s_store
 			new_character.internals.icon_state = "internal1"
-			if(ninja_spawn.len)
-				var/obj/effect/landmark/ninja_spawn_here = pick(ninja_spawn)
-				new_character.loc = ninja_spawn_here.loc
+			if(ninjastart.len == 0)
+				new_character << "<B>\red A proper starting location for you could not be found, please report this bug!</B>"
+				new_character << "<B>\red Attempting to place at a carpspawn.</B>"
+				for(var/obj/effect/landmark/L in landmarks_list)
+					if(L.name == "carpspawn")
+						ninjastart.Add(L)
+				if(ninjastart.len == 0 && latejoin.len > 0)
+					new_character << "<B>\red Still no spawneable locations could be found. Defaulting to latejoin.</B>"
+					new_character.loc = pick(latejoin)
+				else if (ninjastart.len == 0)
+					new_character << "<B>\red Still no spawneable locations could be found. Aborting.</B>"
+
 		if("Death Commando")//Leaves them at late-join spawn.
 			new_character.equip_death_commando()
 			new_character.internal = new_character.s_store
@@ -478,7 +483,7 @@ Traitors and the like can also be revived with the previous role mostly intact.
 		if("No")
 			world << "\red New NanoTrasen Update available at all communication consoles."
 
-	world << sound('commandreport.ogg')
+	world << sound('sound/AI/commandreport.ogg')
 	log_admin("[key_name(src)] has created a command report: [input]")
 	message_admins("[key_name_admin(src)] has created a command report", 1)
 	feedback_add_details("admin_verb","CCR") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
