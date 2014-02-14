@@ -257,6 +257,20 @@
 	item_state = "neocoat"
 	flags = FPRINT | TABLEPASS
 
+/obj/item/clothing/suit/cape
+	name = "Cape"
+	desc = "Such a majestic cape!"
+	icon_state = "cape"
+	item_state = "cape"
+	flags = FPRINT | TABLEPASS
+
+/obj/item/clothing/suit/redcoat
+	name = "Red Coat"
+	desc = "A coat of a great army"
+	icon_state = "redcoat"
+	item_state = "redcoat"
+	flags = FPRINT | TABLEPASS
+
 //stripper
 
 /obj/item/clothing/under/stripper/stripper_pink

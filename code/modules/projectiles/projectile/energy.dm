@@ -10,14 +10,9 @@
 	name = "electrode"
 	icon_state = "spark"
 	nodamage = 1
-	/*
 	stun = 10
 	weaken = 10
 	stutter = 10
-	*/
-	agony = 40
-	damage_type = HALLOSS
-	//Damage will be handled on the MOB side, to prevent window shattering.
 
 
 

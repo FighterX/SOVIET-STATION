@@ -149,8 +149,8 @@
 	if(module)
 		return
 	var/list/modules = list("Standard", "Engineering", "Medical", "Miner", "Janitor", "Service", "Security")
-	if(security_level == SEC_LEVEL_RED) //Leaving this in until it's balanced appropriately.
-		src << "\red Security level is Red. Combat module available."
+	if(crisis && security_level == SEC_LEVEL_RED) //Leaving this in until it's balanced appropriately.
+		src << "\red Crisis mode active. Combat module available."
 		modules+="Combat"
 	modtype = input("Please, select a module!", "Robot", null, null) in modules
 
@@ -1011,8 +1011,7 @@
 		var/base_icon = ""
 		base_icon = icon_state
 		if(module_active && istype(module_active,/obj/item/borg/combat/mobility))
-			if(icon_state == base_icon)
-				icon_state = "[icon_state]-roll"
+			icon_state = "[icon_state]-roll"
 		else
 			icon_state = base_icon
 		return
@@ -1162,6 +1161,9 @@
 			var/turf/tile = loc
 			if(isturf(tile))
 				tile.clean_blood()
+				if (istype(tile, /turf/simulated))
+					var/turf/simulated/S = tile
+					S.dirt = 0
 				for(var/A in tile)
 					if(istype(A, /obj/effect))
 						if(istype(A, /obj/effect/rune) || istype(A, /obj/effect/decal/cleanable) || istype(A, /obj/effect/overlay))

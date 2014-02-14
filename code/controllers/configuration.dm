@@ -18,6 +18,7 @@
 	var/log_adminwarn = 0				// log warnings admins get about bomb construction and such
 	var/log_pda = 0						// log pda messages
 	var/log_hrefs = 0					// logs all links clicked in-game. Could be used for debugging and tracking down exploits
+	var/log_runtime = 0					// logs world.log to a file
 	var/sql_enabled = 1					// for sql switching
 	var/allow_admin_ooccolor = 0		// Allows admins with relevant permissions to have their own ooc colour
 	var/allow_vote_restart = 0 			// allow votes to restart
@@ -43,6 +44,8 @@
 	var/Tickcomp = 0
 	var/socket_talk	= 0					// use socket_talk to communicate with other processes
 	var/list/resource_urls = null
+	var/antag_hud_allowed = 0			// Ghosts can turn on Antagovision to see a HUD of who is the bad guys this round.
+	var/antag_hud_restricted = 0                    // Ghosts that turn on Antagovision cannot rejoin the round.
 	var/list/mode_names = list()
 	var/list/modes = list()				// allowed modes
 	var/list/votable_modes = list()		// votable modes
@@ -240,6 +243,9 @@
 				if ("log_hrefs")
 					config.log_hrefs = 1
 
+				if ("log_runtime")
+					config.log_runtime = 1
+
 				if("allow_admin_ooccolor")
 					config.allow_admin_ooccolor = 1
 
@@ -386,6 +392,11 @@
 
 				if("ticklag")
 					Ticklag = text2num(value)
+
+				if("allow_antag_hud")
+					config.antag_hud_allowed = 1
+				if("antag_hud_restricted")
+					config.antag_hud_restricted = 1
 
 				if("socket_talk")
 					socket_talk = text2num(value)

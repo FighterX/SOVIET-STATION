@@ -1,3 +1,4 @@
+
 /client/verb/who()
 	set name = "Who"
 	set category = "OOC"
@@ -111,8 +112,7 @@
 	else
 		for(var/client/C in admins)
 			if(R_ADMIN & C.holder.rights || !(R_MOD & C.holder.rights))
-				if(!C.holder.fakekey)
-					num_admins_online++
+				num_admins_online++
 			else
 				msg += "\t[C] is a [C.holder.rank]\n"
 

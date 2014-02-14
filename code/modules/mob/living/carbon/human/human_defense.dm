@@ -55,39 +55,18 @@ emp_act
 		P.on_hit(src, 2)
 		return 2
 
-//BEGIN BOOK'S TASER NERF.
-	if(istype(P, /obj/item/projectile/energy/electrode))
-		var/datum/organ/external/select_area = get_organ(def_zone) // We're checking the outside, buddy!
-		var/list/body_parts = list(head, wear_mask, wear_suit, w_uniform, gloves, shoes) // What all are we checking?
-		// var/deflectchance=90 //Is it a CRITICAL HIT with that taser?
-		for(var/bp in body_parts) //Make an unregulated var to pass around.
-			if(!bp)
-				continue //Does this thing we're shooting even exist?
-			if(bp && istype(bp ,/obj/item/clothing)) // If it exists, and it's clothed
-				var/obj/item/clothing/C = bp // Then call an argument C to be that clothing!
-				if(C.body_parts_covered & select_area.body_part) // Is that body part being targeted covered?
-					P.agony=P.agony*C.siemens_coefficient
-		apply_effect(P.agony,AGONY,0)
-		flash_pain()
-		src <<"\red You have been shot!"
-		del P
+		var/datum/organ/external/organ = get_organ(check_zone(def_zone))
 
-		var/obj/item/weapon/cloaking_device/C = locate((/obj/item/weapon/cloaking_device) in src)
-		if(C && C.active)
-			C.attack_self(src)//Should shut it off
-			update_icons()
-			src << "\blue Your [C.name] was disrupted!"
-			Stun(2)
+		var/armor = checkarmor(organ, "bullet")
 
-		if(istype(equipped(),/obj/item/device/assembly/signaler))
-			var/obj/item/device/assembly/signaler/signaler = equipped()
-			if(signaler.deadman && prob(80))
-				src.visible_message("\red [src] triggers their deadman's switch!")
-				signaler.signal()
-
-		return
-//END TASER NERF
-
+		if((P.embed && prob(20 + max(P.damage - armor, -10))) && P.damage_type == BRUTE)
+			var/obj/item/weapon/shard/shrapnel/SP = new()
+			(SP.name) = "[P.name] shrapnel"
+			(SP.desc) = "[SP.desc] It looks like it was fired from [P.shot_from]."
+			(SP.loc) = organ
+			organ.implants += SP
+			visible_message("<span class='danger'>The projectile sticks in the wound!</span>")
+			SP.add_blood(src)
 
 	return (..(P , def_zone))
 
@@ -159,6 +138,9 @@ emp_act
 	for(var/datum/organ/external/O  in organs)
 		if(O.status & ORGAN_DESTROYED)	continue
 		O.emp_act(severity)
+		for(var/datum/organ/internal/I  in O.internal_organs)
+			if(I.robotic == 0)	continue
+			I.emp_act(severity)
 	..()
 
 

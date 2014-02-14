@@ -1,9 +1,11 @@
 // BEGIN_INTERNALS
 /*
 MAP_ICON_TYPE: 0
-WINDOW: code\modules\mob\living\silicon\robot\robot_modules.dm;code\modules\mob\living\silicon\robot\robot_movement.dm;code\modules\mob\living\silicon\robot\robot.dm;code\modules\mob\living\silicon\robot\robot_items.dm;code\modules\mob\living\silicon\robot\login.dm;code\modules\mob\living\silicon\robot\life.dm;code\modules\mob\living\silicon\robot\laws.dm;code\modules\mob\living\silicon\robot\component.dm
-DIR: code code\game code\game\gamemodes code\game\gamemodes\events code\game\gamemodes\events\holidays code\game\machinery code\game\machinery\computer code\game\vehicles code\modules code\modules\events code\modules\mob code\modules\mob\living code\modules\mob\living\silicon code\modules\mob\living\silicon\robot code\modules\projectiles code\modules\reagents 
-FILE: code\modules\mob\living\silicon\robot\robot.dm
+WINDOW: maps\tgstation2.dmm
+LAST_COMPILE_VERSION: 503.1224
+DIR: code code\__HELPERS code\datums\diseases code\datums\spells code\defines\obj code\game code\game\gamemodes\events code\game\gamemodes\wizard code\game\jobs code\game\jobs\job code\game\machinery code\game\machinery\doors code\game\objects\items maps 
+FILE: maps\tgstation2.dmm
+LAST_COMPILE_TIME: 1391360181
 AUTO_FILE_DIR: OFF
 */
 // END_INTERNALS
