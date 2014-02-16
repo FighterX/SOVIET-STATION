@@ -71,7 +71,7 @@
 #define DOOR_CRUSH_DAMAGE 10
 
 // Factor of how fast mob nutrition decreases
-#define	HUNGER_FACTOR 0.25
+#define	HUNGER_FACTOR 1
 
 // How many units of reagent are consumed per tick, by default.
 #define  REAGENTS_METABOLISM 0.2
