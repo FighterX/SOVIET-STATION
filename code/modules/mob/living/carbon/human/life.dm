@@ -888,6 +888,17 @@
 		else
 			if(overeatduration > 1)
 				overeatduration -= 2 //doubled the unfat rate
+				
+		
+		if(nutrition < 100)
+			if(!hungry)
+				hungry = 1
+				adjustToxLoss(5)	//Guess that's enough?
+		else
+			if(hungry)
+				hungry = 0
+		
+		
 
 //		if(dna && dna.mutantrace == "plant")
 		if(PLANT in mutations)
