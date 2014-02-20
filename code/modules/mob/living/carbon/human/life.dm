@@ -891,12 +891,12 @@
 				
 		
 		if(nutrition < 100)
-			if(!hungry)
-				hungry = 1
+			if(hungry == 0)
+				hungry = 100
 				adjustToxLoss(5)	//Guess that's enough?
 		else
-			if(hungry)
-				hungry = 0
+			if(hungry > 0)
+				hungry--
 		
 		
 
