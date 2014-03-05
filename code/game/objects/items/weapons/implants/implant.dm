@@ -2,12 +2,12 @@
 #define MALFUNCTION_PERMANENT 2
 /obj/item/weapon/implant
 	name = "implant"
-	icon = 'device.dmi'
+	icon = 'icons/obj/device.dmi'
 	icon_state = "implant"
 	var/implanted = null
 	var/mob/imp_in = null
 	var/datum/organ/external/part = null
-	color = "b"
+	item_color = "b"
 	var/allow_reagents = 0
 	var/malfunction = 0
 
@@ -50,7 +50,7 @@
 		..()
 
 /obj/item/weapon/implant/tracking
-	name = "tracking"
+	name = "tracking implant"
 	desc = "Track with this."
 	var/id = 1.0
 
@@ -127,6 +127,7 @@ Implant Specifics:<BR>"}
 /obj/item/weapon/implant/explosive
 	name = "explosive implant"
 	desc = "A military grade micro bio-explosive. Highly dangerous."
+	var/elevel = "Localized Limb"
 	var/phrase = "supercalifragilisticexpialidocious"
 	icon_state = "implant_evil"
 
@@ -157,15 +158,50 @@ Implant Specifics:<BR>"}
 	activate()
 		if (malfunction == MALFUNCTION_PERMANENT)
 			return
+
+		var/need_gib = null
 		if(istype(imp_in, /mob/))
 			var/mob/T = imp_in
-			T.gib()
-		explosion(get_turf(imp_in), 1, 3, 4, 6, 3)
+			message_admins("Explosive implant triggered in [T] ([T.key]). (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[T.x];Y=[T.y];Z=[T.z]'>JMP</a>) ")
+			log_game("Explosive implant triggered in [T] ([T.key]).")
+			need_gib = 1
+
+			if(ishuman(imp_in))
+				if (elevel == "Localized Limb")
+					if(part) //For some reason, small_boom() didn't work. So have this bit of working copypaste.
+						imp_in.visible_message("\red Something beeps inside [imp_in][part ? "'s [part.display_name]" : ""]!")
+						playsound(loc, 'sound/items/countdown.ogg', 75, 1, -3)
+						sleep(25)
+						if (istype(part,/datum/organ/external/chest) ||	\
+							istype(part,/datum/organ/external/groin) ||	\
+							istype(part,/datum/organ/external/head))
+							part.createwound(BRUISE, 60)	//mangle them instead
+							explosion(get_turf(imp_in), -1, -1, 2, 3)
+							del(src)
+						else
+							explosion(get_turf(imp_in), -1, -1, 2, 3)
+							part.droplimb(1)
+							del(src)
+				if (elevel == "Destroy Body")
+					explosion(get_turf(T), -1, 0, 1, 6)
+					T.gib()
+				if (elevel == "Full Explosion")
+					explosion(get_turf(T), 0, 1, 3, 6)
+					T.gib()
+
+			else
+				explosion(get_turf(imp_in), 0, 1, 3, 6)
+
+		if(need_gib)
+			imp_in.gib()
+
 		var/turf/t = get_turf(imp_in)
+
 		if(t)
 			t.hotspot_expose(3500,125)
 
 	implanted(mob/source as mob)
+		elevel = alert("What sort of explosion would you prefer?", "Implant Intent", "Localized Limb", "Destroy Body", "Full Explosion")
 		phrase = input("Choose activation phrase:") as text
 		var/list/replacechars = list("'" = "","\"" = "",">" = "","<" = "","(" = "",")" = "")
 		phrase = sanitize_simple(phrase, replacechars)
@@ -210,11 +246,11 @@ Implant Specifics:<BR>"}
 						part.createwound(BRUISE, 60)	//mangle them instead
 					else
 						part.droplimb(1)
-				explosion(get_turf(imp_in), -1, -1, 2, 3, 3)
+				explosion(get_turf(imp_in), -1, -1, 2, 3)
 				del(src)
 
 /obj/item/weapon/implant/chem
-	name = "chem"
+	name = "chemical implant"
 	desc = "Injects things."
 	allow_reagents = 1
 
@@ -278,7 +314,7 @@ the implant may become unstable and either pre-maturely inject the subject or si
 			malfunction--
 
 /obj/item/weapon/implant/loyalty
-	name = "loyalty"
+	name = "loyalty implant"
 	desc = "Makes you loyal or such."
 
 	get_data()
@@ -455,9 +491,13 @@ the implant may become unstable and either pre-maturely inject the subject or si
 	implanted(mob/source as mob)
 		src.activation_emote = input("Choose activation emote:") in list("blink", "blink_r", "eyebrow", "chuckle", "twitch_s", "frown", "nod", "blush", "giggle", "grin", "groan", "shrug", "smile", "pale", "sniff", "whimper", "wink")
 		if (source.mind)
-			source.mind.store_memory("Freedom implant can be activated by using the [src.activation_emote] emote, <B>say *[src.activation_emote]</B> to attempt to activate.", 0, 0)
-		source << "The implanted freedom implant can be activated by using the [src.activation_emote] emote, <B>say *[src.activation_emote]</B> to attempt to activate."
+			source.mind.store_memory("Compressed matter implant can be activated by using the [src.activation_emote] emote, <B>say *[src.activation_emote]</B> to attempt to activate.", 0, 0)
+		source << "The implanted compressed matter implant can be activated by using the [src.activation_emote] emote, <B>say *[src.activation_emote]</B> to attempt to activate."
 		return 1
 
 	islegal()
 		return 0
+
+/obj/item/weapon/implant/cortical
+	name = "cortical stack"
+	desc = "A fist-sized mass of biocircuits and chips."

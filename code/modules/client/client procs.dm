@@ -1,7 +1,7 @@
 	////////////
 	//SECURITY//
 	////////////
-#define TOPIC_SPAM_DELAY	4		//4 ticks is about 3/10ths of a second
+#define TOPIC_SPAM_DELAY	2		//2 ticks is about 2/10ths of a second; it was 4 ticks, but that caused too many clicks to be lost due to lag
 #define UPLOAD_LIMIT		10485760	//Restricts client uploads to the server to 10MB //Boosted this thing. What's the worst that can happen?
 #define MIN_CLIENT_VERSION	0		//Just an ambiguously low version for now, I don't want to suddenly stop people playing.
 									//I would just like the code ready should it ever need to be used.
@@ -72,6 +72,21 @@
 		src.last_message_count = 0
 		return 0
 
+//This stops files larger than UPLOAD_LIMIT being sent from client to server via input(), client.Import() etc.
+/client/AllowUpload(filename, filelength)
+	if(filelength > UPLOAD_LIMIT)
+		src << "<font color='red'>Error: AllowUpload(): File Upload too large. Upload Limit: [UPLOAD_LIMIT/1024]KiB.</font>"
+		return 0
+/*	//Don't need this at the moment. But it's here if it's needed later.
+	//Helps prevent multiple files being uploaded at once. Or right after eachother.
+	var/time_to_wait = fileaccess_timer - world.time
+	if(time_to_wait > 0)
+		src << "<font color='red'>Error: AllowUpload(): Spam prevention. Please wait [round(time_to_wait/10)] seconds.</font>"
+		return 0
+	fileaccess_timer = world.time + FTPDELAY	*/
+	return 1
+
+
 	///////////
 	//CONNECT//
 	///////////
@@ -84,9 +99,17 @@
 		return null
 
 	if(IsGuestKey(key))
-		alert(src,"Baystation12 doesn't allow guest accounts to play. Please go to http://www.byond.com/ and register for a key.","Guest","OK")
+		alert(src,"This server doesn't allow guest accounts to play. Please go to http://www.byond.com/ and register for a key.","Guest","OK")
 		del(src)
 		return
+
+	// Change the way they should download resources.
+	if(config.resource_urls)
+		src.preload_rsc = pick(config.resource_urls)
+	else src.preload_rsc = 1 // If config.resource_urls is not set, preload like normal.
+
+	src << "\red If the title screen is black, resources are still downloading. Please be patient until the title screen appears."
+
 
 	clients += src
 	directory[ckey] = src
@@ -218,7 +241,26 @@
 
 //send resources to the client. It's here in its own proc so we can move it around easiliy if need be
 /client/proc/send_resources()
+//	preload_vox() //Causes long delays with initial start window and subsequent windows when first logged in.
 	getFiles(
+		'nano/js/libraries.min.js',
+		'nano/js/nano_update.js',
+		'nano/js/nano_config.js',
+		'nano/js/nano_base_helpers.js',
+		'nano/css/shared.css',
+		'nano/css/icons.css',
+		'nano/templates/chem_dispenser.tmpl',
+		'nano/templates/cryo.tmpl',
+		'nano/templates/geoscanner.tmpl',
+		'nano/templates/dna_modifier.tmpl',
+		'nano/templates/telescience_console.tmpl',
+		'nano/images/uiBackground.png',
+		'nano/images/uiIcons16.png',
+		'nano/images/uiIcons24.png',
+		'nano/images/uiLinkPendingIcon.gif',
+		'nano/images/uiMaskBackground.png',
+		'nano/images/uiNoticeBackground.jpg',
+		'nano/images/uiTitleFluff.png',
 		'html/search.js',
 		'html/panels.css',
 		'icons/pda_icons/pda_atmos.png',
@@ -258,9 +300,5 @@
 		'icons/spideros_icons/sos_11.png',
 		'icons/spideros_icons/sos_12.png',
 		'icons/spideros_icons/sos_13.png',
-		'icons/spideros_icons/sos_14.png',
-		'icons/xenoarch_icons/chart1.jpg',
-		'icons/xenoarch_icons/chart2.jpg',
-		'icons/xenoarch_icons/chart3.jpg',
-		'icons/xenoarch_icons/chart4.jpg'
+		'icons/spideros_icons/sos_14.png'
 		)

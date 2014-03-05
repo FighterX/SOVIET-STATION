@@ -218,6 +218,7 @@
 
 	if (istype(user, /mob/living/silicon) && get_dist(src,user)>1)
 		return src.attack_hand(user)
+	src.add_fingerprint(user)
 	if (istype(W, /obj/item/weapon/crowbar) && opened)
 		if (has_electronics==1)
 			if (terminal)
@@ -468,10 +469,6 @@
 	if(stat & (BROKEN|MAINT))
 		return
 
-	if(ishuman(user))
-		if(istype(user:gloves, /obj/item/clothing/gloves/space_ninja)&&user:gloves:candrain&&!user:gloves:draining)
-			call(/obj/item/clothing/gloves/space_ninja/proc/drain)("APC",src,user:wear_suit)
-			return
 	// do APC interaction
 	user.set_machine(src)
 	src.interact(user)
@@ -634,10 +631,10 @@
 					t += "<BR><HR><A href='?src=\ref[src];malfhack=1'><I>Override Programming</I></A><BR>"
 				else
 					t += "<BR><HR><I>APC Hacked</I><BR>"
-					if(!src.occupant)
+					/*if(!src.occupant)
 						t += "<A href='?src=\ref[src];occupyapc=1'><I>Shunt Core Processes</I></A><BR>"
 					else
-						t += "<I>Core Processes Uploaded</I><BR>"
+						t += "<I>Core Processes Uploaded</I><BR>"*/
 
 	t += "<BR><HR><A href='?src=\ref[src];close=1'>Close</A>"
 
@@ -804,7 +801,8 @@
 		if(!can_use(usr, 1))
 			return
 	src.add_fingerprint(usr)
-	usr.set_machine(src)
+	if(usingUI) // If we set their machine and they're not using the UI, it'll cause the UI to pop up.
+		usr.set_machine(src)
 	if (href_list["apcwires"])
 		var/t1 = text2num(href_list["apcwires"])
 		if (!( istype(usr.get_active_hand(), /obj/item/weapon/wirecutters) ))
@@ -902,19 +900,19 @@
 					malfai << "Hack complete. The APC is now under your exclusive control."
 					update_icon()
 
-	else if (href_list["occupyapc"])
+	/*else if (href_list["occupyapc"])
 		malfoccupy(usr)
 
 
 	else if (href_list["deoccupyapc"])
-		malfvacate()
+		malfvacate()*/
 
 	if(usingUI)
 		src.updateDialog()
 
 	return
 
-/obj/machinery/power/apc/proc/malfoccupy(var/mob/living/silicon/ai/malf)
+/*/obj/machinery/power/apc/proc/malfoccupy(var/mob/living/silicon/ai/malf)
 	if(!istype(malf))
 		return
 	if(istype(malf.loc, /obj/machinery/power/apc)) // Already in an APC
@@ -952,7 +950,7 @@
 		if(forced)
 			src.occupant.loc = src.loc
 			src.occupant.death()
-			src.occupant.gib()
+			src.occupant.gib()*/
 
 
 /obj/machinery/power/apc/proc/ion_act()
@@ -966,7 +964,7 @@
 				cell.corrupt()
 				src.malfhack = 1
 				update_icon()
-				var/datum/effect/effect/system/harmless_smoke_spread/smoke = new /datum/effect/effect/system/harmless_smoke_spread()
+				var/datum/effect/effect/system/smoke_spread/smoke = new /datum/effect/effect/system/smoke_spread()
 				smoke.set_up(3, 0, src.loc)
 				smoke.attach(src)
 				smoke.start()
@@ -1234,8 +1232,8 @@
 				ticker.mode:apcs--
 	stat |= BROKEN
 	operating = 0
-	if(occupant)
-		malfvacate(1)
+	/*if(occupant)
+		malfvacate(1)*/
 	update_icon()
 	update()
 
@@ -1262,8 +1260,8 @@
 	area.power_equip = 0
 	area.power_environ = 0
 	area.power_change()
-	if(occupant)
-		malfvacate(1)
+	/*if(occupant)
+		malfvacate(1)*/
 	..()
 
 /obj/machinery/power/apc/proc/shock(mob/user, prb)

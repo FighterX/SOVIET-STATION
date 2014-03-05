@@ -115,6 +115,7 @@
 		cell = C
 		return
 	cell = new(src)
+	cell.name = "high-capacity power cell"
 	cell.charge = 15000
 	cell.maxcharge = 15000
 
@@ -417,11 +418,6 @@
 
 /obj/mecha/attack_hand(mob/user as mob)
 	src.log_message("Attack by hand/paw. Attacker - [user].",1)
-
-	if(ishuman(user))
-		if(istype(user:gloves, /obj/item/clothing/gloves/space_ninja)&&user:gloves:candrain&&!user:gloves:draining)
-			call(/obj/item/clothing/gloves/space_ninja/proc/drain)("MECHA",src,user:wear_suit)
-			return
 
 	if ((HULK in user.mutations) && !prob(src.deflect_chance))
 		src.take_damage(15)
@@ -977,6 +973,11 @@
 	if (usr.stat || !ishuman(usr))
 		return
 	src.log_message("[usr] tries to move in.")
+	if(iscarbon(usr))
+		var/mob/living/carbon/C = usr
+		if(C.handcuffed)
+			usr << "\red Kinda hard to climb in while handcuffed don't you think?"
+			return
 	if (src.occupant)
 		usr << "\blue <B>The [src.name] is already occupied!</B>"
 		src.log_append_to_last("Permission denied.")
@@ -1371,7 +1372,7 @@
 /obj/mecha/proc/get_log_html()
 	var/output = "<html><head><title>[src.name] Log</title></head><body style='font: 13px 'Courier', monospace;'>"
 	for(var/list/entry in log)
-		output += {"<div style='font-weight: bold;'>[time2text(entry["time"],"DDD MMM DD hh:mm:ss")] 2555</div>
+		output += {"<div style='font-weight: bold;'>[time2text(entry["time"],"DDD MMM DD hh:mm:ss")] [game_year]</div>
 						<div style='margin-left:15px; margin-bottom:10px;'>[entry["message"]]</div>
 						"}
 	output += "</body></html>"
@@ -1574,6 +1575,9 @@
 		return
 	if(href_list["dna_lock"])
 		if(usr != src.occupant)	return
+		if(istype(occupant, /mob/living/carbon/brain))
+			occupant_message("You are a brain. No.")
+			return
 		if(src.occupant)
 			src.dna = src.occupant.dna.unique_enzymes
 			src.occupant_message("You feel a prick as the needle takes your DNA sample.")

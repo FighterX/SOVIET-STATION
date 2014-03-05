@@ -15,6 +15,7 @@
 	stutter = 10
 
 
+
 /obj/item/projectile/energy/declone
 	name = "declone"
 	icon_state = "declone"

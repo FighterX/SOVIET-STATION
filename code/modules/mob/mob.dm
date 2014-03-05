@@ -80,39 +80,6 @@
 		M.show_message( message, 1, blind_message, 2)
 
 
-//This is awful
-/mob/attackby(obj/item/weapon/W as obj, mob/user as mob)
-
-	//Holding a balloon will shield you from an item that is_sharp() ... cause that makes sense
-	if (user.intent != "harm")
-		if (istype(src.l_hand,/obj/item/latexballon) && src.l_hand:air_contents && is_sharp(W))
-			return src.l_hand.attackby(W)
-		if (istype(src.r_hand,/obj/item/latexballon) && src.r_hand:air_contents && is_sharp(W))
-			return src.r_hand.attackby(W)
-
-	//If src is grabbing someone and facing the attacker, the src will use the grabbed person as a shield
-	var/shielded = 0
-	if (locate(/obj/item/weapon/grab, src))
-		var/mob/safe = null
-		if (istype(src.l_hand, /obj/item/weapon/grab))
-			var/obj/item/weapon/grab/G = src.l_hand
-			if ((G.state == 3 && get_dir(src, user) == src.dir))
-				safe = G.affecting
-		if (istype(src.r_hand, /obj/item/weapon/grab))
-			var/obj/item/weapon/grab/G = src.r_hand
-			if ((G.state == 3 && get_dir(src, user) == src.dir))
-				safe = G.affecting
-		if (safe)
-			return safe.attackby(W, user)
-
-	//If the mob is not wearing a shield or otherwise is not shielded
-	if ((!( shielded ) || !( W.flags ) & NOSHIELD))
-		spawn( 0 )
-			if (W && istype(W, /obj/item)) //The istype is necessary for things like bodybags which are structures that do not have an attack() proc.
-				W.attack(src, user)
-				return
-	return
-
 /mob/proc/findname(msg)
 	for(var/mob/M in mob_list)
 		if (M.real_name == text("[]", msg))
@@ -134,7 +101,6 @@
 //This proc is called whenever someone clicks an inventory ui slot.
 /mob/proc/attack_ui(slot)
 	var/obj/item/W = get_active_hand()
-
 	if(istype(W))
 		equip_to_slot_if_possible(W, slot)
 
@@ -182,7 +148,8 @@ var/list/slot_equipment_priority = list( \
 		slot_head,\
 		slot_shoes,\
 		slot_gloves,\
-		slot_ears,\
+		slot_l_ear,\
+		slot_r_ear,\
 		slot_glasses,\
 		slot_belt,\
 		slot_s_store,\
@@ -270,8 +237,10 @@ var/list/slot_equipment_priority = list( \
 
 /mob/verb/mode()
 	set name = "Activate Held Object"
-	set category = "IC"
+	set category = "Object"
 	set src = usr
+
+	if(istype(loc,/obj/mecha)) return
 
 	if(hand)
 		var/obj/item/W = l_hand
@@ -283,6 +252,8 @@ var/list/slot_equipment_priority = list( \
 		if (W)
 			W.attack_self(src)
 			update_inv_r_hand()
+	if(next_move < world.time)
+		next_move = world.time + 2
 	return
 
 /*
@@ -298,7 +269,7 @@ var/list/slot_equipment_priority = list( \
 
 /mob/verb/memory()
 	set name = "Notes"
-	set category = "OOC"
+	set category = "IC"
 	if(mind)
 		mind.show_memory(src)
 	else
@@ -306,7 +277,7 @@ var/list/slot_equipment_priority = list( \
 
 /mob/verb/add_memory(msg as message)
 	set name = "Add Note"
-	set category = "OOC"
+	set category = "IC"
 
 	msg = copytext(msg, 1, MAX_MESSAGE_LEN)
 	msg = sanitize(msg)
@@ -377,6 +348,11 @@ var/list/slot_equipment_priority = list( \
 		return
 	else
 		var/deathtime = world.time - src.timeofdeath
+		if(istype(src,/mob/dead/observer))
+			var/mob/dead/observer/G = src
+			if(G.has_enabled_antagHUD == 1 && config.antag_hud_restricted)
+				usr << "\blue <B>Upon using the antagHUD you forfeighted the ability to join the round.</B>"
+				return
 		var/deathtimeminutes = round(deathtime / 600)
 		var/pluralcheck = "minute"
 		if(deathtimeminutes == 0)
@@ -387,6 +363,7 @@ var/list/slot_equipment_priority = list( \
 			pluralcheck = " [deathtimeminutes] minutes and"
 		var/deathtimeseconds = round((deathtime - deathtimeminutes * 600) / 10,1)
 		usr << "You have been dead for[pluralcheck] [deathtimeseconds] seconds."
+
 		if (deathtime < 18000)
 			usr << "You must wait 30 minutes to respawn!"
 			return
@@ -555,21 +532,21 @@ var/list/slot_equipment_priority = list( \
 /mob/proc/pull_damage()
 	if(ishuman(src))
 		var/mob/living/carbon/human/H = src
-		if(H.health - H.halloss <= config.health_threshold_crit)
+		if(H.health - H.halloss <= config.health_threshold_softcrit)
 			for(var/name in H.organs_by_name)
 				var/datum/organ/external/e = H.organs_by_name[name]
-				if((H.lying) && ((e.status & ORGAN_BROKEN && !(e.status & ORGAN_SPLINTED)) || e.status & ORGAN_BLEEDING) && (H.getBruteLoss() + H.getFireLoss() >= 100))
-					return 1
-					break
+				if(H.lying)
+					if(((e.status & ORGAN_BROKEN && !(e.status & ORGAN_SPLINTED)) || e.status & ORGAN_BLEEDING) && (H.getBruteLoss() + H.getFireLoss() >= 100))
+						return 1
+						break
 		return 0
 
 /mob/MouseDrop(mob/M as mob)
 	..()
 	if(M != usr) return
 	if(usr == src) return
-	if(get_dist(usr,src) > 1) return
+	if(!Adjacent(usr)) return
 	if(istype(M,/mob/living/silicon/ai)) return
-	if(LinkBlocked(usr.loc,loc)) return
 	show_inv(usr)
 
 
@@ -583,24 +560,39 @@ var/list/slot_equipment_priority = list( \
 		pulling = null
 
 /mob/proc/start_pulling(var/atom/movable/AM)
+
 	if ( !AM || !usr || src==AM || !isturf(src.loc) )	//if there's no person pulling OR the person is pulling themself OR the object being pulled is inside something: abort!
 		return
-	if (!( AM.anchored ))
-		if(pulling)
-			var/pulling_old = pulling
-			stop_pulling()
-			// Are we pulling the same thing twice? Just stop pulling.
-			if(pulling_old == AM)
-				return
-		src.pulling = AM
-		AM.pulledby = src
-		if(ismob(AM))
-			var/mob/M = AM
-			if(!iscarbon(src))
-				M.LAssailant = null
-			else
-				M.LAssailant = usr
 
+	if (AM.anchored)
+		return
+
+	var/mob/M = AM
+	if(ismob(AM))
+		if(!iscarbon(src))
+			M.LAssailant = null
+		else
+			M.LAssailant = usr
+
+	if(pulling)
+		var/pulling_old = pulling
+		stop_pulling()
+		// Are we pulling the same thing twice? Just stop pulling.
+		if(pulling_old == AM)
+			return
+
+	src.pulling = AM
+	AM.pulledby = src
+
+	if(ishuman(AM))
+		var/mob/living/carbon/human/H = AM
+		if(H.pull_damage())
+			src << "\red <B>Pulling \the [H] in their current condition would probably be a bad idea.</B>"
+
+	//Attempted fix for people flying away through space when cuffed and dragged.
+	if(ismob(AM))
+		var/mob/pulled = AM
+		pulled.inertia_dir = 0
 
 /mob/proc/can_use_hands()
 	return
@@ -709,10 +701,20 @@ note dizziness decrements automatically in the mob's Life() proc.
 				stat(null,"Mch-[master_controller.machines_cost]\t#[machines.len]")
 				stat(null,"Obj-[master_controller.objects_cost]\t#[processing_objects.len]")
 				stat(null,"Net-[master_controller.networks_cost]\tPnet-[master_controller.powernets_cost]")
+				stat(null,"NanoUI-[master_controller.nano_cost]\t#[nanomanager.processing_uis.len]")
 				stat(null,"Tick-[master_controller.ticker_cost]\tALL-[master_controller.total_cost]")
 			else
 				stat(null,"MasterController-ERROR")
 
+	if(listed_turf && client)
+		if(get_dist(listed_turf,src) > 1)
+			listed_turf = null
+		else
+			statpanel(listed_turf.name, null, listed_turf)
+			for(var/atom/A in listed_turf)
+				if(A.invisibility > see_invisible)
+					continue
+				statpanel(listed_turf.name, null, A)
 
 	if(spell_list && spell_list.len)
 		for(var/obj/effect/proc_holder/spell/S in spell_list)
@@ -752,6 +754,10 @@ note dizziness decrements automatically in the mob's Life() proc.
 	else if( stunned )
 //		lying = 0
 		canmove = 0
+	else if(captured)
+		anchored = 1
+		canmove = 0
+		lying = 0
 	else
 		lying = !can_stand
 		canmove = has_limbs
@@ -888,3 +894,66 @@ note dizziness decrements automatically in the mob's Life() proc.
 
 /mob/proc/flash_weak_pain()
 	flick("weak_pain",pain)
+
+mob/verb/yank_out_object()
+	set category = "Object"
+	set name = "Yank out object"
+	set desc = "Remove an embedded item at the cost of bleeding and pain."
+	set src in view(1)
+
+	if(!isliving(usr) || usr.next_move > world.time)
+		return
+	usr.next_move = world.time + 20
+
+	if(usr.stat == 1)
+		usr << "You are unconcious and cannot do that!"
+		return
+
+	if(usr.restrained())
+		usr << "You are restrained and cannot do that!"
+		return
+
+	var/mob/S = src
+	var/mob/U = usr
+	var/list/valid_objects = list()
+	var/self = null
+
+	if(S == U)
+		self = 1 // Removing object from yourself.
+
+	for(var/obj/item/weapon/W in embedded)
+		if(W.w_class >= 2)
+			valid_objects += W
+
+	if(!valid_objects.len)
+		if(self)
+			src << "You have nothing stuck in your body that is large enough to remove."
+		else
+			U << "[src] has nothing stuck in their wounds that is large enough to remove."
+		return
+
+	var/obj/item/weapon/selection = input("What do you want to yank out?", "Embedded objects") in valid_objects
+
+	if(self)
+		src << "<span class='warning'>You attempt to get a good grip on the [selection] in your body.</span>"
+	else
+		U << "<span class='warning'>You attempt to get a good grip on the [selection] in [S]'s body.</span>"
+
+	if(!do_after(U, 80))
+		return
+	if(!selection || !S || !U)
+		return
+
+	if(self)
+		visible_message("<span class='warning'><b>[src] rips [selection] out of their body.</b></span>","<span class='warning'><b>You rip [selection] out of your body.</b></span>")
+	else
+		visible_message("<span class='warning'><b>[usr] rips [selection] out of [src]'s body.</b></span>","<span class='warning'><b>[usr] rips [selection] out of your body.</b></span>")
+
+	selection.loc = get_turf(src)
+
+	for(var/obj/item/weapon/O in pinned)
+		if(O == selection)
+			pinned -= O
+		if(!pinned.len)
+			anchored = 0
+	return 1

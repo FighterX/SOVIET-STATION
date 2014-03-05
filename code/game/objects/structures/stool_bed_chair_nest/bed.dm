@@ -13,6 +13,11 @@
 	icon_state = "bed"
 	var/mob/living/buckled_mob
 
+/obj/structure/stool/bed/psych
+	name = "psych bed"
+	desc = "For prime comfort during psychiatric evaluations."
+	icon_state = "psychbed"
+
 /obj/structure/stool/bed/alien
 	name = "resting contraption"
 	desc = "This looks similar to contraptions from earth. Could aliens be stealing our technology?"
@@ -106,7 +111,7 @@
 /obj/item/roller
 	name = "roller bed"
 	desc = "A collapsed roller bed that can be carried around."
-	icon = 'rollerbed.dmi'
+	icon = 'icons/obj/rollerbed.dmi'
 	icon_state = "folded"
 	w_class = 4.0 // Can't be put in backpacks. Oh well.
 

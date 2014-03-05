@@ -14,7 +14,9 @@ var/global/list/special_roles = list( //keep synced with the defines BE_* in set
 	"pAI candidate" = 1, // -- TLE                       // 7
 	"cultist" = IS_MODE_COMPILED("cult"),                // 8
 	"infested monkey" = IS_MODE_COMPILED("monkey"),      // 9
-	"space ninja" = "true",								 // 10
+	"ninja" = "true",									 // 10
+	"vox raider" = IS_MODE_COMPILED("heist"),			 // 11
+	"diona" = 1,                                         // 12
 )
 
 var/const/MAX_SAVE_SLOTS = 10
@@ -42,6 +44,8 @@ datum/preferences
 	var/be_special = 0					//Special role selection
 	var/UI_style = "Midnight"
 	var/toggles = TOGGLES_DEFAULT
+	var/UI_style_color = "#ffffff"
+	var/UI_style_alpha = 255
 
 	//character preferences
 	var/real_name						//our character's name
@@ -64,8 +68,10 @@ datum/preferences
 	var/g_eyes = 0						//Eye color
 	var/b_eyes = 0						//Eye color
 	var/species = "Human"
+	var/language = "None"				//Secondary language
 
 		//Mob preview
+	var/icon/preview_icon = null
 	var/icon/preview_icon_front = null
 	var/icon/preview_icon_side = null
 
@@ -98,6 +104,7 @@ datum/preferences
 	var/flavor_text = ""
 	var/med_record = ""
 	var/sec_record = ""
+	var/gen_record = ""
 	var/disabilities = 0
 
 	var/nanotrasen_relation = "Neutral"
@@ -236,6 +243,9 @@ datum/preferences
 
 		dat += "<br>"
 		dat += "<b>UI Style:</b> <a href='?_src_=prefs;preference=ui'><b>[UI_style]</b></a><br>"
+		dat += "<b>Custom UI</b>(recommended for White UI):<br>"
+		dat += "-Color: <a href='?_src_=prefs;preference=UIcolor'><b>[UI_style_color]</b></a> <table style='display:inline;' bgcolor='[UI_style_color]'><tr><td>__</td></tr></table><br>"
+		dat += "-Alpha(transparence): <a href='?_src_=prefs;preference=UIalpha'><b>[UI_style_alpha]</b></a><br>"
 		dat += "<b>Play admin midis:</b> <a href='?_src_=prefs;preference=hear_midis'><b>[(toggles & SOUND_MIDI) ? "Yes" : "No"]</b></a><br>"
 		dat += "<b>Play lobby music:</b> <a href='?_src_=prefs;preference=lobby_music'><b>[(toggles & SOUND_LOBBY) ? "Yes" : "No"]</b></a><br>"
 		dat += "<b>Ghost ears:</b> <a href='?_src_=prefs;preference=ghost_ears'><b>[(toggles & CHAT_GHOSTEARS) ? "Nearest Creatures" : "All Speech"]</b></a><br>"
@@ -251,11 +261,13 @@ datum/preferences
 		dat += "(<a href='?_src_=prefs;preference=all;task=random'>&reg;</A>)"
 		dat += "<br>"
 		dat += "Species: <a href='byond://?src=\ref[user];preference=species;task=input'>[species]</a><br>"
+		dat += "Secondary Language:<br><a href='byond://?src=\ref[user];preference=language;task=input'>[language]</a><br>"
 		dat += "Blood Type: <a href='byond://?src=\ref[user];preference=b_type;task=input'>[b_type]</a><br>"
 		dat += "Skin Tone: <a href='?_src_=prefs;preference=s_tone;task=input'>[-s_tone + 35]/220<br></a>"
 		//dat += "Skin pattern: <a href='byond://?src=\ref[user];preference=skin_style;task=input'>Adjust</a><br>"
 		dat += "Needs Glasses: <a href='?_src_=prefs;preference=disabilities'><b>[disabilities == 0 ? "No" : "Yes"]</b></a><br>"
 		dat += "Limbs: <a href='byond://?src=\ref[user];preference=limbs;task=input'>Adjust</a><br>"
+		dat += "Internal Organs: <a href='byond://?src=\ref[user];preference=organs;task=input'>Adjust</a><br>"
 
 		//display limbs below
 		var/ind = 0
@@ -280,6 +292,10 @@ datum/preferences
 					organ_name = "left hand"
 				if("r_hand")
 					organ_name = "right hand"
+				if("heart")
+					organ_name = "heart"
+				if("eyes")
+					organ_name = "eyes"
 
 			if(status == "cyborg")
 				++ind
@@ -291,6 +307,24 @@ datum/preferences
 				if(ind > 1)
 					dat += ", "
 				dat += "\tAmputated [organ_name]"
+			else if(status == "mechanical")
+				++ind
+				if(ind > 1)
+					dat += ", "
+				dat += "\tMechanical [organ_name]"
+			else if(status == "assisted")
+				++ind
+				if(ind > 1)
+					dat += ", "
+				switch(organ_name)
+					if("heart")
+						dat += "\tPacemaker-assisted [organ_name]"
+					if("voicebox") //on adding voiceboxes for speaking skrell/similar replacements
+						dat += "\tSurgically altered [organ_name]"
+					if("eyes")
+						dat += "\tRetinal overlayed [organ_name]"
+					else
+						dat += "\tMechanically assisted [organ_name]"
 		if(!ind)
 			dat += "\[...\]<br><br>"
 		else
@@ -364,7 +398,7 @@ datum/preferences
 
 		user << browse(dat, "window=preferences;size=560x580")
 
-	proc/SetChoices(mob/user, limit = 17, list/splitJobs = list("Chief Engineer"), width = 550, height = 550)
+	proc/SetChoices(mob/user, limit = 16, list/splitJobs = list("Chief Medical Officer"), width = 550, height = 550)
 		if(!job_master)
 			return
 
@@ -436,7 +470,7 @@ datum/preferences
 			else
 				HTML += " <font color=red>\[NEVER]</font>"
 			if(job.alt_titles)
-				HTML += "</a><br> <a href=\"byond://?src=\ref[user];preference=job;task=alt_title;job=\ref[job]\">\[[GetPlayerAltTitle(job)]\]</a></td></tr>"
+				HTML += "</a></td></tr><tr bgcolor='[lastJob.selection_color]'><td width='60%' align='center'><a>&nbsp</a></td><td><a href=\"byond://?src=\ref[user];preference=job;task=alt_title;job=\ref[job]\">\[[GetPlayerAltTitle(job)]\]</a></td></tr>"
 			HTML += "</a></td></tr>"
 
 		HTML += "</td'></tr></table>"
@@ -449,7 +483,7 @@ datum/preferences
 			if(BE_ASSISTANT)
 				HTML += "<center><br><u><a href='?_src_=prefs;preference=job;task=random'><font color=red>Be assistant if preference unavailable</font></a></u></center><br>"
 			if(RETURN_TO_LOBBY)
-				HTML += "<center><br><u><a href='?_src_=prefs;preference=job;task=random'><font color=purple>Return to lobby if prefernce unavailable</font></a></u></center><br>"
+				HTML += "<center><br><u><a href='?_src_=prefs;preference=job;task=random'><font color=purple>Return to lobby if preference unavailable</font></a></u></center><br>"
 
 		HTML += "<center><a href='?_src_=prefs;preference=job;task=reset'>\[Reset\]</a></center>"
 		HTML += "</tt>"
@@ -489,6 +523,13 @@ datum/preferences
 			HTML += "[med_record]"
 		else
 			HTML += "[copytext(med_record, 1, 37)]..."
+
+		HTML += "<br><br><a href=\"byond://?src=\ref[user];preference=records;task=gen_record\">Employment Records</a><br>"
+
+		if(lentext(gen_record) <= 40)
+			HTML += "[gen_record]"
+		else
+			HTML += "[copytext(gen_record, 1, 37)]..."
 
 		HTML += "<br><br><a href=\"byond://?src=\ref[user];preference=records;task=sec_record\">Security Records</a><br>"
 
@@ -730,6 +771,15 @@ datum/preferences
 
 					sec_record = secmsg
 					SetRecords(user)
+			if(href_list["task"] == "gen_record")
+				var/genmsg = input(usr,"Set your employment notes here.","Employment Records",html_decode(gen_record)) as message
+
+				if(genmsg != null)
+					genmsg = copytext(genmsg, 1, MAX_PAPER_MESSAGE_LEN)
+					genmsg = html_encode(genmsg)
+
+					gen_record = genmsg
+					SetRecords(user)
 
 		switch(href_list["task"])
 			if("random")
@@ -743,13 +793,13 @@ datum/preferences
 						g_hair = rand(0,255)
 						b_hair = rand(0,255)
 					if("h_style")
-						h_style = random_hair_style(gender)
+						h_style = random_hair_style(gender, species)
 					if("facial")
 						r_facial = rand(0,255)
 						g_facial = rand(0,255)
 						b_facial = rand(0,255)
 					if("f_style")
-						f_style = random_facial_hair_style(gender)
+						f_style = random_facial_hair_style(gender, species)
 					if("underwear")
 						underwear = rand(1,underwear_m.len)
 						ShowChoices(user)
@@ -779,31 +829,21 @@ datum/preferences
 						if(new_age)
 							age = max(min( round(text2num(new_age)), AGE_MAX),AGE_MIN)
 					if("species")
+
 						var/list/new_species = list("Human")
 						var/prev_species = species
 						var/whitelisted = 0
+
 						if(config.usealienwhitelist) //If we're using the whitelist, make sure to check it!
-							if(is_alien_whitelisted(user, "Soghun")) //Check for Unathi and admins
-								new_species += "Unathi"
-								whitelisted = 1
-							if(is_alien_whitelisted(user, "Tajaran")) //Check for Tajaran and admins
-								new_species += "Tajaran"
-								whitelisted = 1
-							if(is_alien_whitelisted(user, "Skrell")) //Check for Skrell and admins
-								new_species += "Skrell"
-								whitelisted = 1
-							if(is_alien_whitelisted(user, "Vox")) //Check for Skrell and admins
-								new_species += "Vox"
-								whitelisted = 1
-
-
+							for(var/S in whitelisted_species)
+								if(is_alien_whitelisted(user,S))
+									new_species += S
+									whitelisted = 1
 							if(!whitelisted)
 								alert(user, "You cannot change your species as you need to be whitelisted. If you wish to be whitelisted contact an admin in-game, on the forums, or on IRC.")
 						else //Not using the whitelist? Aliens for everyone!
-							new_species += "Tajaran"
-							new_species += "Unathi"
-							new_species += "Skrell"
-							new_species += "Vox"
+							new_species = whitelisted_species
+
 						species = input("Please select a species", "Character Generation", null) in new_species
 
 						if(prev_species != species)
@@ -851,6 +891,26 @@ datum/preferences
 
 							s_tone = 0
 
+					if("language")
+						var/languages_available
+						var/list/new_languages = list("None")
+
+						if(config.usealienwhitelist)
+							for(var/L in all_languages)
+								var/datum/language/lang = all_languages[L]
+								if((!(lang.flags & RESTRICTED)) && (is_alien_whitelisted(user, L)||(!( lang.flags & WHITELISTED ))))
+									new_languages += lang
+									languages_available = 1
+
+							if(!(languages_available))
+								alert(user, "There are not currently any available secondary languages.")
+						else
+							for(var/L in all_languages)
+								var/datum/language/lang = all_languages[L]
+								if(!(lang.flags & RESTRICTED))
+									new_languages += lang.name
+
+						language = input("Please select a secondary language", "Character Generation", null) in new_languages
 
 					if("metadata")
 						var/new_metadata = input(user, "Enter any information you'd like others to see, such as Roleplay-preferences:", "Game Preference" , metadata)  as message|null
@@ -1016,6 +1076,28 @@ datum/preferences
 								if(second_limb)
 									organ_data[second_limb] = "cyborg"
 
+					if("organs")
+						var/organ_name = input(user, "Which internal function do you want to change?") as null|anything in list("Heart", "Eyes")
+						if(!organ_name) return
+
+						var/organ = null
+						switch(organ_name)
+							if("Heart")
+								organ = "heart"
+							if("Eyes")
+								organ = "eyes"
+
+						var/new_state = input(user, "What state do you wish the organ to be in?") as null|anything in list("Normal","Assisted","Mechanical")
+						if(!new_state) return
+
+						switch(new_state)
+							if("Normal")
+								organ_data[organ] = null
+							if("Assisted")
+								organ_data[organ] = "assisted"
+							if("Mechanical")
+								organ_data[organ] = "mechanical"
+
 					if("skin_style")
 						var/skin_style_name = input(user, "Select a new skin style") as null|anything in list("default1", "default2", "default3")
 						if(!skin_style_name) return
@@ -1040,9 +1122,21 @@ datum/preferences
 								UI_style = "Orange"
 							if("Orange")
 								UI_style = "old"
+							if("old")
+								UI_style = "White"
 							else
 								UI_style = "Midnight"
 
+					if("UIcolor")
+						var/UI_style_color_new = input(user, "Choose your UI color, dark colors are not recommended!") as color|null
+						if(!UI_style_color_new) return
+						UI_style_color = UI_style_color_new
+
+					if("UIalpha")
+						var/UI_style_alpha_new = input(user, "Select a new alpha(transparence) parametr for UI, between 50 and 255") as num
+						if(!UI_style_alpha_new | !(UI_style_alpha_new <= 255 && UI_style_alpha_new >= 50)) return
+						UI_style_alpha = UI_style_alpha_new
+								
 					if("be_special")
 						var/num = text2num(href_list["num"])
 						be_special ^= (1<<num)
@@ -1090,7 +1184,7 @@ datum/preferences
 
 	proc/copy_to(mob/living/carbon/human/character, safety = 0)
 		if(be_random_name)
-			real_name = random_name()
+			real_name = random_name(gender)
 
 		if(config.humans_need_surnames)
 			var/firstspace = findtext(real_name, " ")
@@ -1108,6 +1202,7 @@ datum/preferences
 		character.flavor_text = flavor_text
 		character.med_record = med_record
 		character.sec_record = sec_record
+		character.gen_record = gen_record
 
 		character.gender = gender
 		character.age = age
@@ -1134,19 +1229,27 @@ datum/preferences
 		character.skills = skills
 
 		// Destroy/cyborgize organs
+
 		for(var/name in organ_data)
 			var/datum/organ/external/O = character.organs_by_name[name]
-			if(!O) continue
-
+			var/datum/organ/internal/I = character.internal_organs_by_name[name]
 			var/status = organ_data[name]
+
 			if(status == "amputated")
 				O.amputated = 1
 				O.status |= ORGAN_DESTROYED
 				O.destspawn = 1
-			else if(status == "cyborg")
+			if(status == "cyborg")
 				O.status |= ORGAN_ROBOT
+			if(status == "assisted")
+				I.mechassist()
+			else if(status == "mechanical")
+				I.mechanize()
+
+			else continue
+
 		if(underwear > underwear_m.len || underwear < 1)
-			underwear = 1 //I'm sure this is 100% unnecessary, but I'm paranoid... sue me.
+			underwear = 0 //I'm sure this is 100% unnecessary, but I'm paranoid... sue me. //HAH NOW NO MORE MAGIC CLONING UNDIES
 		character.underwear = underwear
 
 		if(backbag > 4 || backbag < 1)

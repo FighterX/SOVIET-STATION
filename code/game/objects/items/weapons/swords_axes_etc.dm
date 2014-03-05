@@ -24,7 +24,7 @@
 	return 0
 
 /obj/item/weapon/melee/energy/sword/New()
-	color = pick("red","blue","green","purple")
+	item_color = pick("red","blue","green","purple")
 
 /obj/item/weapon/melee/energy/sword/attack_self(mob/living/user as mob)
 	if ((CLUMSY in user.mutations) && prob(50))
@@ -36,10 +36,11 @@
 		if(istype(src,/obj/item/weapon/melee/energy/sword/pirate))
 			icon_state = "cutlass1"
 		else
-			icon_state = "sword[color]"
+			icon_state = "sword[item_color]"
 		w_class = 4
 		playsound(user, 'sound/weapons/saberon.ogg', 50, 1)
 		user << "\blue [src] is now active."
+
 	else
 		force = 3
 		if(istype(src,/obj/item/weapon/melee/energy/sword/pirate))
@@ -49,6 +50,12 @@
 		w_class = 2
 		playsound(user, 'sound/weapons/saberoff.ogg', 50, 1)
 		user << "\blue [src] can now be concealed."
+
+	if(istype(user,/mob/living/carbon/human))
+		var/mob/living/carbon/human/H = user
+		H.update_inv_l_hand()
+		H.update_inv_r_hand()
+
 	add_fingerprint(user)
 	return
 
@@ -97,7 +104,7 @@
 		M.Weaken(5)
 		M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been attacked with [src.name] by [user.name] ([user.ckey])</font>")
 		user.attack_log += text("\[[time_stamp()]\] <font color='red'>Used the [src.name] to attack [M.name] ([M.ckey])</font>")
-		log_attack("<font color='red'>[user.name] ([user.ckey]) attacked [M.name] ([M.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)])</font>")
+		log_attack("[user.name] ([user.ckey]) attacked [M.name] ([M.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)])")
 		src.add_fingerprint(user)
 
 		for(var/mob/O in viewers(M))
@@ -125,7 +132,7 @@
 		"You hear an ominous click.")
 		icon_state = "telebaton_1"
 		item_state = "telebaton_1"
-		w_class = 4
+		w_class = 3
 		force = 15//quite robust
 		attack_verb = list("smacked", "struck", "slapped")
 	else
@@ -137,6 +144,12 @@
 		w_class = 2
 		force = 3//not so robust now
 		attack_verb = list("hit", "punched")
+
+	if(istype(user,/mob/living/carbon/human))
+		var/mob/living/carbon/human/H = user
+		H.update_inv_l_hand()
+		H.update_inv_r_hand()
+
 	playsound(src.loc, 'sound/weapons/empty.ogg', 50, 1)
 	add_fingerprint(user)
 
@@ -180,11 +193,11 @@
 
 /obj/item/weapon/melee/energy/sword/green
 	New()
-		color = "green"
+		item_color = "green"
 
 /obj/item/weapon/melee/energy/sword/red
 	New()
-		color = "red"
+		item_color = "red"
 
 /obj/item/weapon/melee/energy/blade/New()
 	spark_system = new /datum/effect/effect/system/spark_spread()
@@ -242,11 +255,18 @@
 		w_class = 4
 		playsound(user, 'sound/weapons/saberon.ogg', 50, 1)
 		user << "\blue [src] is now active."
+
 	else
 		force = 3
 		icon_state = "eshield[active]"
 		w_class = 1
 		playsound(user, 'sound/weapons/saberoff.ogg', 50, 1)
 		user << "\blue [src] can now be concealed."
+
+	if(istype(user,/mob/living/carbon/human))
+		var/mob/living/carbon/human/H = user
+		H.update_inv_l_hand()
+		H.update_inv_r_hand()
+
 	add_fingerprint(user)
 	return

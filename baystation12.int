@@ -1,11 +1,11 @@
 // BEGIN_INTERNALS
 /*
 MAP_ICON_TYPE: 0
-WINDOW: code\ATMOSPHERICS\components\tvalve.dm
-LAST_COMPILE_VERSION: 498.1158
-DIR: code code\ATMOSPHERICS code\ATMOSPHERICS\components code\defines\procs code\game code\game\gamemodes\events code\game\gamemodes\events\holidays code\game\gamemodes\wizard code\game\machinery code\game\objects code\game\objects\items code\game\objects\items\weapons code\game\turfs code\modules 
-FILE: code\ATMOSPHERICS\components\tvalve.dm
-LAST_COMPILE_TIME: 1382020318
-AUTO_FILE_DIR: ON
+WINDOW: maps\tgstation2.dmm
+LAST_COMPILE_VERSION: 503.1224
+DIR: code code\__HELPERS code\datums\diseases code\datums\spells code\defines\obj code\game code\game\gamemodes\events code\game\gamemodes\wizard code\game\jobs code\game\jobs\job code\game\machinery code\game\machinery\doors code\game\objects\items maps 
+FILE: maps\tgstation2.dmm
+LAST_COMPILE_TIME: 1391360181
+AUTO_FILE_DIR: OFF
 */
 // END_INTERNALS

@@ -21,7 +21,7 @@
 	var/lip_style = null	//no lipstick by default- arguably misleading, as it could be used for general makeup
 
 	var/age = 30		//Player's age (pure fluff)
-	var/b_type = "A+"	//Player's bloodtype (Not currently used, just character fluff)
+	var/b_type = "A+"	//Player's bloodtype
 
 	var/underwear = 1	//Which underwear the player wants
 	var/backbag = 2		//Which backpack type the player has chosen. Nothing, Satchel or Backpack.
@@ -34,7 +34,8 @@
 	var/obj/item/gloves = null
 	var/obj/item/glasses = null
 	var/obj/item/head = null
-	var/obj/item/ears = null
+	var/obj/item/l_ear = null
+	var/obj/item/r_ear = null
 	var/obj/item/wear_id = null
 	var/obj/item/r_store = null
 	var/obj/item/l_store = null

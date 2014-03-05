@@ -65,6 +65,7 @@
 		..()
 		src.modules += new /obj/item/borg/sight/hud/med(src)
 		src.modules += new /obj/item/device/healthanalyzer(src)
+		src.modules += new /obj/item/device/reagent_scanner/adv(src)
 		src.modules += new /obj/item/weapon/reagent_containers/borghypo(src)
 		src.modules += new /obj/item/weapon/reagent_containers/glass/beaker/large(src)
 		src.modules += new /obj/item/weapon/reagent_containers/robodropper(src)
@@ -218,4 +219,17 @@
 		src.modules += new /obj/item/weapon/melee/energy/sword(src)
 		src.modules += new /obj/item/weapon/gun/energy/pulse_rifle/destroyer(src)
 		src.modules += new /obj/item/weapon/card/emag(src)
+		return
+
+/obj/item/weapon/robot_module/combat
+	name = "combat robot module"
+
+	New()
+		src.modules += new /obj/item/borg/sight/thermal(src)
+		src.modules += new /obj/item/weapon/gun/energy/laser/cyborg(src)
+		src.modules += new /obj/item/weapon/pickaxe/plasmacutter(src)
+		src.modules += new /obj/item/borg/combat/shield(src)
+		src.modules += new /obj/item/borg/combat/mobility(src)
+		src.modules += new /obj/item/weapon/wrench(src) //Is a combat android really going to be stopped by a chair?
+		src.emag = new /obj/item/weapon/gun/energy/lasercannon/cyborg(src)
 		return

@@ -20,8 +20,12 @@
 	var/heat_proof = 0 // For glass airlocks/opacity firedoors
 	var/air_properties_vary_with_direction = 0
 
+	//Multi-tile doors
+	dir = EAST
+	var/width = 1
+
 /obj/machinery/door/New()
-	..()
+	. = ..()
 	if(density)
 		layer = 3.1 //Above most items if closed
 		explosion_resistance = initial(explosion_resistance)
@@ -29,6 +33,16 @@
 	else
 		layer = 2.7 //Under all objects if opened. 2.7 due to tables being at 2.6
 		explosion_resistance = 0
+
+
+	if(width > 1)
+		if(dir in list(EAST, WEST))
+			bound_width = width * world.icon_size
+			bound_height = world.icon_size
+		else
+			bound_width = world.icon_size
+			bound_height = width * world.icon_size
+
 	update_nearby_tiles(need_rebuild=1)
 	return
 
@@ -106,12 +120,18 @@
 /obj/machinery/door/attack_hand(mob/user as mob)
 	return src.attackby(user, user)
 
+/obj/machinery/door/attack_tk(mob/user as mob)
+	if(requiresID() && !allowed(null))
+		return
+	..()
 
 /obj/machinery/door/attackby(obj/item/I as obj, mob/user as mob)
 	if(istype(I, /obj/item/device/detective_scanner))
 		return
 	if(src.operating || isrobot(user))	return //borgs can't attack doors open because it conflicts with their AI-like interaction with them.
 	src.add_fingerprint(user)
+	if(!Adjacent(user))
+		user = null
 	if(!src.requiresID())
 		user = null
 	if(src.density && (istype(I, /obj/item/weapon/card/emag)||istype(I, /obj/item/weapon/melee/energy/blade)))
@@ -171,7 +191,7 @@
 	return
 
 
-/obj/machinery/door/proc/animate(animation)
+/obj/machinery/door/proc/do_animate(animation)
 	switch(animation)
 		if("opening")
 			if(p_open)
@@ -194,7 +214,7 @@
 	if(!ticker)			return 0
 	if(!operating)		operating = 1
 
-	animate("opening")
+	do_animate("opening")
 	icon_state = "door0"
 	src.SetOpacity(0)
 	sleep(10)
@@ -222,7 +242,7 @@
 	if(operating > 0)	return
 	operating = 1
 
-	animate("closing")
+	do_animate("closing")
 	src.density = 1
 	explosion_resistance = initial(explosion_resistance)
 	src.layer = 3.1
@@ -243,21 +263,13 @@
 	return 1
 
 /obj/machinery/door/proc/update_nearby_tiles(need_rebuild)
-	if(!air_master) return 0
+	if(!air_master)
+		return 0
 
-	var/turf/simulated/source = loc
-	var/turf/simulated/north = get_step(source,NORTH)
-	var/turf/simulated/south = get_step(source,SOUTH)
-	var/turf/simulated/east = get_step(source,EAST)
-	var/turf/simulated/west = get_step(source,WEST)
+	for(var/turf/simulated/turf in locs)
+		update_heat_protection(turf)
+		air_master.AddTurfToUpdate(turf)
 
-	update_heat_protection(loc)
-
-	if(istype(source)) air_master.tiles_to_update += source
-	if(istype(north)) air_master.tiles_to_update += north
-	if(istype(south)) air_master.tiles_to_update += south
-	if(istype(east)) air_master.tiles_to_update += east
-	if(istype(west)) air_master.tiles_to_update += west
 	return 1
 
 /obj/machinery/door/proc/update_heat_protection(var/turf/simulated/source)
@@ -272,6 +284,19 @@
 	if(!A.density && !A.operating && !A.locked && !A.welded && A.autoclose)
 		close()
 	return
+
+/obj/machinery/door/Move(new_loc, new_dir)
+	update_nearby_tiles()
+	. = ..()
+	if(width > 1)
+		if(dir in list(EAST, WEST))
+			bound_width = width * world.icon_size
+			bound_height = world.icon_size
+		else
+			bound_width = world.icon_size
+			bound_height = width * world.icon_size
+
+	update_nearby_tiles()
 
 /obj/machinery/door/morgue
 	icon = 'icons/obj/doors/doormorgue.dmi'

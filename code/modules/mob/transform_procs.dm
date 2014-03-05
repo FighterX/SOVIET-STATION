@@ -20,18 +20,23 @@
 	flick("h2monkey", animation)
 	sleep(48)
 	//animation = null
-	var/mob/living/carbon/monkey/O = new /mob/living/carbon/monkey( loc )
-	del(animation)
 
-	O.name = "monkey"
+	if(!species.primitive) //If the creature in question has no primitive set, this is going to be messy.
+		gib()
+		return
+
+	var/mob/living/carbon/monkey/O = null
+
+	O = new species.primitive(loc)
+
 	O.dna = dna
-	dna = null
-	O.dna.uni_identity = "00600200A00E0110148FC01300B009"
-	//O.dna.struc_enzymes = "0983E840344C39F4B059D5145FC5785DC6406A4BB8"
-	O.dna.struc_enzymes = "[copytext(O.dna.struc_enzymes,1,1+3*(STRUCDNASIZE-1))]BB8"
+	//O.dna.uni_identity = "000000000000000000DC00000660004DA0A0E00"
+	//O.dna.struc_enzymes = "[copytext(O.dna.struc_enzymes,1,1+3*(STRUCDNASIZE-1))]BB8"
+	O.dna.SetSEState(MONKEYBLOCK,1)
 	O.loc = loc
 	O.viruses = viruses
-	viruses = list()
+	O.a_intent = "hurt"
+
 	for(var/datum/disease/D in O.viruses)
 		D.affected_mob = O
 
@@ -39,10 +44,13 @@
 		client.mob = O
 	if(mind)
 		mind.transfer_to(O)
-	O.a_intent = "hurt"
-	O << "<B>You are now a monkey.</B>"
+
+	O << "<B>You are now [O]. </B>"
+
 	spawn(0)//To prevent the proc from returning null.
 		del(src)
+	del(animation)
+
 	return O
 
 /mob/new_player/AIize()
@@ -165,9 +173,14 @@
 
 	O.loc = loc
 	O.job = "Cyborg"
-
-	O.mmi = new /obj/item/device/mmi(O)
-	O.mmi.transfer_identity(src)//Does not transfer key/client.
+	if(O.mind.assigned_role == "Cyborg")
+		if(O.mind.role_alt_title == "Android")
+			O.mmi = new /obj/item/device/mmi/posibrain(O)
+		if(O.mind.role_alt_title == "Robot")
+			O.mmi = new /obj/item/device/mmi/posibrain(O) //Ravensdale wants a circuit based brain for another robot class, this is a placeholder.
+	else
+		O.mmi = new /obj/item/device/mmi(O)
+		O.mmi.transfer_identity(src)//Does not transfer key/client.
 
 	O.Namepick()
 

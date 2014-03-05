@@ -222,6 +222,21 @@
 		new /obj/item/weapon/reagent_containers/food/drinks/drinkingglass(src)
 		new /obj/item/weapon/reagent_containers/food/drinks/drinkingglass(src)
 
+/obj/item/weapon/storage/box/cdeathalarm_kit
+	name = "Death Alarm Kit"
+	desc = "Box of stuff used to implant death alarms."
+	icon_state = "implant"
+	item_state = "syringe_kit"
+
+	New()
+		..()
+		new /obj/item/weapon/implanter(src)
+		new /obj/item/weapon/implantcase/death_alarm(src)
+		new /obj/item/weapon/implantcase/death_alarm(src)
+		new /obj/item/weapon/implantcase/death_alarm(src)
+		new /obj/item/weapon/implantcase/death_alarm(src)
+		new /obj/item/weapon/implantcase/death_alarm(src)
+		new /obj/item/weapon/implantcase/death_alarm(src)
 
 /obj/item/weapon/storage/box/condimentbottles
 	name = "box of condiment bottles"
@@ -275,9 +290,33 @@
 	can_hold = list("/obj/item/weapon/reagent_containers/food/snacks/monkeycube")
 	New()
 		..()
-		for(var/i = 1; i <= 5; i++)
-			new /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped(src)
+		if(src.type == /obj/item/weapon/storage/box/monkeycubes)
+			for(var/i = 1; i <= 5; i++)
+				new /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped(src)
 
+/obj/item/weapon/storage/box/monkeycubes/farwacubes
+	name = "farwa cube box"
+	desc = "Drymate brand farwa cubes, shipped from Ahdomai. Just add water!"
+	New()
+		..()
+		for(var/i = 1; i <= 5; i++)
+			new /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/farwacube(src)
+
+/obj/item/weapon/storage/box/monkeycubes/stokcubes
+	name = "stok cube box"
+	desc = "Drymate brand stok cubes, shipped from Moghes. Just add water!"
+	New()
+		..()
+		for(var/i = 1; i <= 5; i++)
+			new /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/stokcube(src)
+
+/obj/item/weapon/storage/box/monkeycubes/neaeracubes
+	name = "neaera cube box"
+	desc = "Drymate brand neaera cubes, shipped from Jargon 4. Just add water!"
+	New()
+		..()
+		for(var/i = 1; i <= 5; i++)
+			new /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/neaeracube(src)
 
 /obj/item/weapon/storage/box/ids
 	name = "spare IDs"
@@ -390,6 +429,14 @@
 		W.update_icon()
 		return
 
+/obj/item/weapon/storage/box/autoinjectors
+	name = "box of injectors"
+	desc = "Contains autoinjectors."
+	icon_state = "syringe"
+	New()
+		..()
+		for (var/i; i < storage_slots; i++)
+			new /obj/item/weapon/reagent_containers/hypospray/autoinjector(src)
 
 /obj/item/weapon/storage/box/lights
 	name = "replacement bulbs"

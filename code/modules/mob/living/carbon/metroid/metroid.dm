@@ -3,8 +3,7 @@
 	icon = 'icons/mob/slimes.dmi'
 	icon_state = "grey baby slime"
 	pass_flags = PASSTABLE
-	voice_message = "skree!"
-	say_message = "hums"
+	speak_emote = list("hums")
 
 	layer = 5
 
@@ -56,6 +55,7 @@
 	name = "adult slime"
 	icon = 'icons/mob/slimes.dmi'
 	icon_state = "grey adult slime"
+	speak_emote = list("telepathically chirps")
 
 	health = 200
 	gender = NEUTER
@@ -440,7 +440,7 @@
 		if(G.cell)
 			if(M.a_intent == "hurt")//Stungloves. Any contact will stun the alien.
 				if(G.cell.charge >= 2500)
-					G.cell.charge -= 2500
+					G.cell.use(2500)
 					for(var/mob/O in viewers(src, null))
 						if ((O.client && !( O.blinded )))
 							O.show_message("\red <B>[src] has been touched with the stun gloves by [M]!</B>", 1, "\red You hear someone fall.", 2)
@@ -457,7 +457,7 @@
 		if ("grab")
 			if (M == src)
 				return
-			var/obj/item/weapon/grab/G = new /obj/item/weapon/grab( M, M, src )
+			var/obj/item/weapon/grab/G = new /obj/item/weapon/grab( M, src )
 
 			M.put_in_active_hand(G)
 
@@ -634,88 +634,6 @@ mob/living/carbon/slime/var/temperature_resistance = T0C+75
 			health = 200 - (getOxyLoss() + getToxLoss() + getFireLoss() + getBruteLoss() + getCloneLoss())
 		else
 			health = 150 - (getOxyLoss() + getToxLoss() + getFireLoss() + getBruteLoss() + getCloneLoss())
-
-
-/mob/living/carbon/slime/proc/get_obstacle_ok(atom/A)
-	var/direct = get_dir(src, A)
-	var/obj/item/weapon/dummy/D = new /obj/item/weapon/dummy( src.loc )
-	var/ok = 0
-	if ( (direct - 1) & direct)
-		var/turf/Step_1
-		var/turf/Step_2
-		switch(direct)
-			if(5.0)
-				Step_1 = get_step(src, NORTH)
-				Step_2 = get_step(src, EAST)
-
-			if(6.0)
-				Step_1 = get_step(src, SOUTH)
-				Step_2 = get_step(src, EAST)
-
-			if(9.0)
-				Step_1 = get_step(src, NORTH)
-				Step_2 = get_step(src, WEST)
-
-			if(10.0)
-				Step_1 = get_step(src, SOUTH)
-				Step_2 = get_step(src, WEST)
-
-			else
-		if(Step_1 && Step_2)
-			var/check_1 = 0
-			var/check_2 = 0
-			if(step_to(D, Step_1))
-				check_1 = 1
-				for(var/obj/border_obstacle in Step_1)
-					if(border_obstacle.flags & ON_BORDER)
-						if(!border_obstacle.CheckExit(D, A))
-							check_1 = 0
-				for(var/obj/border_obstacle in get_turf(A))
-					if((border_obstacle.flags & ON_BORDER) && (src != border_obstacle))
-						if(!border_obstacle.CanPass(D, D.loc, 1, 0))
-							check_1 = 0
-
-			D.loc = src.loc
-			if(step_to(D, Step_2))
-				check_2 = 1
-
-				for(var/obj/border_obstacle in Step_2)
-					if(border_obstacle.flags & ON_BORDER)
-						if(!border_obstacle.CheckExit(D, A))
-							check_2 = 0
-				for(var/obj/border_obstacle in get_turf(A))
-					if((border_obstacle.flags & ON_BORDER) && (src != border_obstacle))
-						if(!border_obstacle.CanPass(D, D.loc, 1, 0))
-							check_2 = 0
-			if(check_1 || check_2)
-				ok = 1
-	else
-		if(loc == src.loc)
-			ok = 1
-		else
-			ok = 1
-
-			//Now, check objects to block exit that are on the border
-			for(var/obj/border_obstacle in src.loc)
-				if(border_obstacle.flags & ON_BORDER)
-					if(!border_obstacle.CheckExit(D, A))
-						ok = 0
-
-			//Next, check objects to block entry that are on the border
-			for(var/obj/border_obstacle in get_turf(A))
-				if((border_obstacle.flags & ON_BORDER) && (A != border_obstacle))
-					if(!border_obstacle.CanPass(D, D.loc, 1, 0))
-						ok = 0
-
-	//del(D)
-	//Garbage Collect Dummy
-	D.loc = null
-	D = null
-	if (!( ok ))
-
-		return 0
-
-	return 1
 
 
 /obj/item/slime_extract
@@ -900,7 +818,7 @@ mob/living/carbon/slime/var/temperature_resistance = T0C+75
 	desc = "a golem's skin"
 	icon_state = "golem"
 	item_state = "golem"
-	color = "golem"
+	item_color = "golem"
 	has_sensor = 0
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	canremove = 0
@@ -965,7 +883,7 @@ mob/living/carbon/slime/var/temperature_resistance = T0C+75
 /obj/item/clothing/head/space/golem
 	icon_state = "golem"
 	item_state = "dermal"
-	color = "dermal"
+	item_color = "dermal"
 	name = "golem's head"
 	desc = "a golem's head"
 	canremove = 0

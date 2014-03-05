@@ -66,8 +66,7 @@
 
 				M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been fed [src.name] by [user.name] ([user.ckey]) Reagents: [reagentlist(src)]</font>")
 				user.attack_log += text("\[[time_stamp()]\] <font color='red'>Fed [src.name] by [M.name] ([M.ckey]) Reagents: [reagentlist(src)]</font>")
-
-				log_attack("<font color='red'>[user.name] ([user.ckey]) fed [M.name] ([M.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)])</font>")
+				log_attack("[user.name] ([user.ckey]) fed [M.name] ([M.ckey]) with [src.name] Reagents: [reagentlist(src)] (INTENT: [uppertext(user.a_intent)])")
 
 				for(var/mob/O in viewers(world.view, user))
 					O.show_message("\red [user] feeds [M] [src].", 1)
@@ -97,14 +96,8 @@
 
 	return 0
 
-/obj/item/weapon/reagent_containers/food/snacks/afterattack(obj/target, mob/user , flag)
+/obj/item/weapon/reagent_containers/food/snacks/afterattack(obj/target, mob/user, proximity)
 	return
-
-
-
-
-
-
 
 /obj/item/weapon/reagent_containers/food/snacks/examine()
 	set src in view()
@@ -125,7 +118,7 @@
 	if(istype(W,/obj/item/weapon/storage))
 		..() // -> item/attackby()
 	if((slices_num <= 0 || !slices_num) || !slice_path)
-		return 1
+		return 0
 	var/inaccurate = 0
 	if( \
 			istype(W, /obj/item/weapon/kitchenknife) || \
@@ -259,6 +252,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 8)
+		reagents.add_reagent("doctorsdelight", 8)
 		reagents.add_reagent("tricordrazine", 8)
 		bitesize = 3
 
@@ -461,41 +455,41 @@
 
 			usr << "\blue You color \the [src] [clr]"
 			icon_state = "egg-[clr]"
-			color = clr
+			item_color = clr
 		else
 			..()
 
 /obj/item/weapon/reagent_containers/food/snacks/egg/blue
 	icon_state = "egg-blue"
-	color = "blue"
+	item_color = "blue"
 
 /obj/item/weapon/reagent_containers/food/snacks/egg/green
 	icon_state = "egg-green"
-	color = "green"
+	item_color = "green"
 
 /obj/item/weapon/reagent_containers/food/snacks/egg/mime
 	icon_state = "egg-mime"
-	color = "mime"
+	item_color = "mime"
 
 /obj/item/weapon/reagent_containers/food/snacks/egg/orange
 	icon_state = "egg-orange"
-	color = "orange"
+	item_color = "orange"
 
 /obj/item/weapon/reagent_containers/food/snacks/egg/purple
 	icon_state = "egg-purple"
-	color = "purple"
+	item_color = "purple"
 
 /obj/item/weapon/reagent_containers/food/snacks/egg/rainbow
 	icon_state = "egg-rainbow"
-	color = "rainbow"
+	item_color = "rainbow"
 
 /obj/item/weapon/reagent_containers/food/snacks/egg/red
 	icon_state = "egg-red"
-	color = "red"
+	item_color = "red"
 
 /obj/item/weapon/reagent_containers/food/snacks/egg/yellow
 	icon_state = "egg-yellow"
-	color = "yellow"
+	item_color = "yellow"
 
 /obj/item/weapon/reagent_containers/food/snacks/friedegg
 	name = "Fried egg"
@@ -548,6 +542,24 @@
 		reagents.add_reagent("nutriment", 3)
 		src.bitesize = 3
 
+/obj/item/weapon/reagent_containers/food/snacks/tofurkey
+	name = "Tofurkey"
+	desc = "A fake turkey made from tofu."
+	icon_state = "tofurkey"
+	New()
+		..()
+		reagents.add_reagent("nutriment", 12)
+		reagents.add_reagent("stoxin", 3)
+		bitesize = 3
+
+/obj/item/weapon/reagent_containers/food/snacks/stuffing
+	name = "Stuffing"
+	desc = "Moist, peppery breadcrumbs for filling the body cavities of dead birds. Dig in!"
+	icon_state = "stuffing"
+	New()
+		..()
+		reagents.add_reagent("nutriment", 3)
+		bitesize = 1
 
 /obj/item/weapon/reagent_containers/food/snacks/carpmeat
 	name = "carp fillet"
@@ -1333,14 +1345,16 @@
 	icon_state = "monkeycube"
 	bitesize = 12
 	var/wrapped = 0
+	var/monkey_type = null
 
 	New()
 		..()
 		reagents.add_reagent("nutriment",10)
 
-	afterattack(obj/O as obj, mob/user as mob)
+	afterattack(obj/O as obj, mob/user as mob, proximity)
+		if(!proximity) return
 		if(istype(O,/obj/structure/sink) && !wrapped)
-			user << "You place [name] under a stream of water..."
+			user << "You place \the [name] under a stream of water..."
 			loc = get_turf(O)
 			return Expand()
 		..()
@@ -1351,8 +1365,17 @@
 
 	proc/Expand()
 		for(var/mob/M in viewers(src,7))
-			M << "\red The monkey cube expands!"
-		new /mob/living/carbon/monkey(get_turf(src))
+			M << "\red \The [src] expands!"
+		if(monkey_type)
+			switch(monkey_type)
+				if("tajara")
+					new /mob/living/carbon/monkey/tajara(get_turf(src))
+				if("unathi")
+					new /mob/living/carbon/monkey/unathi(get_turf(src))
+				if("skrell")
+					new /mob/living/carbon/monkey/skrell(get_turf(src))
+		else
+			new /mob/living/carbon/monkey(get_turf(src))
 		del(src)
 
 	proc/Unwrap(mob/user as mob)
@@ -1366,6 +1389,30 @@
 	desc = "Still wrapped in some paper."
 	icon_state = "monkeycubewrap"
 	wrapped = 1
+
+
+/obj/item/weapon/reagent_containers/food/snacks/monkeycube/farwacube
+	name = "farwa cube"
+	monkey_type ="tajara"
+/obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/farwacube
+	name = "farwa cube"
+	monkey_type ="tajara"
+
+
+/obj/item/weapon/reagent_containers/food/snacks/monkeycube/stokcube
+	name = "stok cube"
+	monkey_type ="unathi"
+/obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/stokcube
+	name = "stok cube"
+	monkey_type ="unathi"
+
+
+/obj/item/weapon/reagent_containers/food/snacks/monkeycube/neaeracube
+	name = "neaera cube"
+	monkey_type ="skrell"
+/obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/neaeracube
+	name = "neaera cube"
+	monkey_type ="skrell"
 
 
 /obj/item/weapon/reagent_containers/food/snacks/spellburger
@@ -1779,9 +1826,9 @@
 		reagents.add_reagent("nutriment", 8)
 		bitesize = 2
 
-/obj/item/weapon/reagent_containers/food/snacks/herbsalad
-	name = "herb salad"
-	desc = "A tasty salad with apples on top."
+/obj/item/weapon/reagent_containers/food/snacks/tossedsalad
+	name = "tossed salad"
+	desc = "A proper salad, basic and simple, with little bits of carrot, tomato and apple intermingled. Vegan!"
 	icon_state = "herbsalad"
 	trash = /obj/item/trash/snack_bowl
 	New()
@@ -1791,13 +1838,12 @@
 
 /obj/item/weapon/reagent_containers/food/snacks/validsalad
 	name = "valid salad"
-	desc = "It's just an herb salad with meatballs and fried potato slices. Nothing suspicious about it."
+	desc = "It's just a salad of questionable 'herbs' with meatballs and fried potato slices. Nothing suspicious about it."
 	icon_state = "validsalad"
 	trash = /obj/item/trash/snack_bowl
 	New()
 		..()
 		reagents.add_reagent("nutriment", 8)
-		reagents.add_reagent("doctorsdelight", 5)
 		bitesize = 3
 
 /obj/item/weapon/reagent_containers/food/snacks/appletart

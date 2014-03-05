@@ -231,8 +231,10 @@
 	emergencyShutdown()
 	..()
 
-
 /obj/machinery/computer/HolodeckControl/process()
+	for(var/item in holographic_items) // do this first, to make sure people don't take items out when power is down.
+		if(!(get_turf(item) in linkedholodeck))
+			derez(item, 0)
 
 	if(!..())
 		return
@@ -255,13 +257,6 @@
 					s.start()
 				T.ex_act(3)
 				T.hotspot_expose(1000,500,1)
-
-
-		for(var/item in holographic_items)
-			if(!(get_turf(item) in linkedholodeck))
-				derez(item, 0)
-
-
 
 /obj/machinery/computer/HolodeckControl/proc/derez(var/obj/obj , var/silent = 1)
 	holographic_items.Remove(obj)
@@ -459,6 +454,15 @@
 	icon = 'icons/obj/structures.dmi'
 	icon_state = "wood_table"
 
+/obj/structure/holostool
+	name = "stool"
+	desc = "Apply butt."
+	icon = 'icons/obj/objects.dmi'
+	icon_state = "stool"
+	anchored = 1.0
+	flags = FPRINT
+	pressure_resistance = 15
+
 
 /obj/item/clothing/gloves/boxing/hologlove
 	name = "boxing gloves"
@@ -497,11 +501,11 @@
 
 /obj/item/weapon/holo/esword/green
 	New()
-		color = "green"
+		item_color = "green"
 
 /obj/item/weapon/holo/esword/red
 	New()
-		color = "red"
+		item_color = "red"
 
 /obj/item/weapon/holo/esword/IsShield()
 	if(active)
@@ -512,13 +516,13 @@
 	..()
 
 /obj/item/weapon/holo/esword/New()
-	color = pick("red","blue","green","purple")
+	item_color = pick("red","blue","green","purple")
 
 /obj/item/weapon/holo/esword/attack_self(mob/living/user as mob)
 	active = !active
 	if (active)
 		force = 30
-		icon_state = "sword[color]"
+		icon_state = "sword[item_color]"
 		w_class = 4
 		playsound(user, 'sound/weapons/saberon.ogg', 50, 1)
 		user << "\blue [src] is now active."
@@ -528,6 +532,12 @@
 		w_class = 2
 		playsound(user, 'sound/weapons/saberoff.ogg', 50, 1)
 		user << "\blue [src] can now be concealed."
+
+	if(istype(user,/mob/living/carbon/human))
+		var/mob/living/carbon/human/H = user
+		H.update_inv_l_hand()
+		H.update_inv_r_hand()
+
 	add_fingerprint(user)
 	return
 
@@ -569,7 +579,7 @@
 /obj/structure/holohoop/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
 	if (istype(mover,/obj/item) && mover.throwing)
 		var/obj/item/I = mover
-		if(istype(I, /obj/item/weapon/dummy) || istype(I, /obj/item/projectile))
+		if(istype(I, /obj/item/projectile))
 			return
 		if(prob(50))
 			I.loc = src.loc

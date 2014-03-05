@@ -52,6 +52,8 @@
 			user << "<span class='notice'>You put [I] in [src].</span>"
 		else
 			user << "<span class='notice'>[src] is full.</span>"
+		updateUsrDialog()
+		return
 	if(istype(I, /obj/item/weapon/tank/plasma))
 		if(plasmatanks < 10)
 			user.drop_item()
@@ -61,13 +63,21 @@
 			user << "<span class='notice'>You put [I] in [src].</span>"
 		else
 			user << "<span class='notice'>[src] is full.</span>"
-	updateUsrDialog()
-
+		updateUsrDialog()
+		return
+	if(istype(I, /obj/item/weapon/wrench))
+		if(anchored)
+			user << "<span class='notice'>You lean down and unwrench [src].</span>"
+			anchored = 0
+		else
+			user << "<span class='notice'>You wrench [src] into place.</span>"
+			anchored = 1
+		return
 
 /obj/structure/dispenser/Topic(href, href_list)
 	if(usr.stat || usr.restrained())
 		return
-	if(get_dist(src, usr) <= 1)
+	if(Adjacent(usr))
 		usr.set_machine(src)
 		if(href_list["oxygen"])
 			if(oxygentanks > 0)

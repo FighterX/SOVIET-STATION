@@ -20,7 +20,7 @@
 	var/mess = 0 //Need to clean out it if it's full of exploded clone.
 	var/attempting = 0 //One clone attempt at a time thanks
 	var/eject_wait = 0 //Don't eject them as soon as they are created fuckkk
-	var/biomass = CLONE_BIOMASS
+	var/biomass = CLONE_BIOMASS * 3
 
 //The return of data disks?? Just for transferring between genetics machine/cloning machine.
 //TO-DO: Make the genetics machine accept them.
@@ -116,7 +116,7 @@
 //Clonepod
 
 //Start growing a human clone in the pod!
-/obj/machinery/clonepod/proc/growclone(var/ckey, var/clonename, var/ui, var/se, var/mindref, var/mrace)
+/obj/machinery/clonepod/proc/growclone(var/ckey, var/clonename, var/list/ui, var/list/se, var/mindref, var/datum/species/mrace, var/languages)
 	if(mess || attempting)
 		return 0
 	var/datum/mind/clonemind = locate(mindref)
@@ -184,20 +184,20 @@
 		H.dna = new /datum/dna()
 		H.dna.real_name = H.real_name
 	if(ui)
-		H.dna.uni_identity = ui
-		updateappearance(H, ui)
+		H.UpdateAppearance(ui)
 	if(se)
-		H.dna.struc_enzymes = se
+		H.dna.SE = se
+		H.dna.UpdateSE()
 		randmutb(H) //Sometimes the clones come out wrong.
 
 	H.f_style = "Shaved"
-	if(mrace == "none") //no more xenos losing ears/tentacles
+	if(mrace.name == "Human") //no more xenos losing ears/tentacles
 		H.h_style = pick("Bedhead", "Bedhead 2", "Bedhead 3")
 
-	if(H.dna)
-		H.dna.mutantrace = mrace
-		H.update_mutantrace()
-		H.update_mutantrace_languages()
+	H.species = mrace
+	for(var/datum/language/L in languages)
+		H.add_language(L.name)
+	H.update_mutantrace()
 	H.suiciding = 0
 	src.attempting = 0
 	return 1
@@ -336,7 +336,7 @@
 	src.icon_state = "pod_0"
 	src.eject_wait = 0 //If it's still set somehow.
 	domutcheck(src.occupant) //Waiting until they're out before possible monkeyizing.
-	src.occupant.add_side_effect("Bad Stomach") // Give them an extra side-effect for free.
+//	src.occupant.add_side_effect("Bad Stomach") // Give them an extra side-effect for free.
 	src.occupant = null
 
 	src.biomass -= CLONE_BIOMASS

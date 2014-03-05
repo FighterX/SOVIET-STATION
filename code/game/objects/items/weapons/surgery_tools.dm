@@ -19,7 +19,7 @@
 	m_amt = 10000
 	g_amt = 5000
 	flags = FPRINT | TABLEPASS | CONDUCT
-	w_class = 1.0
+	w_class = 2.0
 	origin_tech = "materials=1;biotech=1"
 
 /*HAHA, SUCK IT, 2000 LINES OF SPAGHETTI CODE!
@@ -133,7 +133,7 @@ LOOK FOR SURGERY.DM*/
 	m_amt = 5000
 	g_amt = 2500
 	flags = FPRINT | TABLEPASS | CONDUCT
-	w_class = 1.0
+	w_class = 2.0
 	origin_tech = "materials=1;biotech=1"
 	attack_verb = list("attacked", "pinched")
 
@@ -268,7 +268,7 @@ LOOK FOR SURGERY.DM*/
 	m_amt = 5000
 	g_amt = 2500
 	flags = FPRINT | TABLEPASS | CONDUCT
-	w_class = 1.0
+	w_class = 2.0
 	origin_tech = "materials=1;biotech=1"
 	attack_verb = list("burnt")
 
@@ -360,7 +360,7 @@ LOOK FOR SURGERY.DM*/
 	g_amt = 10000
 	flags = FPRINT | TABLEPASS | CONDUCT
 	force = 15.0
-	w_class = 1.0
+	w_class = 2.0
 	origin_tech = "materials=1;biotech=1"
 	attack_verb = list("drilled")
 
@@ -379,7 +379,7 @@ LOOK FOR SURGERY.DM*/
 	icon_state = "scalpel"
 	flags = FPRINT | TABLEPASS | CONDUCT
 	force = 10.0
-	w_class = 1.0
+	w_class = 2.0
 	throwforce = 5.0
 	throw_speed = 3
 	throw_range = 5
@@ -631,7 +631,7 @@ LOOK FOR SURGERY.DM*/
 	hitsound = 'sound/weapons/circsawhit.ogg'
 	flags = FPRINT | TABLEPASS | CONDUCT
 	force = 15.0
-	w_class = 1.0
+	w_class = 2.0
 	throwforce = 9.0
 	throw_speed = 3
 	throw_range = 5
@@ -794,26 +794,29 @@ LOOK FOR SURGERY.DM*/
 //misc, formerly from code/defines/weapons.dm
 /obj/item/weapon/bonegel
 	name = "bone gel"
-	icon = 'surgery.dmi'
+	icon = 'icons/obj/surgery.dmi'
 	icon_state = "bone-gel"
 	force = 0
+	w_class = 2.0
 	throwforce = 1.0
 
 /obj/item/weapon/FixOVein
 	name = "FixOVein"
-	icon = 'surgery.dmi'
+	icon = 'icons/obj/surgery.dmi'
 	icon_state = "fixovein"
 	force = 0
 	throwforce = 1.0
 	origin_tech = "materials=1;biotech=3"
+	w_class = 2.0
 	var/usage_amount = 10
 
 /obj/item/weapon/bonesetter
 	name = "bone setter"
-	icon = 'surgery.dmi'
+	icon = 'icons/obj/surgery.dmi'
 	icon_state = "bone setter"
 	force = 8.0
 	throwforce = 9.0
 	throw_speed = 3
 	throw_range = 5
+	w_class = 2.0
 	attack_verb = list("attacked", "hit", "bludgeoned")

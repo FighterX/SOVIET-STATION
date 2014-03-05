@@ -10,6 +10,23 @@ emp_act
 
 /mob/living/carbon/human/bullet_act(var/obj/item/projectile/P, var/def_zone)
 
+// BEGIN TASER NERF
+					/* Commenting out new-old taser nerf.
+					if(C.siemens_coefficient == 0) //If so, is that clothing shock proof?
+						if(prob(deflectchance))
+							visible_message("\red <B>The [P.name] gets deflected by [src]'s [C.name]!</B>") //DEFLECT!
+							visible_message("\red <B> Taser hit for [P.damage] damage!</B>")
+							del P
+*/
+/* Commenting out old Taser nerf
+	if(wear_suit && istype(wear_suit, /obj/item/clothing/suit/armor))
+		if(istype(P, /obj/item/projectile/energy/electrode))
+			visible_message("\red <B>The [P.name] gets deflected by [src]'s [wear_suit.name]!</B>")
+			del P
+		return -1
+*/
+// END TASER NERF
+
 	if(wear_suit && istype(wear_suit, /obj/item/clothing/suit/armor/laserproof))
 		if(istype(P, /obj/item/projectile/energy) || istype(P, /obj/item/projectile/beam))
 			var/reflectchance = 40 - round(P.damage/3)
@@ -37,6 +54,20 @@ emp_act
 	if(check_shields(P.damage, "the [P.name]"))
 		P.on_hit(src, 2)
 		return 2
+
+		var/datum/organ/external/organ = get_organ(check_zone(def_zone))
+
+		var/armor = checkarmor(organ, "bullet")
+
+		if((P.embed && prob(20 + max(P.damage - armor, -10))) && P.damage_type == BRUTE)
+			var/obj/item/weapon/shard/shrapnel/SP = new()
+			(SP.name) = "[P.name] shrapnel"
+			(SP.desc) = "[SP.desc] It looks like it was fired from [P.shot_from]."
+			(SP.loc) = organ
+			organ.implants += SP
+			visible_message("<span class='danger'>The projectile sticks in the wound!</span>")
+			SP.add_blood(src)
+
 	return (..(P , def_zone))
 
 
@@ -107,6 +138,9 @@ emp_act
 	for(var/datum/organ/external/O  in organs)
 		if(O.status & ORGAN_DESTROYED)	continue
 		O.emp_act(severity)
+		for(var/datum/organ/internal/I  in O.internal_organs)
+			if(I.robotic == 0)	continue
+			I.emp_act(severity)
 	..()
 
 
@@ -131,6 +165,19 @@ emp_act
 	if((user != src) && check_shields(I.force, "the [I.name]"))
 		return 0
 
+	if(istype(I,/obj/item/weapon/card/emag))
+		if(!(affecting.status & ORGAN_ROBOT))
+			user << "\red That limb isn't robotic."
+			return
+		if(affecting.sabotaged)
+			user << "\red [src]'s [affecting.display_name] is already sabotaged!"
+		else
+			user << "\red You sneakily slide [I] into the dataport on [src]'s [affecting.display_name] and short out the safeties."
+			var/obj/item/weapon/card/emag/emag = I
+			emag.uses--
+			affecting.sabotaged = 1
+		return
+
 	if(I.attack_verb.len)
 		visible_message("\red <B>[src] has been [pick(I.attack_verb)] in the [hit_area] with [I.name] by [user]!</B>")
 	else
@@ -140,7 +187,7 @@ emp_act
 	if(armor >= 2)	return 0
 	if(!I.force)	return 0
 
-	apply_damage(I.force, I.damtype, affecting, armor , is_sharp(I), I.name)
+	apply_damage(I.force, I.damtype, affecting, armor , is_sharp(I), I)
 
 	var/bloody = 0
 	if(((I.damtype == BRUTE) || (I.damtype == HALLOSS)) && prob(25 + (I.force * 2)))

@@ -153,7 +153,7 @@
 	if(I.type == /obj/item/device/analyzer)
 		user << "<span class='notice'>The water temperature seems to be [watertemp].</span>"
 	if(istype(I, /obj/item/weapon/wrench))
-		user << "<span class='notice'>You begin to adjust the temperature valve with the [I].</span>"
+		user << "<span class='notice'>You begin to adjust the temperature valve with \the [I].</span>"
 		if(do_after(user, 50))
 			switch(watertemp)
 				if("normal")
@@ -162,7 +162,8 @@
 					watertemp = "boiling"
 				if("boiling")
 					watertemp = "normal"
-			user.visible_message("<span class='notice'>[user] adjusts the shower with the [I].</span>", "<span class='notice'>You adjust the shower with the [I].</span>")
+			user.visible_message("<span class='notice'>[user] adjusts the shower with \the [I].</span>", "<span class='notice'>You adjust the shower with \the [I].</span>")
+			add_fingerprint(user)
 
 /obj/machinery/shower/update_icon()	//this is terribly unreadable, but basically it makes the shower mist up
 	overlays.Cut()					//once it's been on for a while, in addition to handling the water overlay.
@@ -258,8 +259,11 @@
 			if(H.glasses && washglasses)
 				if(H.glasses.clean_blood())
 					H.update_inv_glasses(0)
-			if(H.ears && washears)
-				if(H.ears.clean_blood())
+			if(H.l_ear && washears)
+				if(H.l_ear.clean_blood())
+					H.update_inv_ears(0)
+			if(H.r_ear && washears)
+				if(H.r_ear.clean_blood())
 					H.update_inv_ears(0)
 			if(H.belt)
 				if(H.belt.clean_blood())
@@ -321,19 +325,20 @@
 	if(isrobot(M) || isAI(M))
 		return
 
+	if(!Adjacent(M))
+		return
+
 	if(busy)
 		M << "\red Someone's already washing here."
 		return
 
-	var/turf/location = M.loc
-	if(!isturf(location)) return
 	usr << "\blue You start washing your hands."
 
 	busy = 1
 	sleep(40)
 	busy = 0
 
-	if(M.loc != location) return		//Person has moved away from the sink
+	if(!Adjacent(M)) return		//Person has moved away from the sink
 
 	M.clean_blood()
 	if(ishuman(M))
@@ -349,7 +354,7 @@
 	if (istype(O, /obj/item/weapon/reagent_containers))
 		var/obj/item/weapon/reagent_containers/RG = O
 		RG.reagents.add_reagent("water", min(RG.volume - RG.reagents.total_volume, RG.amount_per_transfer_from_this))
-		user.visible_message("\blue [user] fills the [RG] using \the [src].","\blue You fill the [RG] using \the [src].")
+		user.visible_message("\blue [user] fills \the [RG] using \the [src].","\blue You fill \the [RG] using \the [src].")
 		return
 
 	else if (istype(O, /obj/item/weapon/melee/baton))

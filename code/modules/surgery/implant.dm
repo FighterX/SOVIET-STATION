@@ -123,7 +123,7 @@
 		user.visible_message("\blue [user] puts \the [tool] inside [target]'s [get_cavity(affected)] cavity.", \
 		"\blue You put \the [tool] inside [target]'s [get_cavity(affected)] cavity." )
 		if (tool.w_class > get_max_wclass(affected)/2 && prob(50))
-			user << "\red You tear some vessels trying to fit such big object in this cavity."
+			user << "\red You tear some blood vessels trying to fit such a big object in this cavity."
 			var/datum/wound/internal_bleeding/I = new (15)
 			affected.wounds += I
 			affected.owner.custom_pain("You feel something rip in your [affected.display_name]!", 1)
@@ -163,19 +163,40 @@
 		var/datum/organ/external/chest/affected = target.get_organ(target_zone)
 
 		var/find_prob = 0
+
 		if (affected.implants.len)
-			var/obj/item/weapon/implant/imp = affected.implants[1]
-			if (imp.islegal())
-				find_prob +=60
+
+			var/obj/item/obj = affected.implants[1]
+
+			if(istype(obj,/obj/item/weapon/implant))
+				var/obj/item/weapon/implant/imp = obj
+				if (imp.islegal())
+					find_prob +=60
+				else
+					find_prob +=40
 			else
-				find_prob +=40
+				find_prob +=50
+
 			if (prob(find_prob))
 				user.visible_message("\blue [user] takes something out of incision on [target]'s [affected.display_name] with \the [tool].", \
-				"\blue You take something out of incision on [target]'s [affected.display_name]s with \the [tool]." )
-				affected.implants -= imp
-				imp.loc = get_turf(target)
-				imp.imp_in = null
-				imp.implanted = 0
+				"\blue You take [obj] out of incision on [target]'s [affected.display_name]s with \the [tool]." )
+				affected.implants -= obj
+
+				//Handle possessive brain borers.
+				if(istype(obj,/mob/living/simple_animal/borer))
+					var/mob/living/simple_animal/borer/worm = obj
+					if(worm.controlling)
+						target.release_control()
+					worm.detatch()
+
+				obj.loc = get_turf(target)
+				if(istype(obj,/obj/item/weapon/implant))
+					var/obj/item/weapon/implant/imp = obj
+					imp.imp_in = null
+					imp.implanted = 0
+			else
+				user.visible_message("\blue [user] removes \the [tool] from [target]'s [affected.display_name].", \
+				"\blue There's something inside [target]'s [affected.display_name], but you just missed it this time." )
 		else if (affected.hidden)
 			user.visible_message("\blue [user] takes something out of incision on [target]'s [affected.display_name] with \the [tool].", \
 			"\blue You take something out of incision on [target]'s [affected.display_name]s with \the [tool]." )

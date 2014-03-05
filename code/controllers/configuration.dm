@@ -18,6 +18,7 @@
 	var/log_adminwarn = 0				// log warnings admins get about bomb construction and such
 	var/log_pda = 0						// log pda messages
 	var/log_hrefs = 0					// logs all links clicked in-game. Could be used for debugging and tracking down exploits
+	var/log_runtime = 0					// logs world.log to a file
 	var/sql_enabled = 1					// for sql switching
 	var/allow_admin_ooccolor = 0		// Allows admins with relevant permissions to have their own ooc colour
 	var/allow_vote_restart = 0 			// allow votes to restart
@@ -27,6 +28,8 @@
 	var/allow_admin_rev = 1				// allows admin revives
 	var/vote_delay = 6000				// minimum time between voting sessions (deciseconds, 10 minute default)
 	var/vote_period = 600				// length of voting period (deciseconds, default 1 minute)
+	var/vote_autotransfer_initial = 108000 // Length of time before the first autotransfer vote is called
+	var/vote_autotransfer_interval = 36000 // length of time before next sequential autotransfer vote
 	var/vote_no_default = 0				// vote does not default to nochange/norestart (tbi)
 	var/vote_no_dead = 0				// dead people can't vote (tbi)
 //	var/enable_authentication = 0		// goon authentication
@@ -34,13 +37,15 @@
 	var/feature_object_spell_system = 0 //spawns a spellbook which gives object-type spells instead of verb-type spells for the wizard
 	var/traitor_scaling = 0 			//if amount of traitors scales based on amount of players
 	var/protect_roles_from_antagonist = 0// If security and such can be tratior/cult/other
-	var/continous_rounds = 0			// Gamemodes which end instantly will instead keep on going until the round ends by escape shuttle or nuke.
+	var/continous_rounds = 1			// Gamemodes which end instantly will instead keep on going until the round ends by escape shuttle or nuke.
 	var/allow_Metadata = 0				// Metadata is supported.
 	var/popup_admin_pm = 0				//adminPMs to non-admins show in a pop-up 'reply' window when set to 1.
 	var/Ticklag = 0.9
 	var/Tickcomp = 0
 	var/socket_talk	= 0					// use socket_talk to communicate with other processes
-
+	var/list/resource_urls = null
+	var/antag_hud_allowed = 0			// Ghosts can turn on Antagovision to see a HUD of who is the bad guys this round.
+	var/antag_hud_restricted = 0                    // Ghosts that turn on Antagovision cannot rejoin the round.
 	var/list/mode_names = list()
 	var/list/modes = list()				// allowed modes
 	var/list/votable_modes = list()		// votable modes
@@ -58,14 +63,17 @@
 	var/automute_on = 0					//enables automuting/spam prevention
 	var/jobs_have_minimal_access = 0	//determines whether jobs use minimal access or expanded access.
 
+	var/disable_player_mice = 0
+	var/uneducated_mice = 0 //Set to 1 to prevent newly-spawned mice from understanding human speech
+
 	var/usealienwhitelist = 0
 	var/limitalienplayers = 0
 	var/alien_to_human_ratio = 0.5
 
 	var/server
 	var/banappeals
-	var/wikiurl = "http://baystation12.net/wiki/index.php?title=Main_Page"
-	var/forumurl = "http://baystation12.net/forums/"
+	var/wikiurl
+	var/forumurl
 
 	//Alert level description
 	var/alert_desc_green = "All threats to the station have passed. Security may not have weapons visible, privacy laws are once again fully enforced."
@@ -76,10 +84,10 @@
 	var/alert_desc_delta = "The station's self-destruct mechanism has been engaged. All crew are instructed to obey all instructions given by heads of staff. Any violations of these orders can be punished by death. This is not a drill."
 
 	var/forbid_singulo_possession = 0
-	var/useircbot = 0
 
 	//game_options.txt configs
 
+	var/health_threshold_softcrit = 0
 	var/health_threshold_crit = 0
 	var/health_threshold_dead = -100
 
@@ -117,6 +125,14 @@
 	var/assistant_maint = 0 //Do assistants get maint access?
 	var/gateway_delay = 18000 //How long the gateway takes before it activates. Default is half an hour.
 	var/ghost_interaction = 0
+
+	var/comms_password = ""
+
+	var/use_irc_bot = 0
+	var/irc_bot_host = ""
+	var/main_irc = ""
+	var/admin_irc = ""
+	var/python_path = "" //Path to the python executable.  Defaults to "python" on windows and "/usr/bin/env python2" on unix
 
 
 /datum/configuration/New()
@@ -164,6 +180,9 @@
 
 		if(type == "config")
 			switch (name)
+				if ("resource_urls")
+					config.resource_urls = stringsplit(value, " ")
+
 				if ("admin_legacy_system")
 					config.admin_legacy_system = 1
 
@@ -224,6 +243,9 @@
 				if ("log_hrefs")
 					config.log_hrefs = 1
 
+				if ("log_runtime")
+					config.log_runtime = 1
+
 				if("allow_admin_ooccolor")
 					config.allow_admin_ooccolor = 1
 
@@ -253,6 +275,12 @@
 
 				if ("vote_period")
 					config.vote_period = text2num(value)
+
+				if ("vote_autotransfer_initial")
+					config.vote_autotransfer_initial = text2num(value)
+
+				if ("vote_autotransfer_interval")
+					config.vote_autotransfer_interval = text2num(value)
 
 				if ("allow_ai")
 					config.allow_ai = 1
@@ -359,11 +387,16 @@
 				if("allow_holidays")
 					Holiday = 1
 
-				if("useircbot")
-					useircbot = 1
+				if("use_irc_bot")
+					use_irc_bot = 1
 
 				if("ticklag")
 					Ticklag = text2num(value)
+
+				if("allow_antag_hud")
+					config.antag_hud_allowed = 1
+				if("antag_hud_restricted")
+					config.antag_hud_restricted = 1
 
 				if("socket_talk")
 					socket_talk = text2num(value)
@@ -399,6 +432,33 @@
 				if("ghost_interaction")
 					config.ghost_interaction = 1
 
+				if("disable_player_mice")
+					config.disable_player_mice = 1
+
+				if("uneducated_mice")
+					config.uneducated_mice = 1
+
+				if("comms_password")
+					config.comms_password = value
+
+				if("irc_bot_host")
+					config.irc_bot_host = value
+
+				if("main_irc")
+					config.main_irc = value
+
+				if("admin_irc")
+					config.admin_irc = value
+
+				if("python_path")
+					if(value)
+						config.python_path = value
+					else
+						if(world.system_type == UNIX)
+							config.python_path = "/usr/bin/env python2"
+						else //probably windows, if not this should work anyway
+							config.python_path = "python"
+
 				else
 					diary << "Unknown setting in configuration: '[name]'"
 
@@ -411,6 +471,8 @@
 			switch(name)
 				if("health_threshold_crit")
 					config.health_threshold_crit = value
+				if("health_threshold_softcrit")
+					config.health_threshold_softcrit = value
 				if("health_threshold_dead")
 					config.health_threshold_dead = value
 				if("revival_pod_plants")

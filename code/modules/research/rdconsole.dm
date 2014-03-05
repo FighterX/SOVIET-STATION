@@ -116,7 +116,7 @@ won't update every console in existence) but it's more of a hassle to do. Also, 
 
 //Have it automatically push research to the centcomm server so wild griffins can't fuck up R&D's work --NEO
 /obj/machinery/computer/rdconsole/proc/griefProtection()
-	for(var/obj/machinery/r_n_d/server/centcom/C in world)
+	for(var/obj/machinery/r_n_d/server/centcom/C in machines)
 		for(var/datum/tech/T in files.known_tech)
 			C.files.AddTech2Known(T)
 		for(var/datum/design/D in files.known_designs)
@@ -128,7 +128,7 @@ won't update every console in existence) but it's more of a hassle to do. Also, 
 	..()
 	files = new /datum/research(src) //Setup the research data holder.
 	if(!id)
-		for(var/obj/machinery/r_n_d/server/centcom/S in world)
+		for(var/obj/machinery/r_n_d/server/centcom/S in machines)
 			S.initialize()
 			break
 
@@ -322,7 +322,7 @@ won't update every console in existence) but it's more of a hassle to do. Also, 
 			griefProtection() //Putting this here because I dont trust the sync process
 			spawn(30)
 				if(src)
-					for(var/obj/machinery/r_n_d/server/S in world)
+					for(var/obj/machinery/r_n_d/server/S in machines)
 						var/server_processed = 0
 						if(S.disabled)
 							continue
@@ -549,11 +549,6 @@ won't update every console in existence) but it's more of a hassle to do. Also, 
 /obj/machinery/computer/rdconsole/attack_hand(mob/user as mob)
 	if(stat & (BROKEN|NOPOWER))
 		return
-
-	if(ishuman(user))
-		if(istype(user:gloves, /obj/item/clothing/gloves/space_ninja)&&user:gloves:candrain&&!user:gloves:draining)
-			call(/obj/item/clothing/gloves/space_ninja/proc/drain)("RESEARCH",src,user:wear_suit)
-			return
 
 	user.set_machine(src)
 	var/dat = ""

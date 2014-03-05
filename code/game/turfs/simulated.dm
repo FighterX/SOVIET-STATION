@@ -8,7 +8,7 @@
 	nitrogen = MOLES_N2STANDARD
 	var/to_be_destroyed = 0 //Used for fire, if a melting temperature was reached, it will be destroyed
 	var/max_fire_temperature_sustained = 0 //The max temperature of the fire which it was subjected to
-
+	var/dirt = 0
 /turf/simulated/New()
 	..()
 	levelupdate()
@@ -20,19 +20,18 @@
 
 	if (istype(A,/mob/living/carbon))
 		var/mob/living/carbon/M = A
-		if(M.lying)	return
+		if(M.lying)        return
+		dirt++
+		var/obj/effect/decal/cleanable/dirt/dirtoverlay = locate(/obj/effect/decal/cleanable/dirt, src)
+		if (dirt >= 50)
+			if (!dirtoverlay)
+				dirtoverlay = new/obj/effect/decal/cleanable/dirt(src)
+				dirtoverlay.alpha = 15
+			else if (dirt > 50)
+				dirtoverlay.alpha = min(dirtoverlay.alpha+5, 255)
+
 		if(istype(M, /mob/living/carbon/human))
 			var/mob/living/carbon/human/H = M
-			if(istype(H.shoes, /obj/item/clothing/shoes/clown_shoes))
-				var/obj/item/clothing/shoes/clown_shoes/O = H.shoes
-				if(H.m_intent == "run")
-					if(O.footstep >= 2)
-						O.footstep = 0
-						playsound(src, "clownstep", 50, 1) // this will get annoying very fast.
-					else
-						O.footstep++
-				else
-					playsound(src, "clownstep", 20, 1)
 
 			var/list/bloodDNA = null
 			if(H.shoes)
@@ -107,11 +106,15 @@
 	for(var/obj/effect/decal/cleanable/blood/B in contents)
 		if(!B.blood_DNA[M.dna.unique_enzymes])
 			B.blood_DNA[M.dna.unique_enzymes] = M.dna.b_type
+		if (M.virus2.len)
+			B.virus2 |= virus_copylist(M.virus2)
 		return 1 //we bloodied the floor
 
 	//if there isn't a blood decal already, make one.
 	var/obj/effect/decal/cleanable/blood/newblood = new /obj/effect/decal/cleanable/blood(src)
 	newblood.blood_DNA[M.dna.unique_enzymes] = M.dna.b_type
+	if (M.virus2.len)
+		newblood.virus2 |= virus_copylist(M.virus2)
 	return 1 //we bloodied the floor
 
 
@@ -120,6 +123,8 @@
 	if( istype(M, /mob/living/carbon/monkey) || istype(M, /mob/living/carbon/human))
 		var/obj/effect/decal/cleanable/blood/this = new /obj/effect/decal/cleanable/blood(src)
 		this.blood_DNA[M.dna.unique_enzymes] = M.dna.b_type
+		if (M.virus2.len)
+			this.virus2 = virus_copylist(M.virus2)
 
 	else if( istype(M, /mob/living/carbon/alien ))
 		var/obj/effect/decal/cleanable/xenoblood/this = new /obj/effect/decal/cleanable/xenoblood(src)

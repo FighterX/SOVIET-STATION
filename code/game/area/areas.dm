@@ -45,15 +45,20 @@
 		poweralm = state
 		if(istype(source))	//Only report power alarms on the z-level where the source is located.
 			var/list/cameras = list()
-			for (var/obj/machinery/camera/C in src)
-				cameras += C
+			for (var/area/RA in related)
+				for (var/obj/machinery/camera/C in RA)
+					cameras += C
+					if(state == 1)
+						C.network.Remove("Power Alarms")
+					else
+						C.network.Add("Power Alarms")
 			for (var/mob/living/silicon/aiPlayer in player_list)
 				if(aiPlayer.z == source.z)
 					if (state == 1)
 						aiPlayer.cancelAlarm("Power", src, source)
 					else
 						aiPlayer.triggerAlarm("Power", src, cameras, source)
-			for(var/obj/machinery/computer/station_alert/a in world)
+			for(var/obj/machinery/computer/station_alert/a in machines)
 				if(a.z == source.z)
 					if(state == 1)
 						a.cancelAlarm("Power", src, source)
@@ -73,14 +78,18 @@
 				//updateicon()
 				for(var/obj/machinery/camera/C in RA)
 					cameras += C
+					C.network.Add("Atmosphere Alarms")
 			for(var/mob/living/silicon/aiPlayer in player_list)
 				aiPlayer.triggerAlarm("Atmosphere", src, cameras, src)
-			for(var/obj/machinery/computer/station_alert/a in world)
+			for(var/obj/machinery/computer/station_alert/a in machines)
 				a.triggerAlarm("Atmosphere", src, cameras, src)
 		else if (atmosalm == 2)
+			for(var/area/RA in related)
+				for(var/obj/machinery/camera/C in RA)
+					C.network.Remove("Atmosphere Alarms")
 			for(var/mob/living/silicon/aiPlayer in player_list)
 				aiPlayer.cancelAlarm("Atmosphere", src, src)
-			for(var/obj/machinery/computer/station_alert/a in world)
+			for(var/obj/machinery/computer/station_alert/a in machines)
 				a.cancelAlarm("Atmosphere", src, src)
 		atmosalm = danger_level
 		return 1
@@ -91,6 +100,7 @@
 		return
 	if( !fire )
 		fire = 1
+		master.fire = 1		//used for firedoor checks
 		updateicon()
 		mouse_opacity = 0
 		for(var/obj/machinery/door/firedoor/D in all_doors)
@@ -101,16 +111,19 @@
 					spawn()
 						D.close()
 		var/list/cameras = list()
-		for (var/obj/machinery/camera/C in src)
-			cameras += C
+		for(var/area/RA in related)
+			for (var/obj/machinery/camera/C in RA)
+				cameras.Add(C)
+				C.network.Add("Fire Alarms")
 		for (var/mob/living/silicon/ai/aiPlayer in player_list)
 			aiPlayer.triggerAlarm("Fire", src, cameras, src)
-		for (var/obj/machinery/computer/station_alert/a in world)
+		for (var/obj/machinery/computer/station_alert/a in machines)
 			a.triggerAlarm("Fire", src, cameras, src)
 
 /area/proc/firereset()
 	if (fire)
 		fire = 0
+		master.fire = 0		//used for firedoor checks
 		mouse_opacity = 0
 		updateicon()
 		for(var/obj/machinery/door/firedoor/D in all_doors)
@@ -120,9 +133,12 @@
 				else if(D.density)
 					spawn(0)
 					D.open()
+		for(var/area/RA in related)
+			for (var/obj/machinery/camera/C in RA)
+				C.network.Remove("Fire Alarms")
 		for (var/mob/living/silicon/ai/aiPlayer in player_list)
 			aiPlayer.cancelAlarm("Fire", src, src)
-		for (var/obj/machinery/computer/station_alert/a in world)
+		for (var/obj/machinery/computer/station_alert/a in machines)
 			a.cancelAlarm("Fire", src, src)
 
 /area/proc/readyalert()
