@@ -47,7 +47,7 @@ Pityshok
 
 Lord			+EVERYTHING
 
-Ministry Coder			+ADMIN +DEBUG +VAREDIT +SERVER +SPAWN
+Ministry Coder			+ADMIN +DEBUG +VAREDIT +SERVER +SPAWN +REJUV
 
 Vegetable Admin    +ADMIN +BAN + VAREDIT + FUN + SPAWN
 OldSpring	+ADMIN +BAN +VAREDIT +SPAWN +FUN
