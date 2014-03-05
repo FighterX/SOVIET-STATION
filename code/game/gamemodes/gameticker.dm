@@ -38,13 +38,18 @@ var/global/datum/controller/gameticker/ticker
 
 /datum/controller/gameticker/proc/pregame()
 	login_music = pick(\
+	/*'sound/music/halloween/skeletons.ogg',\
+	'sound/music/halloween/halloween.ogg',\
+	'sound/music/halloween/ghosts.ogg'*/
 	'sound/music/space.ogg',\
 	'sound/music/traitor.ogg',\
-	'sound/music/buckinghampalace.ogg') //Ground Control to Major Tom, this song is cool, what's going on? // I dont think so. FighterX
+	'sound/music/title2.ogg',\
+	'sound/music/clouds.s3m',\
+	'sound/music/space_oddity.ogg') //Ground Control to Major Tom, this song is cool, what's going on?
 	do
 		pregame_timeleft = 180
-		world << "<B><FONT color='blue'>Добро пожаловать!</FONT></B>"
-		world << "Пожалуйста, настройте своего персонажа и нажмите Ready. Игра будет запущена через [pregame_timeleft] секунд"
+		world << "<B><FONT color='blue'>Welcome to the pre-game lobby!</FONT></B>"
+		world << "Please, setup your character and select ready. Game will start in [pregame_timeleft] seconds"
 		while(current_state == GAME_STATE_PREGAME)
 			for(var/i=0, i<10, i++)
 				sleep(1)
@@ -56,6 +61,7 @@ var/global/datum/controller/gameticker/ticker
 				current_state = GAME_STATE_SETTING_UP
 	while (!setup())
 
+
 /datum/controller/gameticker/proc/setup()
 	//Create and announce mode
 	if(master_mode=="secret")
@@ -65,7 +71,7 @@ var/global/datum/controller/gameticker/ticker
 		runnable_modes = config.get_runnable_modes()
 		if (runnable_modes.len==0)
 			current_state = GAME_STATE_PREGAME
-			world << "<B>Невозможно выбрать рабочий режим.</B> Возвращение в Lobby."
+			world << "<B>Unable to choose playable game mode.</B> Reverting to pre-game lobby."
 			return 0
 		if(secret_force_mode != "secret")
 			var/datum/game_mode/M = config.pick_mode(secret_force_mode)
@@ -80,7 +86,7 @@ var/global/datum/controller/gameticker/ticker
 	else
 		src.mode = config.pick_mode(master_mode)
 	if (!src.mode.can_start())
-		world << "<B>Невозможно запустить [mode.name].</B> Недостаточно игроков, режиму нужно: [mode.required_players] игроков. Возвращение в Lobby."
+		world << "<B>Unable to start [mode.name].</B> Not enough players, [mode.required_players] players needed. Reverting to pre-game lobby."
 		del(mode)
 		current_state = GAME_STATE_PREGAME
 		job_master.ResetOccupations()
@@ -92,7 +98,7 @@ var/global/datum/controller/gameticker/ticker
 	if(!can_continue)
 		del(mode)
 		current_state = GAME_STATE_PREGAME
-		world << "<B>Ошибка загрузки [master_mode].</B> Возвращение в Lobby."
+		world << "<B>Error setting up [master_mode].</B> Reverting to pre-game lobby."
 		job_master.ResetOccupations()
 		return 0
 
@@ -101,23 +107,18 @@ var/global/datum/controller/gameticker/ticker
 		for (var/datum/game_mode/M in runnable_modes)
 			modes+=M.name
 		modes = sortList(modes)
-		world << "<B>Нынешний режим - Secret!</B>"
-		world << "<B>Возможно:</B> [english_list(modes)]"
+		world << "<B>The current game mode is - Secret!</B>"
+		world << "<B>Possibilities:</B> [english_list(modes)]"
 	else
 		src.mode.announce()
-
-	//setup the money accounts
-	if(!centcomm_account_db)
-		for(var/obj/machinery/account_database/check_db in world)
-			if(check_db.z == 2)
-				centcomm_account_db = check_db
-				break
 
 	create_characters() //Create player characters and transfer them
 	collect_minds()
 	equip_characters()
 	data_core.manifest()
 	current_state = GAME_STATE_PLAYING
+
+	callHook("roundstart")
 
 	//here to initialize the random events nicely at round start
 	setup_economy()
@@ -129,7 +130,7 @@ var/global/datum/controller/gameticker/ticker
 			//Deleting Startpoints but we need the ai point to AI-ize people later
 			if (S.name != "AI")
 				del(S)
-		world << "<FONT color='blue'><B>Наслаждайтесь игрой!</B></FONT>"
+		world << "<FONT color='blue'><B>Enjoy the game!</B></FONT>"
 		world << sound('sound/AI/welcome.ogg') // Skie
 		//Holiday Round-start stuff	~Carn
 		Holiday_Game_Start()
@@ -142,7 +143,7 @@ var/global/datum/controller/gameticker/ticker
 		if(C.holder)
 			admins_number++
 	if(admins_number == 0)
-		send2irc("Server", "Round just started with no admins online!")
+		send2adminirc("Round has started with no admins online.")
 
 	supply_shuttle.process() 		//Start the supply shuttle regenerating points -- TLE
 	master_controller.process()		//Start master_controller.process()
@@ -290,7 +291,7 @@ var/global/datum/controller/gameticker/ticker
 		if(captainless)
 			for(var/mob/M in player_list)
 				if(!istype(M,/mob/new_player))
-					M << "Никто не стал капитаном."
+					M << "Captainship not forced on anyone."
 
 
 	proc/process()
@@ -309,14 +310,16 @@ var/global/datum/controller/gameticker/ticker
 				declare_completion()
 
 			spawn(50)
+				callHook("roundend")
+
 				if (mode.station_was_nuked)
 					feedback_set_details("end_proper","nuke")
 					if(!delay_end)
-						world << "\blue <B>Перезагрузка, из-за того что NSS Exodus был уничтожен. Перезагрузка будет через [restart_timeout/10] секунд</B>"
+						world << "\blue <B>Rebooting due to destruction of station in [restart_timeout/10] seconds</B>"
 				else
 					feedback_set_details("end_proper","proper completion")
 					if(!delay_end)
-						world << "\blue <B>Перезагрузка через [restart_timeout/10] секунд</B>"
+						world << "\blue <B>Restarting in [restart_timeout/10] seconds</B>"
 
 
 				if(blackbox)
@@ -327,9 +330,9 @@ var/global/datum/controller/gameticker/ticker
 					if(!delay_end)
 						world.Reboot()
 					else
-						world << "\blue <B>Администратор остановил перезагрузку</B>"
+						world << "\blue <B>An admin has delayed the round end</B>"
 				else
-					world << "\blue <B>Администратор остановил перезагрузку</B>"
+					world << "\blue <B>An admin has delayed the round end</B>"
 
 		return 1
 

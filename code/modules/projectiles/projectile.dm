@@ -49,7 +49,7 @@
 	var/eyeblur = 0
 	var/drowsy = 0
 	var/agony = 0
-
+	var/embed = 0 // whether or not the projectile can embed itself in the mob
 
 	proc/on_hit(var/atom/target, var/blocked = 0)
 		if(blocked >= 2)		return 0//Full block
@@ -86,15 +86,14 @@
 				loc = A.loc
 				return 0// nope.avi
 
-			//Lower accurancy/longer range tradeoff. Distance matters a lot here, so at
-			// close distance, actually RAISE the chance to hit.
 			var/distance = get_dist(starting,loc)
 			var/miss_modifier = -30
+
 			if (istype(shot_from,/obj/item/weapon/gun))	//If you aim at someone beforehead, it'll hit more often.
 				var/obj/item/weapon/gun/daddy = shot_from //Kinda balanced by fact you need like 2 seconds to aim
 				if (daddy.target && original in daddy.target) //As opposed to no-delay pew pew
 					miss_modifier += -30
-			def_zone = get_zone_with_miss_chance(def_zone, M, -30 + 8*distance)
+			def_zone = get_zone_with_miss_chance(def_zone, M, miss_modifier + 15*distance)
 
 			if(!def_zone)
 				visible_message("\blue \The [src] misses [M] narrowly!")
@@ -107,34 +106,30 @@
 				if(istype(firer, /mob))
 					M.attack_log += "\[[time_stamp()]\] <b>[firer]/[firer.ckey]</b> shot <b>[M]/[M.ckey]</b> with a <b>[src.type]</b>"
 					firer.attack_log += "\[[time_stamp()]\] <b>[firer]/[firer.ckey]</b> shot <b>[M]/[M.ckey]</b> with a <b>[src.type]</b>"
-					log_attack("<font color='red'>[firer] ([firer.ckey]) shot [M] ([M.ckey]) with a [src.type]</font>")
-					msg_admin_attack("ATTACK: [firer] ([firer.ckey]) shot [M] ([M.ckey]) with a [src]") //BS12 EDIT ALG
+					msg_admin_attack("[firer] ([firer.ckey]) shot [M] ([M.ckey]) with a [src] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[firer.x];Y=[firer.y];Z=[firer.z]'>JMP</a>)") //BS12 EDIT ALG
 				else
 					M.attack_log += "\[[time_stamp()]\] <b>UNKNOWN SUBJECT (No longer exists)</b> shot <b>[M]/[M.ckey]</b> with a <b>[src]</b>"
-					log_attack("<font color='red'>UNKNOWN shot [M] ([M.ckey]) with a [src.type]</font>")
-					msg_admin_attack("ATTACK: UNKNOWN shot [M] ([M.ckey]) with a [src]") //BS12 EDIT ALG
+					msg_admin_attack("UNKNOWN shot [M] ([M.ckey]) with a [src] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[firer.x];Y=[firer.y];Z=[firer.z]'>JMP</a>)") //BS12 EDIT ALG
 
-		spawn(0)
-
-			if(A)
-				if (!forcedodge)
-					forcedodge = A.bullet_act(src, def_zone) // searches for return value
-				if(forcedodge == -1) // the bullet passes through a dense object!
-					bumped = 0 // reset bumped variable!
-					if(istype(A, /turf))
-						loc = A
-					else
-						loc = A.loc
-					permutated.Add(A)
-					return 0
-				if(istype(A,/turf))
-					for(var/obj/O in A)
-						O.bullet_act(src)
-					for(var/mob/M in A)
-						M.bullet_act(src, def_zone)
-				density = 0
-				invisibility = 101
-				del(src)
+		if(A)
+			if (!forcedodge)
+				forcedodge = A.bullet_act(src, def_zone) // searches for return value
+			if(forcedodge == -1) // the bullet passes through a dense object!
+				bumped = 0 // reset bumped variable!
+				if(istype(A, /turf))
+					loc = A
+				else
+					loc = A.loc
+				permutated.Add(A)
+				return 0
+			if(istype(A,/turf))
+				for(var/obj/O in A)
+					O.bullet_act(src)
+				for(var/mob/M in A)
+					M.bullet_act(src, def_zone)
+			density = 0
+			invisibility = 101
+			del(src)
 		return 1
 
 

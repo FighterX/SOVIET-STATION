@@ -7,8 +7,8 @@ datum/preferences
 			else
 				gender = FEMALE
 		s_tone = random_skin_tone()
-		h_style = random_hair_style(gender)
-		f_style = random_facial_hair_style(gender)
+		h_style = random_hair_style(gender, species)
+		f_style = random_facial_hair_style(gender, species)
 		randomize_hair_color("hair")
 		randomize_hair_color("facial")
 		randomize_eyes_color()
@@ -131,25 +131,19 @@ datum/preferences
 	proc/update_preview_icon()		//seriously. This is horrendous.
 		del(preview_icon_front)
 		del(preview_icon_side)
-		var/icon/preview_icon = null
+		del(preview_icon)
 
 		var/g = "m"
 		if(gender == FEMALE)	g = "f"
 
 		var/icon/icobase
-		switch(species)
-			if("Tajaran")
-				icobase = 'icons/mob/human_races/r_tajaran.dmi'
-			if("Unathi")
-				icobase = 'icons/mob/human_races/r_lizard.dmi'
-			if("Skrell")
-				icobase = 'icons/mob/human_races/r_skrell.dmi'
+		var/datum/species/current_species = all_species[species]
 
-			if("Vox")
-				icobase = 'icons/mob/human_races/r_vox.dmi'
+		if(current_species)
+			icobase = current_species.icobase
+		else
+			icobase = 'icons/mob/human_races/r_human.dmi'
 
-			else
-				icobase = 'icons/mob/human_races/r_human.dmi'
 		preview_icon = new /icon(icobase, "torso_[g]")
 		preview_icon.Blend(new /icon(icobase, "groin_[g]"), ICON_OVERLAY)
 		preview_icon.Blend(new /icon(icobase, "head_[g]"), ICON_OVERLAY)
@@ -169,16 +163,13 @@ datum/preferences
 			preview_icon.Blend(temp, ICON_OVERLAY)
 
 		// Skin tone
-		if(species == "Human")
+		if(current_species && (current_species.flags & HAS_SKIN_TONE))
 			if (s_tone >= 0)
 				preview_icon.Blend(rgb(s_tone, s_tone, s_tone), ICON_ADD)
 			else
 				preview_icon.Blend(rgb(-s_tone,  -s_tone,  -s_tone), ICON_SUBTRACT)
 
-		var/icon/eyes_s = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = "eyes_s")
-		if(species=="Vox")
-			eyes_s = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = "vox_eyes_s")
-
+		var/icon/eyes_s = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = current_species ? current_species.eyes : "eyes_s")
 		eyes_s.Blend(rgb(r_eyes, g_eyes, b_eyes), ICON_ADD)
 
 		var/datum/sprite_accessory/hair_style = hair_styles_list[h_style]
@@ -430,6 +421,19 @@ datum/preferences
 							clothes_s.Blend(new /icon('icons/mob/back.dmi', "satchel-vir"), ICON_OVERLAY)
 						if(4)
 							clothes_s.Blend(new /icon('icons/mob/back.dmi', "satchel"), ICON_OVERLAY)
+				if(ROBOTICIST)
+					clothes_s = new /icon('icons/mob/uniform.dmi', "robotics_s")
+					clothes_s.Blend(new /icon('icons/mob/feet.dmi', "black"), ICON_UNDERLAY)
+					clothes_s.Blend(new /icon('icons/mob/hands.dmi', "bgloves"), ICON_UNDERLAY)
+					clothes_s.Blend(new /icon('icons/mob/items_righthand.dmi', "toolbox_blue"), ICON_OVERLAY)
+					clothes_s.Blend(new /icon('icons/mob/suit.dmi', "labcoat_open"), ICON_OVERLAY)
+					switch(backbag)
+						if(2)
+							clothes_s.Blend(new /icon('icons/mob/back.dmi', "backpack"), ICON_OVERLAY)
+						if(3)
+							clothes_s.Blend(new /icon('icons/mob/back.dmi', "satchel-norm"), ICON_OVERLAY)
+						if(4)
+							clothes_s.Blend(new /icon('icons/mob/back.dmi', "satchel"), ICON_OVERLAY)
 
 		else if(job_engsec_high)
 			switch(job_engsec_high)
@@ -537,19 +541,7 @@ datum/preferences
 							clothes_s.Blend(new /icon('icons/mob/back.dmi', "satchel-norm"), ICON_OVERLAY)
 						if(4)
 							clothes_s.Blend(new /icon('icons/mob/back.dmi', "satchel"), ICON_OVERLAY)
-				if(ROBOTICIST)
-					clothes_s = new /icon('icons/mob/uniform.dmi', "robotics_s")
-					clothes_s.Blend(new /icon('icons/mob/feet.dmi', "black"), ICON_UNDERLAY)
-					clothes_s.Blend(new /icon('icons/mob/hands.dmi', "bgloves"), ICON_UNDERLAY)
-					clothes_s.Blend(new /icon('icons/mob/items_righthand.dmi', "toolbox_blue"), ICON_OVERLAY)
-					clothes_s.Blend(new /icon('icons/mob/suit.dmi', "labcoat_open"), ICON_OVERLAY)
-					switch(backbag)
-						if(2)
-							clothes_s.Blend(new /icon('icons/mob/back.dmi', "backpack"), ICON_OVERLAY)
-						if(3)
-							clothes_s.Blend(new /icon('icons/mob/back.dmi', "satchel-norm"), ICON_OVERLAY)
-						if(4)
-							clothes_s.Blend(new /icon('icons/mob/back.dmi', "satchel"), ICON_OVERLAY)
+
 				if(AI)//Gives AI and borgs assistant-wear, so they can still customize their character
 					clothes_s = new /icon('icons/mob/uniform.dmi', "grey_s")
 					clothes_s.Blend(new /icon('icons/mob/feet.dmi', "black"), ICON_UNDERLAY)
@@ -574,6 +566,5 @@ datum/preferences
 		preview_icon_front = new(preview_icon, dir = SOUTH)
 		preview_icon_side = new(preview_icon, dir = WEST)
 
-		del(preview_icon)
 		del(eyes_s)
 		del(clothes_s)

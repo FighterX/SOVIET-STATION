@@ -1,3 +1,6 @@
+/hook/startup/proc/createDatacore()
+	data_core = new /obj/effect/datacore()
+	return 1
 
 /obj/effect/datacore/proc/manifest(var/nosleep = 0)
 	spawn()
@@ -7,8 +10,9 @@
 			manifest_inject(H)
 		return
 
-/obj/effect/datacore/proc/manifest_modify(var/name, var/assignment, var/alt_title = null)
+/obj/effect/datacore/proc/manifest_modify(var/name, var/assignment)
 	var/datum/data/record/foundrecord
+	var/real_title = assignment
 
 	for(var/datum/data/record/t in data_core.general)
 		if (t)
@@ -16,14 +20,18 @@
 				foundrecord = t
 				break
 
+	var/list/all_jobs = get_job_datums()
+
+	for(var/datum/job/J in all_jobs)
+		var/list/alttitles = get_alternate_titles(J.title)
+		if(!J)	continue
+		if(assignment in alttitles)
+			real_title = J.title
+			break
+
 	if(foundrecord)
 		foundrecord.fields["rank"] = assignment
-		if(alt_title)
-			foundrecord.fields["real_rank"] = alt_title
-		else
-			foundrecord.fields["real_rank"] = assignment
-
-
+		foundrecord.fields["real_rank"] = real_title
 
 /obj/effect/datacore/proc/manifest_inject(var/mob/living/carbon/human/H)
 	if(H.mind && (H.mind.assigned_role != "MODE"))
@@ -53,6 +61,10 @@
 		G.fields["sex"]			= H.gender
 		G.fields["species"]		= H.get_species()
 		G.fields["photo"]		= get_id_photo(H)
+		if(H.gen_record && !jobban_isbanned(H, "Records"))
+			G.fields["notes"] = H.gen_record
+		else
+			G.fields["notes"] = "No notes found."
 		general += G
 
 		//Medical Record
@@ -100,8 +112,8 @@
 		L.fields["sex"]			= H.gender
 		L.fields["b_type"]		= H.b_type
 		L.fields["b_dna"]		= H.dna.unique_enzymes
-		L.fields["enzymes"]		= H.dna.struc_enzymes
-		L.fields["identity"]	= H.dna.uni_identity
+		L.fields["enzymes"]		= H.dna.SE
+		L.fields["identity"]	= H.dna.UI
 		L.fields["image"]		= getFlatIcon(H,0)	//This is god-awful
 		locked += L
 	return
@@ -114,20 +126,7 @@ proc/get_id_photo(var/mob/living/carbon/human/H)
 	if (H.gender == FEMALE)
 		g = "f"
 
-	var/icon/icobase
-	switch(H.get_species())
-		if("Tajaran")
-			icobase = 'icons/mob/human_races/r_tajaran.dmi'
-		if("Unathi")
-			icobase = 'icons/mob/human_races/r_lizard.dmi'
-		if("Skrell")
-			icobase = 'icons/mob/human_races/r_skrell.dmi'
-
-		if("Vox")
-			icobase = 'icons/mob/human_races/r_vox.dmi'
-
-		else
-			icobase = 'icons/mob/human_races/r_human.dmi'
+	var/icon/icobase = H.species.icobase
 
 	preview_icon = new /icon(icobase, "torso_[g]")
 	var/icon/temp
@@ -144,15 +143,13 @@ proc/get_id_photo(var/mob/living/carbon/human/H)
 		preview_icon.Blend(temp, ICON_OVERLAY)
 
 	// Skin tone
-	if(H.get_species() == "Human")
+	if(H.species.flags & HAS_SKIN_TONE)
 		if (H.s_tone >= 0)
 			preview_icon.Blend(rgb(H.s_tone, H.s_tone, H.s_tone), ICON_ADD)
 		else
 			preview_icon.Blend(rgb(-H.s_tone,  -H.s_tone,  -H.s_tone), ICON_SUBTRACT)
 
-	var/icon/eyes_s = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = "eyes_s")
-	if(H.get_species()=="Vox")
-		eyes_s = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = "vox_eyes_s")
+	var/icon/eyes_s = new/icon("icon" = 'icons/mob/human_face.dmi', "icon_state" = H.species ? H.species.eyes : "eyes_s")
 
 	eyes_s.Blend(rgb(H.r_eyes, H.g_eyes, H.b_eyes), ICON_ADD)
 

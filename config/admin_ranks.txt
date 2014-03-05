@@ -31,12 +31,13 @@ Admin Observer
 Retired Admin		 
 Nobleman		+MOD +BAN
 Jr.Minister		+ADMIN +BAN
-Minister		+@ +SPAWN +REJUV +VAREDIT +BAN
-High Minister			+@ +POSSESS +BUILDMODE +SERVER +FUN
-Royal Minister		+ALL
-Prime Minister		+EVERYTHING
-Barsikoadmin			+HOST
-Monzztroadmin		+ADMIN +BAN +SPAWN +REJUV +VAREDIT +RIGHTS +DEBUG +SERVER +STEALTH
+Minister		+@ +VAREDIT +BAN +SPAWN +FUN
+High Minister			+@ +POSSESS +BUILDMODE +SERVER +REJUV
+Royal Minister		+@ +DEBUG +STEALTH
+ExMinister		+@ +RIGHTS
+
+Monarch			+HOST
+Monzztroadmin		+ADMIN +BAN +SPAWN +REJUV +VAREDIT +DEBUG +SERVER +STEALTH
 
 Officer +ADMIN +BAN
 
@@ -44,6 +45,11 @@ Inquisitor +MOD
 
 Pityshok
 
-Lord Of Avernus			+EVERYTHING
+Lord			+EVERYTHING
 
 Ministry Coder			+ADMIN +DEBUG +VAREDIT +SERVER +SPAWN
+
+Vegetable Admin    +ADMIN +BAN + VAREDIT + FUN + SPAWN
+OldSpring	+ADMIN +BAN +VAREDIT +SPAWN +FUN
+ExperimentalAdmin +ADMIN +BAN
+Commisioner +ADMIN +BAN +VAREDIT +SPAWN +FUN +BUILDMODE +SERVER +REJUV +POSSESS +DEBUG +STEALTH +RIGHTS

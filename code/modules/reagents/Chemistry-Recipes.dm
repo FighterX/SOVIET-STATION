@@ -105,11 +105,19 @@ datum
 			required_reagents = list("inaprovaline" = 1, "ethanol" = 1, "oxygen" = 1)
 			result_amount = 3
 
+		paracetamol
+			name = "Paracetamol"
+			id = "paracetamol"
+			result = "paracetamol"
+			required_reagents = list("tramadol" = 1, "sugar" = 1, "water" = 1)
+			result_amount = 3
+
 		oxycodone
 			name = "Oxycodone"
 			id = "oxycodone"
 			result = "oxycodone"
-			required_reagents = list("ethanol" = 1, "tramadol" = 1, "plasma" = 1)
+			required_reagents = list("ethanol" = 1, "tramadol" = 1)
+			required_catalysts = list("plasma" = 1)
 			result_amount = 1
 
 		//cyanide
@@ -118,6 +126,13 @@ datum
 		//	result = "cyanide"
 		//	required_reagents = list("hydrogen" = 1, "carbon" = 1, "nitrogen" = 1)
 		//	result_amount = 1
+
+		water //I can't believe we never had this.
+			name = "Water"
+			id = "water"
+			result = null
+			required_reagents = list("oxygen" = 2, "hydrogen" = 1)
+			result_amount = 1
 
 		thermite
 			name = "Thermite"
@@ -187,6 +202,14 @@ datum
 			id = "kelotane"
 			result = "kelotane"
 			required_reagents = list("silicon" = 1, "carbon" = 1)
+			result_amount = 2
+
+		peridaxon
+			name = "Peridaxon"
+			id = "peridaxon"
+			result = "peridaxon"
+			required_reagents = list("bicaridine" = 2, "clonexadone" = 2)
+			required_catalysts = list("plasma" = 5)
 			result_amount = 2
 
 		virus_food
@@ -433,7 +456,7 @@ datum
 			secondary = 1
 			on_reaction(var/datum/reagents/holder, var/created_volume)
 				var/location = get_turf(holder.my_atom)
-				var/datum/effect/effect/system/chem_smoke_spread/S = new /datum/effect/effect/system/chem_smoke_spread
+				var/datum/effect/effect/system/smoke_spread/chem/S = new /datum/effect/effect/system/smoke_spread/chem
 				S.attach(location)
 				S.set_up(holder, 10, 0, location)
 				playsound(location, 'sound/effects/smoke.ogg', 50, 1, -3)
@@ -451,12 +474,40 @@ datum
 			required_reagents = list("ethanol" = 1, "chlorine" = 3, "water" = 1)
 			result_amount = 1
 
+		potassium_chloride
+			name = "Potassium Chloride"
+			id = "potassium_chloride"
+			result = "potassium_chloride"
+			required_reagents = list("sodiumchloride" = 1, "potassium" = 1)
+			result_amount = 2
+
+		potassium_chlorophoride
+			name = "Potassium Chlorophoride"
+			id = "potassium_chlorophoride"
+			result = "potassium_chlorophoride"
+			required_reagents = list("potassium_chloride" = 1, "plasma" = 1, "chloral_hydrate" = 1)
+			result_amount = 4
+
+		stoxin
+			name = "Sleep Toxin"
+			id = "stoxin"
+			result = "stoxin"
+			required_reagents = list("chloralhydrate" = 1, "sugar" = 4)
+			result_amount = 5
+
 		zombiepowder
 			name = "Zombie Powder"
 			id = "zombiepowder"
 			result = "zombiepowder"
 			required_reagents = list("carpotoxin" = 5, "stoxin" = 5, "copper" = 5)
 			result_amount = 2
+
+		rezadone
+			name = "Rezadone"
+			id = "rezadone"
+			result = "rezadone"
+			required_reagents = list("carpotoxin" = 1, "cryptobiolin" = 1, "copper" = 1)
+			result_amount = 3
 
 		mindbreaker
 			name = "Mindbreaker Toxin"
@@ -490,9 +541,7 @@ datum
 			required_reagents = list("pacid" = 10, "plasticide" = 20)
 			result_amount = 1
 			on_reaction(var/datum/reagents/holder)
-				var/obj/item/stack/sheet/metal/M = new /obj/item/stack/sheet/mineral/plastic
-				M.amount = 10
-				M.loc = get_turf_loc(holder.my_atom)
+				new /obj/item/stack/sheet/mineral/plastic(get_turf(holder.my_atom),10)
 				return
 
 		virus_food
@@ -501,7 +550,7 @@ datum
 			result = "virusfood"
 			required_reagents = list("water" = 5, "milk" = 5, "oxygen" = 5)
 			result_amount = 15
-
+/*
 		mix_virus
 			name = "Mix Virus"
 			id = "mixvirus"
@@ -539,7 +588,7 @@ datum
 						var/datum/disease/advance/D = locate(/datum/disease/advance) in B.data["viruses"]
 						if(D)
 							D.Devolve()
-
+*/
 		condensedcapsaicin
 			name = "Condensed Capsaicin"
 			id = "condensedcapsaicin"
@@ -1019,7 +1068,7 @@ datum
 			required_other = 1
 			on_reaction(var/datum/reagents/holder)
 
-				var/blocked = list(/mob/living/simple_animal/hostile,
+				/*var/blocked = list(/mob/living/simple_animal/hostile,
 					/mob/living/simple_animal/hostile/pirate,
 					/mob/living/simple_animal/hostile/pirate/ranged,
 					/mob/living/simple_animal/hostile/russian,
@@ -1030,6 +1079,9 @@ datum
 					/mob/living/simple_animal/hostile/syndicate/ranged,
 					/mob/living/simple_animal/hostile/syndicate/ranged/space,
 					/mob/living/simple_animal/hostile/alien/queen/large,
+					/mob/living/simple_animal/hostile/faithless,
+					/mob/living/simple_animal/hostile/panther,
+					/mob/living/simple_animal/hostile/snake,
 					/mob/living/simple_animal/hostile/retaliate,
 					/mob/living/simple_animal/hostile/retaliate/clown
 					)//exclusion list for things you don't want the reaction to create.
@@ -1048,7 +1100,9 @@ datum
 					C.loc = get_turf_loc(holder.my_atom)
 					if(prob(50))
 						for(var/j = 1, j <= rand(1, 3), j++)
-							step(C, pick(NORTH,SOUTH,EAST,WEST))
+							step(C, pick(NORTH,SOUTH,EAST,WEST))*/
+				for(var/mob/O in viewers(get_turf_loc(holder.my_atom), null))
+					O.show_message(text("\red The slime core fizzles disappointingly,"), 1)
 
 //Silver
 		slimebork
@@ -1451,11 +1505,43 @@ datum
 			required_catalysts = list("enzyme" = 5)
 			result_amount = 10
 
+		grenadine
+			name = "Grenadine Syrup"
+			id = "grenadine"
+			result = "grenadine"
+			required_reagents = list("berryjuice" = 10)
+			required_catalysts = list("enzyme" = 5)
+			result_amount = 10
+
 		wine
 			name = "Wine"
 			id = "wine"
 			result = "wine"
-			required_reagents = list("berryjuice" = 10)
+			required_reagents = list("grapejuice" = 10)
+			required_catalysts = list("enzyme" = 5)
+			result_amount = 10
+
+		pwine
+			name = "Poison Wine"
+			id = "pwine"
+			result = "pwine"
+			required_reagents = list("poisonberryjuice" = 10)
+			required_catalysts = list("enzyme" = 5)
+			result_amount = 10
+
+		melonliquor
+			name = "Melon Liquor"
+			id = "melonliquor"
+			result = "melonliquor"
+			required_reagents = list("watermelonjuice" = 10)
+			required_catalysts = list("enzyme" = 5)
+			result_amount = 10
+
+		bluecuracao
+			name = "Blue Curacao"
+			id = "bluecuracao"
+			result = "bluecuracao"
+			required_reagents = list("orangejuice" = 10)
 			required_catalysts = list("enzyme" = 5)
 			result_amount = 10
 
@@ -1644,6 +1730,13 @@ datum
 			required_reagents = list("vodka" = 1, "gin" = 1, "tequilla" = 1, "cubalibre" = 1)
 			result_amount = 4
 
+		icedtea
+			name = "Long Island Iced Tea"
+			id = "longislandicedtea"
+			result = "longislandicedtea"
+			required_reagents = list("vodka" = 1, "gin" = 1, "tequilla" = 1, "cubalibre" = 1)
+			result_amount = 4
+
 		threemileisland
 			name = "Three Mile Island Iced Tea"
 			id = "threemileisland"
@@ -1741,6 +1834,14 @@ datum
 			result = "barefoot"
 			required_reagents = list("berryjuice" = 1, "cream" = 1, "vermouth" = 1)
 			result_amount = 3
+
+		grapesoda //Allows Grape Soda to be made
+			name = "Grape Soda"
+			id = "grapesoda"
+			result = "grapesoda"
+			required_reagents = list("grapejuice" = 2, "cola" = 1)
+			result_amount = 3
+
 
 
 ////DRINKS THAT REQUIRED IMPROVED SPRITES BELOW:: -Agouri/////
@@ -1942,5 +2043,9 @@ datum
 			required_reagents = list("spacemountainwind" = 1, "coffee" = 1)
 			result_amount = 2
 
-
-
+		suidream
+			name = "Sui Dream"
+			id = "suidream"
+			result = "suidream"
+			required_reagents = list("space_up" = 2, "bluecuracao" = 1, "melonliquor" = 1)
+			result_amount = 4

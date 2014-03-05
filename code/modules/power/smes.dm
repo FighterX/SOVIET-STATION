@@ -23,7 +23,10 @@
 	var/online = 1
 	var/n_tag = null
 	var/obj/machinery/power/terminal/terminal = null
-
+	//Holders for powerout event.
+	var/last_output = 0
+	var/last_charge = 0
+	var/last_online = 0
 
 /obj/machinery/power/smes/New()
 	..()
@@ -168,11 +171,6 @@
 /obj/machinery/power/smes/attack_hand(mob/user)
 	add_fingerprint(user)
 	if(stat & BROKEN) return
-
-	if(ishuman(user))
-		if(istype(user:gloves, /obj/item/clothing/gloves/space_ninja)&&user:gloves:candrain&&!user:gloves:draining)
-			call(/obj/item/clothing/gloves/space_ninja/proc/drain)("SMES",src,user:wear_suit)
-			return
 	interact(user)
 
 
@@ -308,7 +306,7 @@
 			for(var/mob/M in viewers(src))
 				M.show_message("\red The [src.name] is making strange noises!", 3, "\red You hear sizzling electronics.", 2)
 			sleep(10*pick(4,5,6,7,10,14))
-			var/datum/effect/effect/system/harmless_smoke_spread/smoke = new /datum/effect/effect/system/harmless_smoke_spread()
+			var/datum/effect/effect/system/smoke_spread/smoke = new /datum/effect/effect/system/smoke_spread()
 			smoke.set_up(3, 0, src.loc)
 			smoke.attach(src)
 			smoke.start()
@@ -326,7 +324,7 @@
 				emp_act(2)
 		if(prob(5)) //smoke only
 			world << "\red SMES smoke in [src.loc.loc]"
-			var/datum/effect/effect/system/harmless_smoke_spread/smoke = new /datum/effect/effect/system/harmless_smoke_spread()
+			var/datum/effect/effect/system/smoke_spread/smoke = new /datum/effect/effect/system/smoke_spread()
 			smoke.set_up(3, 0, src.loc)
 			smoke.attach(src)
 			smoke.start()

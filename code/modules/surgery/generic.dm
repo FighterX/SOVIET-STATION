@@ -52,8 +52,8 @@
 
 	fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 		var/datum/organ/external/affected = target.get_organ(target_zone)
-		user.visible_message("\red [user]'s hand slips, slicing open [target]'s [affected.display_name] in a wrong spot with \the [tool]!", \
-		"\red Your hand slips, slicing open [target]'s [affected.display_name] in a wrong spot with \the [tool]!")
+		user.visible_message("\red [user]'s hand slips, slicing open [target]'s [affected.display_name] in the wrong place with \the [tool]!", \
+		"\red Your hand slips, slicing open [target]'s [affected.display_name] in the wrong place with \the [tool]!")
 		affected.createwound(CUT, 10)
 
 /datum/surgery_step/generic/clamp_bleeders
@@ -86,7 +86,7 @@
 
 	fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 		var/datum/organ/external/affected = target.get_organ(target_zone)
-		user.visible_message("\red [user]'s hand slips, tearing blood vessals and causing massive bleeding in [target]'s [affected.display_name] with the \[tool]!",	\
+		user.visible_message("\red [user]'s hand slips, tearing blood vessals and causing massive bleeding in [target]'s [affected.display_name] with \the [tool]!",	\
 		"\red Your hand slips, tearing blood vessels and causing massive bleeding in [target]'s [affected.display_name] with \the [tool]!",)
 		affected.createwound(CUT, 10)
 
@@ -102,7 +102,7 @@
 
 	can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 		var/datum/organ/external/affected = target.get_organ(target_zone)
-		return ..() && affected.open < 2 && !(affected.status & ORGAN_BLEEDING)
+		return ..() && affected.open == 1 && !(affected.status & ORGAN_BLEEDING)
 
 	begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 		var/datum/organ/external/affected = target.get_organ(target_zone)
@@ -133,14 +133,14 @@
 
 	fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 		var/datum/organ/external/affected = target.get_organ(target_zone)
-		var/msg = "\red [user]'s hand slips, tearing the edges of incision on [target]'s [affected.display_name] with \the [tool]!"
-		var/self_msg = "\red Your hand slips, tearing the edges of incision on [target]'s [affected.display_name] with \the [tool]!"
+		var/msg = "\red [user]'s hand slips, tearing the edges of the incision on [target]'s [affected.display_name] with \the [tool]!"
+		var/self_msg = "\red Your hand slips, tearing the edges of the incision on [target]'s [affected.display_name] with \the [tool]!"
 		if (target_zone == "chest")
-			msg = "\red [user]'s hand slips, damaging several organs [target]'s torso with \the [tool]!"
-			self_msg = "\red Your hand slips, damaging several organs [target]'s torso with \the [tool]!"
+			msg = "\red [user]'s hand slips, damaging several organs in [target]'s torso with \the [tool]!"
+			self_msg = "\red Your hand slips, damaging several organs in [target]'s torso with \the [tool]!"
 		if (target_zone == "groin")
-			msg = "\red [user]'s hand slips, damaging several organs [target]'s lower abdomen with \the [tool]"
-			self_msg = "\red Your hand slips, damaging several organs [target]'s lower abdomen with \the [tool]!"
+			msg = "\red [user]'s hand slips, damaging several organs in [target]'s lower abdomen with \the [tool]"
+			self_msg = "\red Your hand slips, damaging several organs in [target]'s lower abdomen with \the [tool]!"
 		user.visible_message(msg, self_msg)
 		target.apply_damage(12, BRUTE, affected)
 
@@ -190,7 +190,16 @@
 	max_duration = 160
 
 	can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-		return ..() && target_zone != "chest" && target_zone != "groin" && target_zone != "head"
+		if (target_zone == "eyes")	//there are specific steps for eye surgery
+			return 0
+		if (!hasorgans(target))
+			return 0
+		var/datum/organ/external/affected = target.get_organ(target_zone)
+		if (affected == null)
+			return 0
+		if (affected.status & ORGAN_DESTROYED)
+			return 0
+		return target_zone != "chest" && target_zone != "groin" && target_zone != "head"
 
 	begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 		var/datum/organ/external/affected = target.get_organ(target_zone)
@@ -203,7 +212,7 @@
 		var/datum/organ/external/affected = target.get_organ(target_zone)
 		user.visible_message("\blue [user] cuts off [target]'s [affected.display_name] with \the [tool].", \
 		"\blue You cut off [target]'s [affected.display_name] with \the [tool].")
-		affected.droplimb(1,1)
+		affected.droplimb(1,0)
 
 	fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 		var/datum/organ/external/affected = target.get_organ(target_zone)

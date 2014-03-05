@@ -5,24 +5,38 @@
 # Ranks can be anything defined in admin_ranks.txt           ~Carn   #
 ######################################################################
 
-FighterX2500 - Barsikoadmin
-polion1232 - Lord Of Avernus
-opex1989 - Minister
-outworder - Royal Minister
-arhimag - Prime Minister
-krll - Royal Minister
-Ecstasy14 - Minister
-Kallemort - Minister
-Spitfire174 - Minister
-Ydaa - Nobleman
-AlexKingSmyle - Minister
-Narsi - Royal Minister
-Fox30 - Minister
-Crazy_Wolf_2012 - Minister
-Chrisik - Minister
-Yran14 - Minister
-Fallrim37 - Minister
+fighterx2500 - Monarch
+polion1232 - ExMinister
+outworder - Retired Admin
+krll - ExMinister
+goshathebest - ExMinister
+darkexterminator - High Minister
+doremiancleff - Royal Minister
+silvereagle - Royal Minister
+chrisik - Retired Admin
+blackjack22 - Minister
+vesthamer - Commisioner
+feday2 - Retired Admin
+alexkingsmyle - Retired Admin
+opex1989 - High Minister
+sbotkin - Jr.Minister
+evilpie113 - Jr.Minister
+Alakazor - High Minister
 Hater333 - Minister
-Alakazor - Minister
-DarkExterminator - Royal Minister
-monzztro - Monzztroadmin
+xatapon - Retired Admin
+Crazy_Wolf_2012 - Minister
+getzyso - Retired Admin
+alkaon - Retired Admin
+dimatteo - Retired Admin
+xpanda - Retired Admin
+agvaren - Minister
+theharvester - High Minister
+teras128 - Retired Admin
+marawlith - Minister
+eterriol - Minister
+sumurai - Minister
+flashnapalm - Jr.Minister
+bolidhell - Nobleman
+pinokkio - Jr.Minister
+maks278 - Jr.Minister
+mikasempai - Jr.Minister

@@ -78,7 +78,7 @@ mordeth221: Sven Fjeltson: /obj/item/weapon/fluff/sven_fjeltson_1
 bronepoezd: Tajas Neo: /obj/item/clothing/suit/neocoat
 krll: Randy Nickolson: /obj/item/device/taperecorder, /obj/item/clothing/suit/chickensuit
 mihan1998: John Devis: /obj/item/clothing/mask/cigarette/cigar/cohiba
-teras128: Kitab Al-Ayn: /obj/item/clothing/head/ushanka, /obj/item/clothing/shoes/valenki
+teras128: Kitab Al-Ayn: /obj/item/clothing/head/ushanka
 memorycard: /obj/item/clothing/suit/neocoat
 toetag: /obj/item/clothing/under/lawyer/oldman, /obj/item/weapon/storage/wallet
 fox30: Viktor Finn: /obj/item/clothing/under/suit_jacket/really_black, /obj/item/clothing/suit/wcoat, /obj/item/clothing/gloves/black

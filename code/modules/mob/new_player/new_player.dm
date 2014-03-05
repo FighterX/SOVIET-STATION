@@ -74,7 +74,8 @@
 			if(ticker.hide_mode)
 				stat("Game Mode:", "Secret")
 			else
-				stat("Game Mode:", "[master_mode]")
+				if(ticker.hide_mode == 0)
+					stat("Game Mode:", "[master_mode]") // Old setting for showing the game mode
 
 			if((ticker.current_state == GAME_STATE_PREGAME) && going)
 				stat("Time To Start:", ticker.pregame_timeleft)
@@ -106,25 +107,34 @@
 
 		if(href_list["observe"])
 
-			if(alert(src,"Are you sure you wish to observe? You will not be able to play this round!","Player Setup","Yes","No") == "Yes")
+			if(alert(src,"Are you sure you wish to observe? You will have to wait 30 minutes before being able to respawn!","Player Setup","Yes","No") == "Yes")
 				if(!client)	return 1
 				var/mob/dead/observer/observer = new()
 
 				spawning = 1
 				src << sound(null, repeat = 0, wait = 0, volume = 85, channel = 1) // MAD JAMS cant last forever yo
 
+
 				observer.started_as_observer = 1
 				close_spawn_windows()
 				var/obj/O = locate("landmark*Observer-Start")
 				src << "\blue Now teleporting."
 				observer.loc = O.loc
+				observer.timeofdeath = world.time // Set the time of death so that the respawn timer works correctly.
+
+				client.prefs.update_preview_icon()
+				observer.icon = client.prefs.preview_icon
+				observer.alpha = 127
+
 				if(client.prefs.be_random_name)
-					client.prefs.real_name = random_name()
+					client.prefs.real_name = random_name(client.prefs.gender)
 				observer.real_name = client.prefs.real_name
 				observer.name = observer.real_name
+				if(!client.holder && !config.antag_hud_allowed)           // For new ghosts we remove the verb from even showing up if it's not allowed.
+					observer.verbs -= /mob/dead/observer/verb/toggle_antagHUD        // Poor guys, don't know what they are missing!
 				observer.key = key
-
 				del(src)
+
 				return 1
 
 		if(href_list["late_join"])
@@ -134,9 +144,7 @@
 
 			if(client.prefs.species != "Human")
 
-				var/S = client.prefs.species
-				if(S == "Unathi") S = "Soghun"
-				if(!is_alien_whitelisted(src, S) && config.usealienwhitelist)
+				if(!is_alien_whitelisted(src, client.prefs.species) && config.usealienwhitelist)
 					src << alert("You are currently not whitelisted to play [client.prefs.species].")
 					return 0
 
@@ -151,9 +159,7 @@
 				usr << "\blue There is an administrative lock on entering the game!"
 				return
 
-			var/S = client.prefs.species
-			if(S == "Unathi") S = "Soghun"
-			if(!is_alien_whitelisted(src, S) && config.usealienwhitelist)
+			if(!is_alien_whitelisted(src, client.prefs.species) && config.usealienwhitelist)
 				src << alert("You are currently not whitelisted to play [client.prefs.species].")
 				return 0
 
@@ -269,9 +275,20 @@
 
 
 	proc/AttemptLateSpawn(rank)
+		if (src != usr)
+			return 0
+		if(!ticker || ticker.current_state != GAME_STATE_PLAYING)
+			usr << "\red The round is either not ready, or has already finished..."
+			return 0
+		if(!enter_allowed)
+			usr << "\blue There is an administrative lock on entering the game!"
+			return 0
 		if(!IsJobAvailable(rank))
 			src << alert("[rank] is not available. Please try another.")
 			return 0
+
+		spawning = 1
+		close_spawn_windows()
 
 		job_master.AssignRole(src, rank, 1)
 
@@ -314,8 +331,10 @@
 		if(emergency_shuttle) //In case Nanotrasen decides reposess CentComm's shuttles.
 			if(emergency_shuttle.direction == 2) //Shuttle is going to centcomm, not recalled
 				dat += "<font color='red'><b>The station has been evacuated.</b></font><br>"
-			if(emergency_shuttle.direction == 1 && emergency_shuttle.timeleft() < 300) //Shuttle is past the point of no recall
+			if(emergency_shuttle.direction == 1 && emergency_shuttle.timeleft() < 300 && emergency_shuttle.alert == 0) // Emergency shuttle is past the point of no recall
 				dat += "<font color='red'>The station is currently undergoing evacuation procedures.</font><br>"
+			if(emergency_shuttle.direction == 1 && emergency_shuttle.alert == 1) // Crew transfer initiated
+				dat += "<font color='red'>The station is currently undergoing crew transfer procedures.</font><br>"
 
 		dat += "Choose from the following open positions:<br>"
 		for(var/datum/job/job in job_master.occupations)
@@ -337,26 +356,23 @@
 		var/mob/living/carbon/human/new_character = new(loc)
 		new_character.lastarea = get_area(loc)
 
-		if(client.prefs.species == "Tajaran") //This is like the worst, but it works, so meh. - Erthilo
-			if(is_alien_whitelisted(src, "Tajaran"|| !config.usealienwhitelist))
-				new_character.dna.mutantrace = "tajaran"
-				new_character.tajaran_talk_understand = 1
-		if(client.prefs.species == "Unathi")
-			if(is_alien_whitelisted(src, "Soghun"|| !config.usealienwhitelist))
-				new_character.dna.mutantrace = "lizard"
-				new_character.soghun_talk_understand = 1
-		if(client.prefs.species == "Skrell")
-			if(is_alien_whitelisted(src, "Skrell"|| !config.usealienwhitelist))
-				new_character.dna.mutantrace = "skrell"
-				new_character.skrell_talk_understand = 1
-		if(client.prefs.species == "Vox")
-			if(is_alien_whitelisted(src, "Vox"|| !config.usealienwhitelist))
-				new_character.dna.mutantrace = "vox"
-				new_character.vox_talk_understand = 1
+		var/datum/species/chosen_species
+		if(client.prefs.species)
+			chosen_species = all_species[client.prefs.species]
+		if(chosen_species)
+			if(is_alien_whitelisted(src, client.prefs.species) || !config.usealienwhitelist || !(chosen_species.flags & WHITELISTED) || (client.holder.rights & R_ADMIN) )// Have to recheck admin due to no usr at roundstart. Latejoins are fine though.
+				new_character.set_species(client.prefs.species)
+
+		var/datum/language/chosen_language
+		if(client.prefs.language)
+			chosen_language = all_languages["[client.prefs.language]"]
+		if(chosen_language)
+			if(is_alien_whitelisted(src, client.prefs.language) || !config.usealienwhitelist || !(chosen_language.flags & WHITELISTED))
+				new_character.add_language("[client.prefs.language]")
 
 		if(ticker.random_players)
 			new_character.gender = pick(MALE, FEMALE)
-			client.prefs.real_name = random_name()
+			client.prefs.real_name = random_name(new_character.gender)
 			client.prefs.randomize_appearance_for(new_character)
 		else
 			client.prefs.copy_to(new_character)
@@ -376,8 +392,12 @@
 		new_character.dna.b_type = client.prefs.b_type
 
 		if(client.prefs.disabilities)
-			new_character.dna.struc_enzymes = setblock(new_character.dna.struc_enzymes,GLASSESBLOCK,toggledblock(getblock(new_character.dna.struc_enzymes,GLASSESBLOCK,3)),3)
+			// Set defer to 1 if you add more crap here so it only recalculates struc_enzymes once. - N3X
+			new_character.dna.SetSEState(GLASSESBLOCK,1,0)
 			new_character.disabilities |= NEARSIGHTED
+
+		// And uncomment this, too.
+		//new_character.dna.UpdateSE()
 
 		new_character.key = key		//Manually transfer the key to log them in
 
@@ -386,7 +406,7 @@
 	proc/ViewManifest()
 		var/dat = "<html><body>"
 		dat += "<h4>Crew Manifest</h4>"
-		dat += data_core.get_manifest()
+		dat += data_core.get_manifest(OOC = 1)
 
 		src << browse(dat, "window=manifest;size=370x420;can_close=1")
 

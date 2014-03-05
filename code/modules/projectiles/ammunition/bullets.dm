@@ -43,11 +43,15 @@
 	caliber = ".45"
 	projectile_type = "/obj/item/projectile/bullet/midbullet"
 
+/obj/item/ammo_casing/c45r
+	desc = "A .45 rubber bullet casing."
+	caliber = ".45"
+	projectile_type = "/obj/item/projectile/bullet/weakbullet"
 
 /obj/item/ammo_casing/a12mm
 	desc = "A 12mm bullet casing."
 	caliber = "12mm"
-	projectile_type = "/obj/item/projectile/bullet/midbullet"
+	projectile_type = "/obj/item/projectile/bullet/midbullet2"
 
 
 /obj/item/ammo_casing/shotgun
@@ -93,4 +97,4 @@
 /obj/item/ammo_casing/a762
 	desc = "A 7.62 bullet casing."
 	caliber = "a762"
-	projectile_type = "/obj/item/projectile/bullet"
+	projectile_type = "/obj/item/projectile/bullet/a762"

@@ -7,7 +7,8 @@
 	var/labels_left = 30
 	var/mode = 0	//off or on.
 
-/obj/item/weapon/hand_labeler/afterattack(atom/A, mob/user as mob)
+/obj/item/weapon/hand_labeler/afterattack(atom/A, mob/user as mob, proximity)
+	if(!proximity) return
 	if(!mode)	//if it's off, give up.
 		return
 	if(A == loc)	// if placing the labeller into something (e.g. backpack)
@@ -27,6 +28,9 @@
 		return
 	if(issilicon(A))
 		user << "<span class='notice'>You can't label cyborgs.</span>"
+		return
+	if(istype(A, /obj/item/weapon/reagent_containers/glass))
+		user << "<span class='notice'>The label can't stick to the [A.name].  (Try using a pen)</span>"
 		return
 
 	user.visible_message("<span class='notice'>[user] labels [A] as [label].</span>", \

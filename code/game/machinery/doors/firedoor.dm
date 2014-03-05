@@ -3,7 +3,7 @@
 /obj/machinery/door/firedoor
 	name = "\improper Emergency Shutter"
 	desc = "Emergency air-tight shutter, capable of sealing off breached areas."
-	icon = 'DoorHazard.dmi'
+	icon = 'icons/obj/doors/DoorHazard.dmi'
 	icon_state = "door_open"
 	req_one_access = list(access_atmospherics, access_engine_equip)
 	opacity = 0
@@ -70,6 +70,7 @@
 	power_change()
 		if(powered(ENVIRON))
 			stat &= ~NOPOWER
+			latetoggle()
 		else
 			stat |= NOPOWER
 		return
@@ -197,21 +198,29 @@
 					nextstate = CLOSED
 
 
-	process()
+	proc/latetoggle()
 		if(operating || stat & NOPOWER || !nextstate)
 			return
 		switch(nextstate)
 			if(OPEN)
-				spawn()
-					open()
+				nextstate = null
+				open()
 			if(CLOSED)
-				spawn()
-					close()
-		nextstate = null
+				nextstate = null
+				close()
 		return
 
+	open()
+		..()
+		latetoggle()
+		return
 
-	animate(animation)
+	close()
+		..()
+		latetoggle()
+		return
+
+	do_animate(animation)
 		switch(animation)
 			if("opening")
 				flick("door_opening", src)
@@ -275,22 +284,5 @@
 */
 
 /obj/machinery/door/firedoor/multi_tile
-	icon = 'DoorHazard2x1.dmi'
-	bound_width = 64
-
-
-	update_nearby_tiles(need_rebuild)
-		if(!.)
-			return
-
-		. = ..()
-		var/turf/simulated/second_turf = get_step(src, EAST)
-		var/turf/simulated/north = get_step(second_turf, NORTH)
-		var/turf/simulated/east = get_step(second_turf, EAST)
-		var/turf/simulated/south = get_step(second_turf, SOUTH)
-
-		update_heat_protection(second_turf)
-
-		if(istype(north)) air_master.tiles_to_update |= north
-		if(istype(south)) air_master.tiles_to_update |= south
-		if(istype(east)) air_master.tiles_to_update |= east
+	icon = 'icons/obj/doors/DoorHazard2x1.dmi'
+	width = 2

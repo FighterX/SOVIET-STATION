@@ -71,10 +71,10 @@
 #define DOOR_CRUSH_DAMAGE 10
 
 // Factor of how fast mob nutrition decreases
-#define	HUNGER_FACTOR 0.25
+#define HUNGER_FACTOR 0.05
 
 // How many units of reagent are consumed per tick, by default.
-#define  REAGENTS_METABOLISM 0.2
+#define REAGENTS_METABOLISM 0.2
 
 // By defining the effect multiplier this way, it'll exactly adjust
 // all effects according to how they originally were with the 0.4 metabolism
@@ -107,6 +107,7 @@
 	//Must be between 0 and 1. Values closer to 1 equalize temperature faster
 	//Should not exceed 0.4 else strange heat flow occur
 
+/*
 #define FIRE_MINIMUM_TEMPERATURE_TO_SPREAD	150+T0C
 #define FIRE_MINIMUM_TEMPERATURE_TO_EXIST	100+T0C
 #define FIRE_SPREAD_RADIOSITY_SCALE		0.85
@@ -114,7 +115,7 @@
 #define FIRE_PLASMA_ENERGY_RELEASED	 3000000 //Amount of heat released per mole of burnt plasma into the tile
 #define FIRE_GROWTH_RATE			40000 //For small fires
 
-//#define WATER_BOIL_TEMP 393
+#define WATER_BOIL_TEMP 393 */
 
 // Fire Damage
 #define CARBON_LIFEFORM_FIRE_RESISTANCE 200+T0C
@@ -132,7 +133,8 @@
 #define T20C 293.15					// 20degC
 #define TCMB 2.7					// -270.3degC
 
-var/turf/space/Space_Tile = locate(/turf/space) // A space tile to reference when atmos wants to remove excess heat.
+//Used to be used by FEA
+//var/turf/space/Space_Tile = locate(/turf/space) // A space tile to reference when atmos wants to remove excess heat.
 
 #define TANK_LEAK_PRESSURE		(30.*ONE_ATMOSPHERE)	// Tank starts leaking
 #define TANK_RUPTURE_PRESSURE	(40.*ONE_ATMOSPHERE) // Tank spills all contents into atmosphere
@@ -171,7 +173,8 @@ var/MAX_EXPLOSION_RANGE = 14
 #define SLOT_BACK 1024
 #define SLOT_POCKET 2048		//this is to allow items with a w_class of 3 or 4 to fit in pockets.
 #define SLOT_DENYPOCKET 4096	//this is to deny items with a w_class of 2 or 1 to fit in pockets.
-
+#define SLOT_TWOEARS 8192
+#define SLOT_LEGS = 16384
 
 //FLAGS BITMASK
 #define STOPSPRESSUREDMAGE 1	//This flag is used on the flags variable for SUIT and HEAD items which stop pressure damage. Note that the flag 1 was previous used as ONBACK, so it is possible for some code to use (flags & 1) when checking if something can be put on your back. Replace this code with (inv_flags & SLOT_BACK) if you see it anywhere
@@ -187,6 +190,8 @@ var/MAX_EXPLOSION_RANGE = 14
 #define CONDUCT		64		// conducts electricity (metal etc.)
 #define FPRINT		256		// takes a fingerprint
 #define ON_BORDER	512		// item has priority to check when entering or leaving
+#define NOBLUDGEON  4  // when an item has this it produces no "X has been hit by Y with Z" message with the default handler
+#define NOBLOODY	2048	// used to items if they don't want to get a blood overlay
 
 #define GLASSESCOVERSEYES	1024
 #define MASKCOVERSEYES		1024		// get rid of some of the other retardation in these flags
@@ -235,7 +240,7 @@ var/MAX_EXPLOSION_RANGE = 14
 #define slot_r_hand 5
 #define slot_belt 6
 #define slot_wear_id 7
-#define slot_ears 8
+#define slot_l_ear 8
 #define slot_glasses 9
 #define slot_gloves 10
 #define slot_head 11
@@ -247,6 +252,8 @@ var/MAX_EXPLOSION_RANGE = 14
 #define slot_s_store 17
 #define slot_in_backpack 18
 #define slot_legcuffed 19
+#define slot_r_ear 20
+#define slot_legs 21
 
 //Cant seem to find a mob bitflags area other than the powers one
 
@@ -450,6 +457,13 @@ var/list/global_mutations = list() // list of hidden mutation things
 
 var/static/list/scarySounds = list('sound/weapons/thudswoosh.ogg','sound/weapons/Taser.ogg','sound/weapons/armbomb.ogg','sound/voice/hiss1.ogg','sound/voice/hiss2.ogg','sound/voice/hiss3.ogg','sound/voice/hiss4.ogg','sound/voice/hiss5.ogg','sound/voice/hiss6.ogg','sound/effects/Glassbr1.ogg','sound/effects/Glassbr2.ogg','sound/effects/Glassbr3.ogg','sound/items/Welder.ogg','sound/items/Welder2.ogg','sound/machines/airlock.ogg','sound/effects/clownstep1.ogg','sound/effects/clownstep2.ogg')
 
+//Grab levels
+#define GRAB_PASSIVE	1
+#define GRAB_AGGRESSIVE	2
+#define GRAB_NECK		3
+#define GRAB_UPGRADING	4
+#define GRAB_KILL		5
+
 //Security levels
 #define SEC_LEVEL_GREEN	0
 #define SEC_LEVEL_BLUE	1
@@ -624,9 +638,10 @@ var/list/TAGGERLOCATIONS = list("Disposals",
 #define CHAT_RADIO		512
 #define CHAT_ATTACKLOGS	1024
 #define CHAT_DEBUGLOGS	2048
+#define CHAT_LOOC		4096
 
 
-#define TOGGLES_DEFAULT (SOUND_ADMINHELP|SOUND_MIDI|SOUND_AMBIENCE|SOUND_LOBBY|CHAT_OOC|CHAT_DEAD|CHAT_GHOSTEARS|CHAT_GHOSTSIGHT|CHAT_PRAYER|CHAT_RADIO|CHAT_ATTACKLOGS)
+#define TOGGLES_DEFAULT (SOUND_ADMINHELP|SOUND_MIDI|SOUND_AMBIENCE|SOUND_LOBBY|CHAT_OOC|CHAT_DEAD|CHAT_GHOSTEARS|CHAT_GHOSTSIGHT|CHAT_PRAYER|CHAT_RADIO|CHAT_ATTACKLOGS|CHAT_LOOC)
 
 #define BE_TRAITOR		1
 #define BE_OPERATIVE	2
@@ -639,6 +654,8 @@ var/list/TAGGERLOCATIONS = list("Disposals",
 #define BE_CULTIST		256
 #define BE_MONKEY		512
 #define BE_NINJA		1024
+#define BE_RAIDER		2048
+#define BE_PLANT		4096
 
 var/list/be_special_flags = list(
 	"Traitor" = BE_TRAITOR,
@@ -651,11 +668,13 @@ var/list/be_special_flags = list(
 	"pAI" = BE_PAI,
 	"Cultist" = BE_CULTIST,
 	"Monkey" = BE_MONKEY,
-	"Ninja" = BE_NINJA
+	"Ninja" = BE_NINJA,
+	"Raider" = BE_RAIDER,
+	"Diona" = BE_PLANT
 	)
 
-#define AGE_MIN 15			//youngest a character can be
-#define AGE_MAX 175			//oldest a character can be
+#define AGE_MIN 17			//youngest a character can be
+#define AGE_MAX 85			//oldest a character can be
 
 //Languages!
 #define LANGUAGE_HUMAN		1
@@ -678,3 +697,49 @@ var/list/be_special_flags = list(
 #define IMPLOYAL_HUD	5 // loyality implant
 #define IMPCHEM_HUD		6 // chemical implant
 #define IMPTRACK_HUD	7 // tracking implant
+
+//Pulse levels, very simplified
+#define PULSE_NONE		0	//so !M.pulse checks would be possible
+#define PULSE_SLOW		1	//<60 bpm
+#define PULSE_NORM		2	//60-90 bpm
+#define PULSE_FAST		3	//90-120 bpm
+#define PULSE_2FAST		4	//>120 bpm
+#define PULSE_THREADY	5	//occurs during hypovolemic shock
+//feel free to add shit to lists below
+var/list/tachycardics = list("coffee", "inaprovaline", "hyperzine", "nitroglycerin", "thirteenloko", "nicotine")	//increase heart rate
+var/list/bradycardics = list("neurotoxin", "cryoxadone", "clonexadone", "space_drugs", "stoxin")					//decrease heart rate
+var/list/heartstopper = list("potassium_phorochloride", "zombie_powder") //this stops the heart
+var/list/cheartstopper = list("potassium_chloride") //this stops the heart when overdose is met -- c = conditional
+
+//proc/get_pulse methods
+#define GETPULSE_HAND	0	//less accurate (hand)
+#define GETPULSE_TOOL	1	//more accurate (med scanner, sleeper, etc)
+
+var/list/RESTRICTED_CAMERA_NETWORKS = list( //Those networks can only be accessed by preexisting terminals. AIs and new terminals can't use them.
+	"thunder",
+	"ERT",
+	"NUKE"
+	)
+
+//Species flags.
+#define NO_EAT 1
+#define NO_BREATHE 2
+#define NO_SLEEP 4
+#define RAD_ABSORB 8
+#define NO_SCAN 16
+#define NON_GENDERED 32
+#define REQUIRE_LIGHT 64
+#define WHITELISTED 128
+#define HAS_SKIN_TONE 256
+#define HAS_LIPS 512
+#define HAS_UNDERWEAR 1024
+#define HAS_TAIL 2048
+#define IS_PLANT 4096
+
+//Language flags.
+#define WHITELISTED 1  // Language is available if the speaker is whitelisted.
+#define RESTRICTED 2   // Language can only be accquired by spawning or an admin.
+
+//Flags for zone sleeping
+#define ZONE_ACTIVE 1
+#define ZONE_SLEEPING 0

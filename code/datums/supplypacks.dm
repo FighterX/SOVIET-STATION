@@ -66,6 +66,29 @@ var/list/all_supply_groups = list("Operations","Security","Hospitality","Enginee
 	containername = "Monkey crate"
 	group = "Hydroponics"
 
+/datum/supply_packs/farwa
+	name = "Farwa crate"
+	contains = list (/obj/item/weapon/storage/box/monkeycubes/farwacubes)
+	cost = 30
+	containertype = /obj/structure/closet/crate/freezer
+	containername = "Farwa crate"
+	group = "Hydroponics"
+
+/datum/supply_packs/skrell
+	name = "Neaera crate"
+	contains = list (/obj/item/weapon/storage/box/monkeycubes/neaeracubes)
+	cost = 30
+	containertype = /obj/structure/closet/crate/freezer
+	containername = "Neaera crate"
+	group = "Hydroponics"
+
+/datum/supply_packs/stok
+	name = "Stok crate"
+	contains = list (/obj/item/weapon/storage/box/monkeycubes/stokcubes)
+	cost = 30
+	containertype = /obj/structure/closet/crate/freezer
+	containername = "Stok crate"
+	group = "Hydroponics"
 
 /datum/supply_packs/beanbagammo
 	name = "Beanbag shells"
@@ -333,10 +356,12 @@ var/list/all_supply_groups = list("Operations","Security","Hospitality","Enginee
 					/obj/item/weapon/storage/firstaid/fire,
 					/obj/item/weapon/storage/firstaid/toxin,
 					/obj/item/weapon/storage/firstaid/o2,
+					/obj/item/weapon/storage/firstaid/adv,
 					/obj/item/weapon/reagent_containers/glass/bottle/antitoxin,
 					/obj/item/weapon/reagent_containers/glass/bottle/inaprovaline,
 					/obj/item/weapon/reagent_containers/glass/bottle/stoxin,
-					/obj/item/weapon/storage/box/syringes)
+					/obj/item/weapon/storage/box/syringes,
+					/obj/item/weapon/storage/box/autoinjectors)
 	cost = 10
 	containertype = /obj/structure/closet/crate/medical
 	containername = "Medical crate"
@@ -430,6 +455,14 @@ var/list/all_supply_groups = list("Operations","Security","Hospitality","Enginee
 	containertype = /obj/structure/largecrate
 	containername = "fuel tank crate"
 	group = "Engineering"
+
+/datum/supply_packs/coolanttank
+	name = "Coolant tank crate"
+	contains = list(/obj/structure/reagent_dispensers/coolanttank)
+	cost = 16
+	containertype = /obj/structure/largecrate
+	containername = "coolant tank crate"
+	group = "Medical / Science"
 
 /datum/supply_packs/solar
 	name = "Solar Pack crate"
@@ -789,7 +822,7 @@ var/list/all_supply_groups = list("Operations","Security","Hospitality","Enginee
 	contains = list(/obj/item/seeds/bloodtomatoseed,
 					/obj/item/weapon/storage/pill_bottle/zoom,
 					/obj/item/weapon/storage/pill_bottle/happy,
-					/obj/item/weapon/reagent_containers/food/drinks/bottle/absinthe)
+					/obj/item/weapon/reagent_containers/food/drinks/bottle/pwine)
 
 	name = "Contraband crate"
 	cost = 30
@@ -920,6 +953,25 @@ var/list/all_supply_groups = list("Operations","Security","Hospitality","Enginee
 	group = "Engineering"
 	access = access_ce
 
+/datum/supply_packs/smbig
+	name = "Supermatter Core"
+	contains = list(/obj/machinery/power/supermatter)
+	cost = 50
+	containertype = /obj/structure/closet/crate/secure/plasma
+	containername = "Supermatter crate (CAUTION)"
+	group = "Engineering"
+	access = access_ce
+
+
+/* /datum/supply_packs/smsmall // Currently nonfunctional, waiting on virgil
+	name = "Supermatter Shard"
+	contains = list(/obj/machinery/power/supermatter/shard)
+	cost = 25
+	containertype = /obj/structure/closet/crate/secure/plasma
+	containername = "Supermatter shard crate (CAUTION)"
+	access = access_ce
+	group = "Engineering" */
+
 /datum/supply_packs/shield_cap
 	contains = list(/obj/item/weapon/circuitboard/shield_cap)
 	name = "Experimental shield capacitor circuitry"
@@ -954,6 +1006,24 @@ var/list/all_supply_groups = list("Operations","Security","Hospitality","Enginee
 	containername = "Atmospheric circulator crate"
 	group = "Engineering"
 	access = access_engine
+
+/datum/supply_packs/air_dispenser
+	contains = list(/obj/machinery/pipedispenser/orderable)
+	name = "Pipe Dispenser"
+	cost = 35
+	containertype = /obj/structure/closet/crate/secure/large
+	containername = "Pipe Dispenser Crate"
+	group = "Engineering"
+	access = access_atmospherics
+
+/datum/supply_packs/disposals_dispenser
+	contains = list(/obj/machinery/pipedispenser/disposal/orderable)
+	name = "Disposals Pipe Dispenser"
+	cost = 35
+	containertype = /obj/structure/closet/crate/secure/large
+	containername = "Disposal Dispenser Crate"
+	group = "Engineering"
+	access = access_atmospherics
 
 /datum/supply_packs/bee_keeper
 	name = "Beekeeping Crate"

@@ -30,22 +30,20 @@
 		SK.master = E
 		del(src)
 
+/obj/structure/stool/bed/chair/attack_tk(mob/user as mob)
+	if(buckled_mob)
+		..()
+	else
+		rotate()
+	return
+
 /obj/structure/stool/bed/chair/proc/handle_rotation()	//making this into a seperate proc so office chairs can call it on Move()
 	if(src.dir == NORTH)
 		src.layer = FLY_LAYER
 	else
 		src.layer = OBJ_LAYER
-
 	if(buckled_mob)
-		if(buckled_mob.loc != src.loc)
-			buckled_mob.buckled = null //Temporary, so Move() succeeds.
-			if(!buckled_mob.Move(loc))
-				unbuckle()
-				buckled_mob = null
-			else
-				buckled_mob.buckled = src //Restoring
-		if(buckled_mob)
-			buckled_mob.dir = dir
+		buckled_mob.dir = dir
 
 /obj/structure/stool/bed/chair/verb/rotate()
 	set name = "Rotate Chair"
@@ -57,6 +55,8 @@
 		handle_rotation()
 		return
 	else
+		if(istype(usr,/mob/living/simple_animal/mouse))
+			return
 		if(!usr || !isturf(usr.loc))
 			return
 		if(usr.stat || usr.restrained())
@@ -114,6 +114,12 @@
 
 /obj/structure/stool/bed/chair/office/Move()
 	..()
+	if(buckled_mob)
+		buckled_mob.buckled = null //Temporary, so Move() succeeds.
+		var/moved = buckled_mob.Move(src.loc)
+		buckled_mob.buckled = src
+		if(!moved)
+			unbuckle()
 	handle_rotation()
 
 /obj/structure/stool/bed/chair/office/light

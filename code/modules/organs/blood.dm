@@ -55,11 +55,11 @@ var/const/BLOOD_VOLUME_SURVIVE = 122
 		// being pumped properly anymore.
 		var/datum/organ/internal/heart/heart = internal_organs["heart"]
 		switch(heart.damage)
-			if(5 to 10)
+			if(1 to heart.min_bruised_damage)
 				blood_volume *= 0.8
-			if(11 to 20)
-				blood_volume *= 0.5
-			if(21 to INFINITY)
+			if(heart.min_bruised_damage to heart.min_broken_damage)
+				blood_volume *= 0.6
+			if(heart.min_broken_damage to INFINITY)
 				blood_volume *= 0.3
 
 		//Effects of bloodloss
@@ -93,7 +93,7 @@ var/const/BLOOD_VOLUME_SURVIVE = 122
 					src << "\red You feel extremely [word]"
 			if(BLOOD_VOLUME_SURVIVE to BLOOD_VOLUME_BAD)
 				oxyloss += 5
-				toxloss += 5
+				toxloss += 3
 				if(prob(15))
 					var/word = pick("dizzy","woosey","faint")
 					src << "\red You feel extremely [word]"
@@ -163,8 +163,9 @@ var/const/BLOOD_VOLUME_SURVIVE = 122
 
 	//set reagent data
 	B.data["donor"] = src
-	if(src.virus2)
-		B.data["virus2"] = src.virus2.getcopy()
+	if (!B.data["virus2"])
+		B.data["virus2"] = list()
+	B.data["virus2"] |= virus_copylist(src.virus2)
 	B.data["antibodies"] = src.antibodies
 	B.data["blood_DNA"] = copytext(src.dna.unique_enzymes,1,0)
 	if(src.resistances && src.resistances.len)
@@ -188,11 +189,27 @@ var/const/BLOOD_VOLUME_SURVIVE = 122
 	. = ..()
 	vessel.remove_reagent("blood",amount) // Removes blood if human
 
-//Transfers blood from container ot vessels, respecting blood types compatability.
-/mob/living/carbon/human/proc/inject_blood(obj/item/weapon/reagent_containers/container, var/amount)
-	var/datum/reagent/blood/our = get_blood(vessel)
+//Transfers blood from container ot vessels
+/mob/living/carbon/proc/inject_blood(obj/item/weapon/reagent_containers/container, var/amount)
 	var/datum/reagent/blood/injected = get_blood(container.reagents)
 	if (!injected)
+		return
+	src.virus2 |= virus_copylist(injected.data["virus2"])
+	if (injected.data["antibodies"] && prob(5))
+		antibodies |= injected.data["antibodies"]
+	var/list/chems = list()
+	chems = params2list(injected.data["trace_chem"])
+	for(var/C in chems)
+		src.reagents.add_reagent(C, (text2num(chems[C]) / 560) * amount)//adds trace chemicals to owner's blood
+	reagents.update_total()
+
+	container.reagents.remove_reagent("blood", amount)
+
+//Transfers blood from container ot vessels, respecting blood types compatability.
+/mob/living/carbon/human/inject_blood(obj/item/weapon/reagent_containers/container, var/amount)
+	var/datum/reagent/blood/our = get_blood(vessel)
+	var/datum/reagent/blood/injected = get_blood(container.reagents)
+	if (!injected || !our)
 		return
 	if(blood_incompatible(injected.data["blood_type"],our.data["blood_type"]) )
 		reagents.add_reagent("toxin",amount * 0.5)
@@ -200,15 +217,7 @@ var/const/BLOOD_VOLUME_SURVIVE = 122
 	else
 		vessel.add_reagent("blood", amount, injected.data)
 		vessel.update_total()
-
-	var/list/chems = list()
-	chems = params2list(injected.data["trace_chem"])
-	for(var/C in chems)
-		src.reagents.add_reagent(C, (text2num(chems[C]) / 560) * amount)//adds trace chemicals to owner's blood
-		//world << "added [(text2num(chems[C])/560) * amount] = [text2num(chems[C])]/560*[amount] units of [C] to [src]"	//DEBUG
-	reagents.update_total()
-
-	container.reagents.remove_reagent("blood", amount)
+	..()
 
 //Gets human's own blood.
 /mob/living/carbon/proc/get_blood(datum/reagents/container)

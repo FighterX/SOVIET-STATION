@@ -60,7 +60,7 @@ var/list/valid_secondary_effect_types = list(\
 /obj/machinery/artifact
 	name = "alien artifact"
 	desc = "A large alien device."
-	icon = 'xenoarchaeology.dmi'
+	icon = 'icons/obj/xenoarchaeology.dmi'
 	icon_state = "ano00"
 	var/icon_num = 0
 	density = 1
@@ -114,6 +114,11 @@ var/list/valid_secondary_effect_types = list(\
 #define TRIGGER_NITRO 12
 
 /obj/machinery/artifact/process()
+
+	var/turf/L = loc
+	if(isnull(L) || !istype(L)) 	// We're inside a container or on null turf, either way stop processing effects
+		return
+
 	if(my_effect)
 		my_effect.process()
 	if(secondary_effect)

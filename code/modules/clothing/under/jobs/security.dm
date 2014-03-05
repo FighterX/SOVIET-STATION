@@ -13,7 +13,7 @@
 	name = "warden's jumpsuit"
 	icon_state = "warden"
 	item_state = "r_suit"
-	color = "warden"
+	item_color = "warden"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.9
@@ -23,7 +23,7 @@
 	desc = "It's made of a slightly sturdier material than standard jumpsuits, to allow for robust protection."
 	icon_state = "security"
 	item_state = "r_suit"
-	color = "secred"
+	item_color = "secred"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.9
@@ -33,7 +33,7 @@
 	desc = "A dress shirt and khakis with a security patch sewn on."
 	icon_state = "dispatch"
 	item_state = "dispatch"
-	color = "dispatch"
+	item_color = "dispatch"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.9
@@ -43,10 +43,20 @@
 	desc = "It's made of a slightly sturdier material, to allow for robust protection."
 	icon_state = "redshirt2"
 	item_state = "r_suit"
-	color = "redshirt2"
+	item_color = "redshirt2"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.9
+
+/obj/item/clothing/under/rank/security/corp
+	icon_state = "sec_corporate"
+	item_state = "sec_corporate"
+	item_color = "sec_corporate"
+
+/obj/item/clothing/under/rank/warden/corp
+	icon_state = "warden_corporate"
+	item_state = "warden_corporate"
+	item_color = "warden_corporate"
 
 /*
  * Detective
@@ -56,11 +66,27 @@
 	desc = "Someone who wears this means business."
 	icon_state = "detective"
 	item_state = "det"
-	color = "detective"
+	item_color = "detective"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.9
 
+/obj/item/clothing/under/det/black
+	icon_state = "detective2"
+	item_color = "detective2"
+
+/obj/item/clothing/under/det/slob
+	icon_state = "polsuit"
+	item_color = "polsuit"
+
+/obj/item/clothing/under/det/slob/verb/rollup()
+	set name = "Roll suit sleeves"
+	set category = "Object"
+	set src in usr
+	item_color = item_color == "polsuit" ? "polsuit_rolled" : "polsuit"
+	if (ishuman(loc))
+		var/mob/living/carbon/human/H = loc
+		H.update_inv_w_uniform(1)
 
 /obj/item/clothing/head/det_hat
 	name = "hat"
@@ -70,6 +96,10 @@
 	armor = list(melee = 50, bullet = 5, laser = 25,energy = 10, bomb = 0, bio = 0, rad = 0)
 	siemens_coefficient = 0.9
 
+/obj/item/clothing/head/det_hat/black
+	icon_state = "detective2"
+
+
 /*
  * Head of Security
  */
@@ -78,11 +108,15 @@
 	name = "head of security's jumpsuit"
 	icon_state = "hos"
 	item_state = "r_suit"
-	color = "hosred"
+	item_color = "hosred"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	flags = FPRINT | TABLEPASS
 	siemens_coefficient = 0.8
 
+/obj/item/clothing/under/rank/head_of_security/corp
+	icon_state = "hos_corporate"
+	item_state = "hos_corporate"
+	item_color = "hos_corporate"
 
 /obj/item/clothing/head/helmet/HoS
 	name = "Head of Security Hat"
@@ -94,10 +128,9 @@
 	flags_inv = HIDEEARS
 	siemens_coefficient = 0.8
 
-
 /obj/item/clothing/suit/armor/hos
 	name = "armored coat"
-	desc = "A greatcoat enchanced with a special alloy for some protection and style."
+	desc = "A greatcoat enhanced with a special alloy for some protection and style."
 	icon_state = "hos"
 	item_state = "hos"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS|LEGS
@@ -119,7 +152,7 @@
 	name = "head of security's jumpsuit"
 	icon_state = "jensen"
 	item_state = "jensen"
-	color = "jensen"
+	item_color = "jensen"
 	siemens_coefficient = 0.6
 
 /obj/item/clothing/suit/armor/hos/jensen

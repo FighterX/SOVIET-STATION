@@ -1,6 +1,32 @@
 /obj/item/clothing
 	name = "clothing"
+	var/list/species_restricted = null //Only these species can wear this kit.
 
+//BS12: Species-restricted clothing check.
+/obj/item/clothing/mob_can_equip(M as mob, slot)
+
+	if(species_restricted && istype(M,/mob/living/carbon/human))
+
+		var/wearable = null
+		var/exclusive = null
+		var/mob/living/carbon/human/H = M
+
+		if("exclude" in species_restricted)
+			exclusive = 1
+
+		if(H.species)
+			if(exclusive)
+				if(!(H.species.name in species_restricted))
+					wearable = 1
+			else
+				if(H.species.name in species_restricted)
+					wearable = 1
+
+			if(!wearable && (slot != 15 && slot != 16)) //Pockets.
+				M << "\red Your species cannot wear [src]."
+				return 0
+
+	return ..()
 
 //Ears: currently only used for headsets and earmuffs
 /obj/item/clothing/ears
@@ -9,12 +35,60 @@
 	throwforce = 2
 	slot_flags = SLOT_EARS
 
+/obj/item/clothing/ears/attack_hand(mob/user as mob)
+	if (!user) return
+
+	if (src.loc != user || !istype(user,/mob/living/carbon/human))
+		..()
+		return
+
+	var/mob/living/carbon/human/H = user
+	if(H.l_ear != src && H.r_ear != src)
+		..()
+		return
+
+	if(!canremove)
+		return
+
+	var/obj/item/clothing/ears/O
+	if(slot_flags & SLOT_TWOEARS )
+		O = (H.l_ear == src ? H.r_ear : H.l_ear)
+		user.u_equip(O)
+		if(!istype(src,/obj/item/clothing/ears/offear))
+			del(O)
+			O = src
+	else
+		O = src
+
+	user.u_equip(src)
+
+	if (O)
+		user.put_in_hands(O)
+		O.add_fingerprint(user)
+
+	if(istype(src,/obj/item/clothing/ears/offear))
+		del(src)
+
+/obj/item/clothing/ears/offear
+	name = "Other ear"
+	w_class = 5.0
+	icon = 'icons/mob/screen1_Midnight.dmi'
+	icon_state = "block"
+	slot_flags = SLOT_EARS | SLOT_TWOEARS
+
+	New(var/obj/O)
+		name = O.name
+		desc = O.desc
+		icon = O.icon
+		icon_state = O.icon_state
+		dir = O.dir
+
 /obj/item/clothing/ears/earmuffs
 	name = "earmuffs"
 	desc = "Protects your hearing from loud noises, and quiet ones as well."
 	icon_state = "earmuffs"
 	item_state = "earmuffs"
-
+	slot_flags = SLOT_EARS | SLOT_TWOEARS
 
 //Glasses
 /obj/item/clothing/glasses
@@ -47,9 +121,11 @@ BLIND     // can't see anything
 	siemens_coefficient = 0.50
 	var/wired = 0
 	var/obj/item/weapon/cell/cell = 0
+	var/clipped = 0
 	body_parts_covered = HANDS
 	slot_flags = SLOT_GLOVES
 	attack_verb = list("challenged")
+	species_restricted = list("exclude","Unathi","Tajaran")
 
 /obj/item/clothing/gloves/examine()
 	set src in usr
@@ -65,6 +141,9 @@ BLIND     // can't see anything
 			cell.reliability -= 10 / severity
 	..()
 
+// Called just before an attack_hand(), in mob/UnarmedAttack()
+/obj/item/clothing/gloves/proc/Touch(var/atom/A, var/proximity)
+	return 0 // return 1 to cancel attack_hand()
 
 //Head
 /obj/item/clothing/head
@@ -94,6 +173,7 @@ BLIND     // can't see anything
 
 	permeability_coefficient = 0.50
 	slowdown = SHOES_SLOWDOWN
+	species_restricted = list("exclude","Unathi","Tajaran")
 
 //Suit
 /obj/item/clothing/suit
@@ -122,6 +202,7 @@ BLIND     // can't see anything
 	cold_protection = HEAD
 	min_cold_protection_temperature = SPACE_HELMET_MIN_COLD_PROTECITON_TEMPERATURE
 	siemens_coefficient = 0.9
+	species_restricted = list("exclude","Diona","Vox")
 
 /obj/item/clothing/suit/space
 	name = "Space suit"
@@ -140,7 +221,7 @@ BLIND     // can't see anything
 	cold_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS | HANDS
 	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECITON_TEMPERATURE
 	siemens_coefficient = 0.9
-
+	species_restricted = list("exclude","Diona","Vox")
 
 //Under clothing
 /obj/item/clothing/under
@@ -167,8 +248,12 @@ BLIND     // can't see anything
 		hastie = I
 		I.loc = src
 		user << "<span class='notice'>You attach [I] to [src].</span>"
+
 		if (istype(hastie,/obj/item/clothing/tie/holster))
 			verbs += /obj/item/clothing/under/proc/holster
+
+		if (istype(hastie,/obj/item/clothing/tie/storage))
+			verbs += /obj/item/clothing/under/proc/storage
 
 		if(istype(loc, /mob/living/carbon/human))
 			var/mob/living/carbon/human/H = loc
@@ -228,10 +313,17 @@ BLIND     // can't see anything
 	if(usr.stat) return
 
 	if(hastie)
-		usr.put_in_hands(hastie)
-		hastie = null
 		if (istype(hastie,/obj/item/clothing/tie/holster))
 			verbs -= /obj/item/clothing/under/proc/holster
+
+		if (istype(hastie,/obj/item/clothing/tie/storage))
+			verbs -= /obj/item/clothing/under/proc/storage
+			var/obj/item/clothing/tie/storage/W = hastie
+			if (W.hold)
+				W.hold.close(usr)
+
+		usr.put_in_hands(hastie)
+		hastie = null
 
 		if(istype(loc, /mob/living/carbon/human))
 			var/mob/living/carbon/human/H = loc
@@ -277,3 +369,23 @@ BLIND     // can't see anything
 				"\blue You draw \the [H.holstered], pointing it at the ground.")
 			usr.put_in_hands(H.holstered)
 			H.holstered = null
+
+/obj/item/clothing/under/proc/storage()
+	set name = "Look in storage"
+	set category = "Object"
+	set src in usr
+	if(!istype(usr, /mob/living)) return
+	if(usr.stat) return
+
+	if (!hastie || !istype(hastie,/obj/item/clothing/tie/storage))
+		usr << "\red You need something to store items in for that!"
+		return
+	var/obj/item/clothing/tie/storage/W = hastie
+
+	if (!istype(W.hold))
+		return
+
+	W.hold.loc = usr
+	W.hold.attack_hand(usr)
+
+
