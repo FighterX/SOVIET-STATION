@@ -48,7 +48,6 @@
 	if(name != real_name)
 		alt_name = " (died as [real_name])"
 
-	replacetext(message, "я", "Я")
 	message = src.say_quote(message)
 	var/rendered = "<span class='game deadsay'><span class='prefix'>DEAD:</span> <span class='name'>[name]</span>[alt_name] <span class='message'>[message]</span></span>"
 
