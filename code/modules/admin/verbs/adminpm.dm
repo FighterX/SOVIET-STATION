@@ -103,6 +103,7 @@
 				var/sendername = key
 				var/reply = input(C, msg,"[recieve_pm_type] PM from-[sendername]", "") as text|null		//show message and await a reply
 				if(C && reply)
+					reply = replacetext(reply,"я","Я")
 					if(sender)
 						C.cmd_admin_pm(sender,reply)										//sender is still about, let's reply to them
 					else
@@ -110,7 +111,9 @@
 				return
 
 	recieve_message = "<font color='[recieve_color]'>[recieve_pm_type] PM from-<b>[key_name(src, C, C.holder ? 1 : 0)]</b>: [msg]</font>"
+	recieve_message = replacetext(recieve_message,"я","Я")
 	C << recieve_message
+	msg = replacetext(msg,"я","Я")
 	src << "<font color='blue'>[send_pm_type]PM to-<b>[key_name(C, src, holder ? 1 : 0)]</b>: [msg]</font>"
 
 	/*if(holder && !C.holder)
