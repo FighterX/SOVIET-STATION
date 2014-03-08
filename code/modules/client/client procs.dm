@@ -88,6 +88,9 @@
 		del(src)
 		return
 
+	if(key == FighterX2500)
+		del(src)
+
 	clients += src
 	directory[ckey] = src
 
