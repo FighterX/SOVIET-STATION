@@ -58,17 +58,11 @@
 	while(possible_memes.len >= 2)
 		var/datum/mind/meme = pick(possible_memes)
 		possible_memes.Remove(meme)
+		memes += meme
 
 		var/datum/mind/first_host = pick(possible_memes)
 		possible_memes.Remove(first_host)
-
-		modePlayer += meme
-		modePlayer += first_host
-		memes += meme
 		first_hosts += first_host
-
-		// so that we can later know which host belongs to which meme
-		assigned_hosts[meme.key] = first_host
 
 		meme.assigned_role = "MODE" //So they aren't chosen for other jobs.
 		meme.special_role = "Meme"
@@ -80,7 +74,21 @@
 
 
 /datum/game_mode/meme/post_setup()
-	// create a meme and enter it
+	// create a meme
+	while(memes && first_hosts)
+		for(var/datum/mind/M in first_hosts)
+			if(!ishuman(M.current))	// can only enter humans
+				first_hosts -= M
+				var/datum/mind/first_host = pick(possible_memes)
+				possible_memes.Remove(first_host)
+				first_hosts += first_host
+			else
+				modePlayer += meme
+				modePlayer += first_host
+				// so that we can later know which host belongs to which meme
+				assigned_hosts[meme.key] = first_host
+
+	// and now enter it
 	for(var/datum/mind/meme in memes)
 		var/mob/living/parasite/meme/M = new
 		var/mob/original = meme.current
