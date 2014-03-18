@@ -5,7 +5,7 @@
 /datum/game_mode/meme
 	name = "Memetic Anomaly"
 	config_tag = "meme"
-	required_players = 3
+	required_players = 6
 	required_players_secret = 10
 	restricted_jobs = list("AI", "Cyborg")
 	recommended_enemies = 2 // need at least a meme and a host
@@ -13,8 +13,8 @@
 
 
 
-	var/var/list/datum/mind/first_hosts = list()
-	var/var/list/assigned_hosts = list()
+	var/list/datum/mind/first_hosts = list()
+	var/list/assigned_hosts = list()
 
 	var/const/prob_int_murder_target = 50 // intercept names the assassination target half the time
 	var/const/prob_right_murder_target_l = 25 // lower bound on probability of naming right assassination target
@@ -47,7 +47,6 @@
 	// for every 10 players, get 1 meme, and for each meme, get a host
 	// also make sure that there's at least one meme and one host
 	recommended_enemies = max(src.num_players() / 20 * 2, 2)
-
 	var/list/datum/mind/possible_memes = get_players_for_role(BE_MEME)
 
 	if(possible_memes.len < 2)
@@ -75,18 +74,20 @@
 
 /datum/game_mode/meme/post_setup()
 	// create a meme
+	var/list/datum/mind/possible_memes = get_players_for_role(BE_MEME)
+	var/datum/mind/first_host
 	while(memes && first_hosts)
 		for(var/datum/mind/M in first_hosts)
 			if(!ishuman(M.current))	// can only enter humans
 				first_hosts -= M
-				var/datum/mind/first_host = pick(possible_memes)
+				first_host = pick(possible_memes)
 				possible_memes.Remove(first_host)
 				first_hosts += first_host
 			else
-				modePlayer += meme
+				modePlayer += M
 				modePlayer += first_host
 				// so that we can later know which host belongs to which meme
-				assigned_hosts[meme.key] = first_host
+				assigned_hosts[M.key] = first_host
 
 	// and now enter it
 	for(var/datum/mind/meme in memes)
@@ -96,7 +97,7 @@
 		M.clearHUD()
 
 		// get the host for this meme
-		var/datum/mind/first_host = assigned_hosts[meme.key]
+		first_host = assigned_hosts[meme.key]
 		// this is a redundant check, but I don't think the above works..
 		// if picking hosts works with this method, remove the method above
 		if(!first_host)
@@ -122,15 +123,22 @@
 	attune_objective.gen_amount_goal(3,6)
 	meme.objectives += attune_objective
 
+	var/datum/objective/assassinate/kill_objective = new
+	kill_objective.owner = meme
+	kill_objective.find_target()
+	meme.objectives += kill_objective
+
+	var/datum/objective/survive/survive_objective = new
+	survive_objective.owner = meme
+	meme.objectives += survive_objective
+
 	// generate some random objectives, use standard traitor objectives
-	var/job = first_host.assigned_role
+//	var/job = first_host.assigned_role
 
-	for(var/datum/objective/o in SelectObjectives(job, meme))
+/*	for(var/datum/objective/o in SelectObjectives(job, meme))
 		o.owner = meme
-		meme.objectives += o
-
+		meme.objectives += o */
 	greet_meme(meme)
-
 	return
 
 /datum/game_mode/proc/greet_meme(var/datum/mind/meme, var/you_are=1)
