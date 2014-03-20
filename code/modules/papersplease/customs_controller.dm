@@ -26,9 +26,8 @@ var/datum/controller/customs_controller/Customs = new()
 /datum/controller/customs_controller/proc/process()
 	spawn(0)
 		set background = 1
-		var/checked = 0
-
 		while(1)
+			var/checked = 0
 			var/list/search = world.contents.Copy()
 			for(var/area/customs/check in search)
 				if(istype(check))
@@ -45,12 +44,10 @@ var/datum/controller/customs_controller/Customs = new()
 					break
 
 			//world.log << "DONE SEARCHING!"
-			world.log << checked
+			//world.log << checked
 			for(var/obj/structure/id_machine/change in search)
 				change.enabled = !checked
 			for(var/obj/structure/id_machine_customs/change in search)
 				change.enabled = checked
-
-			checked = 0
 
 			sleep(600)			//~1 min
