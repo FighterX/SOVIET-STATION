@@ -35,6 +35,7 @@
 	item_state = "glasses"
 	origin_tech = "magnets=2"
 	darkness_view = 5
+	vision_flags = SEE_TURFS
 
 /obj/item/clothing/glasses/eyepatch
 	name = "eyepatch"
