@@ -29,9 +29,7 @@
 		else
 			M << "\red You can't stick \the [W] to \the [src]!"
 	if(emagged)
-		M << "\red OH GOD WHAT THE **** IS HAPPENING!?"
-		for(var/mob/M in view(src))
-			M << "\red The [src] bites [M]'s hand off!"
+		src.visible_message("\red The [src] bites [M]'s hand off!","\red OH GOD WHAT THE **** IS HAPPENING!?")
 		var/organ/external/hand = get_active_hand(M)
 		hand.drop_limb()  //He-he-he...
 		M.update_icons()
