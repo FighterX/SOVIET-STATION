@@ -1238,7 +1238,7 @@ ________________________________________________________________________________
 		var/chance = rand(1,100)
 		switch(chance)
 			if(1 to 50)//High chance of a regular name.
-				voice = "[rand(0,1)==1?pick(first_names_female):pick(first_names_male)] [pick(last_names)]"
+				voice = "[rand(0,1)==1?pick(first_names_female):pick(first_names_male)] [pick(last_names_male)]"
 			if(51 to 80)//Smaller chance of a clown name.
 				voice = "[pick(clown_names)]"
 			if(81 to 90)//Small chance of a wizard name.
