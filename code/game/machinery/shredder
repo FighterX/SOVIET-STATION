@@ -7,7 +7,7 @@
 	idle_power_usage = 5
 
 	attack_by(obj/item/weapon/W as obj, mob/living/carbon/M as mob)
-		if(!(NOPOWER|BROKEN))
+		if((NOPOWER|BROKEN))
 			return
 		if(istype(W, /obj/item/weapon/paper))
 			var/alert = alert("Are you sure you want to destroy this paper?","Shredder","Yes","No")
@@ -22,8 +22,23 @@
 			if(prob(60))
 				M << "\red The [src] pulls \the [W] inside! You can't resist it!"
 				del(W)
+		else if(istype(W, /obj/item/weapon/wrench))
+			src.visible_message("The [src] has been [anchored?"unwrenched":"wrenched"] by [M].")
+			if(!anchored)
+				anchored = 1
+			else
+				anchored = 0
+		else if(istype(W, /obj/item/weapon/weldingtool))
+			var/obj/item/weapon/weldingtool/WT = W
+			if(WT.welding == 1)
+				if(!WT.remove_fuel(0,M))
+					M << "<span class='notice'>You need more welding fuel to complete this task.</span>"
+					return
+				src.visible_message(""<span class='notice'>\The [src] has been cut apart by [M] with \the [WT].</span>"")
+				new /obj/item/stack/sheet/metal(src.loc)
+				del(src)
 		else
-			if(W.w_class = 1)
+			if(W.w_class == 1)
 				var/alert = alert("Are you sure you want to destroy this [W]?","Shredder","Yes","No")
 				if(alert=="Yes")
 					M << "You stick [W] to the [src]!"
@@ -32,8 +47,18 @@
 					del(W)	
 			else
 				M << "\red You can't stick \the [W] to \the [src]!"
-		if(emagged)
+		if(emagged && prob(50))
 			src.visible_message("\red The [src] bites [M]'s hand off!","\red OH GOD WHAT THE **** IS HAPPENING!?")
 			var/organ/external/hand = get_active_hand(M)
 			hand.drop_limb()  //He-he-he...
 			M.update_icons()
+
+	
+	emp_act(severity)
+		if(severity<=2)
+			stat = BROKEN
+
+	ex_act(severity)
+		if(severity<=2)
+			del(src)
+
