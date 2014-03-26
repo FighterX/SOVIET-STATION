@@ -408,7 +408,7 @@ client/proc/one_click_antag()
 	var/mob/living/carbon/human/new_syndicate_commando = new(spawn_location.loc)
 	var/syndicate_commando_leader_rank = pick("Lieutenant", "Captain", "Major")
 	var/syndicate_commando_rank = pick("Corporal", "Sergeant", "Staff Sergeant", "Sergeant 1st Class", "Master Sergeant", "Sergeant Major")
-	var/syndicate_commando_name = pick(last_names)
+	var/syndicate_commando_name = pick(last_names_male)
 
 	new_syndicate_commando.gender = pick(MALE, FEMALE)
 
