@@ -9,27 +9,31 @@
 	attack_by(obj/item/weapon/W as obj, mob/living/carbon/M as mob)
 		if(!(NOPOWER|BROKEN))
 			return
-	if(istype(W, /obj/item/weapon/paper))
-		M << "You insert [W] to the [src] and it loads the paper hungrily."
-		flick("shredder_1", src)
-		playsound(loc, 'sound/machines/juicer.ogg', 100, 1) //Insert your sound here.
-		del(W)
-	else if(istype(W, /obj/item/weapon/card/emag))
-		emagged = 1
-		idle_power_usage = 100
-		if(prob(60))
-			M << "\red The [src] pulls \the [W] inside! You can't resist it!"
-			del(W)
-	else
-		if(W.w_class = 1)
-			M << "You stick [W] to the [src]!"
-			flick("shredder_1", src)
-			playsound(loc, 'sound/machines/juicer.ogg', 100, 1) //Insert your sound here.
-			del(W)	
+		if(istype(W, /obj/item/weapon/paper))
+			var/alert = alert("Are you sure you want to destroy this paper?","Shredder","Yes","No")
+			if(alert=="Yes")
+				M << "You insert [W] to the [src] and it loads the paper hungrily."
+				flick("shredder_1", src)
+				playsound(loc, 'sound/machines/juicer.ogg', 100, 1) //Insert your sound here.
+				del(W)
+		else if(istype(W, /obj/item/weapon/card/emag))
+			emagged = 1
+			idle_power_usage = 100
+			if(prob(60))
+				M << "\red The [src] pulls \the [W] inside! You can't resist it!"
+				del(W)
 		else
-			M << "\red You can't stick \the [W] to \the [src]!"
-	if(emagged)
-		src.visible_message("\red The [src] bites [M]'s hand off!","\red OH GOD WHAT THE **** IS HAPPENING!?")
-		var/organ/external/hand = get_active_hand(M)
-		hand.drop_limb()  //He-he-he...
-		M.update_icons()
+			if(W.w_class = 1)
+				var/alert = alert("Are you sure you want to destroy this [W]?","Shredder","Yes","No")
+				if(alert=="Yes")
+					M << "You stick [W] to the [src]!"
+					flick("shredder_1", src)
+					playsound(loc, 'sound/machines/juicer.ogg', 100, 1) //Insert your sound here.
+					del(W)	
+			else
+				M << "\red You can't stick \the [W] to \the [src]!"
+		if(emagged)
+			src.visible_message("\red The [src] bites [M]'s hand off!","\red OH GOD WHAT THE **** IS HAPPENING!?")
+			var/organ/external/hand = get_active_hand(M)
+			hand.drop_limb()  //He-he-he...
+			M.update_icons()
