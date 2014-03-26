@@ -105,9 +105,8 @@
 				//user << W.job
 				Customs.given_enzymes += user.dna.unique_enzymes
 				Customs.given_unique += user.dna.uni_identity
-				var/list/all_jobs = typesof(/datum/job)
 				var/obj/item/weapon/card/id/new_id = null
-				for(var/J in all_jobs)
+				for(var/J in (typesof(/datum/job) - /datum/job))
 					var/datum/job/n_job = new J()
 					//world << n_job.title
 					if( (W.job == n_job.title) || (W.job in n_job.alt_titles))
@@ -149,9 +148,8 @@
 /obj/structure/id_machine_customs/attackby(obj/item/weapon/papersplease/workdoc/W, mob/living/carbon/human/user as mob)
 	if(enabled)
 		if(istype(W))
-			var/list/all_jobs = typesof(/datum/job)
 			var/obj/item/weapon/card/id/new_id = null
-			for(var/J in all_jobs)
+			for(var/J in (typesof(/datum/job) - /datum/job))
 				var/datum/job/n_job = new J()
 				if((W.job == n_job.title) || (W.job in n_job.alt_titles))
 					new_id = new n_job.idtype(loc)
