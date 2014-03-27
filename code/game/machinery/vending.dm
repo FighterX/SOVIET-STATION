@@ -173,7 +173,7 @@
 				if(D)
 					var/transaction_amount = currently_vending.price
 					if(transaction_amount <= D.money)
-	
+
 						//transfer the money
 						D.money -= transaction_amount
 						vendor_account.money += transaction_amount
@@ -630,6 +630,14 @@
 						/obj/item/weapon/wirecutters = 1, /obj/item/weapon/cartridge/signal = 4)
 	contraband = list(/obj/item/device/flashlight = 5,/obj/item/device/assembly/timer = 2)
 	product_ads = "Only the finest!;Have some tools.;The most robust equipment.;The finest gear in space!"
+
+/obj/machinery/vending/bloodvend
+	name = "\improper Smart Blood Storage"
+	icon = 'icons/obj/vending.dmi'
+	icon_state = "smartfridge"
+	products = list(/obj/item/weapon/reagent_containers/blood/AMinus = 3,/obj/item/weapon/reagent_containers/blood/APlus = 3,/obj/item/weapon/reagent_containers/blood/BMinus = 3,
+	                /obj/item/weapon/reagent_containers/blood/BPlus = 3,/obj/item/weapon/reagent_containers/blood/OMinus = 3,/obj/item/weapon/reagent_containers/blood/OPlus = 3)
+	product_ads = "Just blood. So blood."
 
 /obj/machinery/vending/coffee
 	name = "Hot Drinks machine"
