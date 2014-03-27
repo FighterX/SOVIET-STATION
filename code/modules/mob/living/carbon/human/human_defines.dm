@@ -56,3 +56,6 @@
 	var/xylophone = 0 //For the spoooooooky xylophone cooldown
 
 	var/mob/remoteview_target = null
+
+
+	var/hungry = 0 //To determinate, whether we should get damage or not.
