@@ -53,9 +53,9 @@
 				name = body.real_name
 			else
 				if(gender == MALE)
-					name = capitalize(pick(first_names_male)) + " " + capitalize(pick(last_names))
+					name = capitalize(pick(first_names_male)) + " " + capitalize(pick(last_names_male))
 				else
-					name = capitalize(pick(first_names_female)) + " " + capitalize(pick(last_names))
+					name = capitalize(pick(first_names_female)) + " " + capitalize(pick(last_names_female))
 
 		mind = body.mind	//we don't transfer the mind but we keep a reference to it.
 
@@ -63,7 +63,7 @@
 	loc = T
 
 	if(!name)							//To prevent nameless ghosts
-		name = capitalize(pick(first_names_male)) + " " + capitalize(pick(last_names))
+		name = capitalize(pick(first_names_male)) + " " + capitalize(pick(last_names_male))
 	real_name = name
 	..()
 

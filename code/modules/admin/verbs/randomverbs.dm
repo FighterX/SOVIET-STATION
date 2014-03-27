@@ -436,9 +436,9 @@ Traitors and the like can also be revived with the previous role mostly intact.
 
 	if(!new_character.real_name)
 		if(new_character.gender == MALE)
-			new_character.real_name = capitalize(pick(first_names_male)) + " " + capitalize(pick(last_names))
+			new_character.real_name = capitalize(pick(first_names_male)) + " " + capitalize(pick(last_names_male))
 		else
-			new_character.real_name = capitalize(pick(first_names_female)) + " " + capitalize(pick(last_names))
+			new_character.real_name = capitalize(pick(first_names_female)) + " " + capitalize(pick(last_names_female))
 	new_character.name = new_character.real_name
 
 	if(G_found.mind && !G_found.mind.active)
