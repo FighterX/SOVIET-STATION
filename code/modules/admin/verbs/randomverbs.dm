@@ -56,6 +56,9 @@
 
 	if (!msg)
 		return
+		
+	msg = replacetext(msg,"я","Я")
+
 	if(usr)
 		if (usr.client)
 			if(usr.client.holder)
@@ -77,6 +80,8 @@
 
 	if (!msg)
 		return
+		
+	msg = replacetext(msg,"я","Я")
 	world << "[msg]"
 	log_admin("GlobalNarrate: [key_name(usr)] : [msg]")
 	message_admins("\blue \bold GlobalNarrate: [key_name_admin(usr)] : [msg]<BR>", 1)
