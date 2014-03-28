@@ -933,6 +933,17 @@
 		else
 			if(overeatduration > 1)
 				overeatduration -= 2 //doubled the unfat rate
+				
+		
+		if(nutrition < 100)
+			if(hungry == 0)
+				hungry = 100
+				adjustToxLoss(5)	//Guess that's enough?
+		else
+			if(hungry > 0)
+				hungry--
+		
+		
 
 		if(species.flags & REQUIRE_LIGHT)
 			if(nutrition < 200)

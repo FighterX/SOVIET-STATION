@@ -453,9 +453,9 @@
 		while (!i)
 			var/randomname
 			if (O.gender == MALE)
-				randomname = capitalize(pick(first_names_male) + " " + capitalize(pick(last_names)))
+				randomname = capitalize(pick(first_names_male) + " " + capitalize(pick(last_names_male)))
 			else
-				randomname = capitalize(pick(first_names_female) + " " + capitalize(pick(last_names)))
+				randomname = capitalize(pick(first_names_female) + " " + capitalize(pick(last_names_female)))
 			if (findname(randomname))
 				continue
 			else

@@ -40,3 +40,4 @@ bolidhell - Nobleman
 pinokkio - Jr.Minister
 maks278 - Jr.Minister
 mikasempai - Jr.Minister
+aleksix - Ministry Coder

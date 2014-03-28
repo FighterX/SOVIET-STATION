@@ -6,7 +6,8 @@ var/list/ninja_names = file2list("config/names/ninjaname.txt")
 var/list/commando_names = file2list("config/names/death_commando.txt")
 var/list/first_names_male = file2list("config/names/first_male.txt")
 var/list/first_names_female = file2list("config/names/first_female.txt")
-var/list/last_names = file2list("config/names/last.txt")
+var/list/last_names_male = file2list("config/names/last_male.txt")
+var/list/last_names_female = file2list("config/names/last_female.txt")
 var/list/clown_names = file2list("config/names/clown.txt")
 
 

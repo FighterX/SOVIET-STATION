@@ -45,6 +45,15 @@
 		return 1
 	return 0
 
+/obj/machinery/smartfridge/chemistry
+	name = "\improper Chemicals Storage"
+	desc = "For all cool things chemical!"
+
+/obj/machinery/smartfridge/chemistry/accept_check(var/obj/item/O as obj)
+	if(istype(O,/obj/item/weapon/storage/pill_bottle) || istype(O,/obj/item/weapon/reagent_containers/glass/bottle))
+		return 1
+	return 0
+
 
 /obj/machinery/smartfridge/power_change()
 	if( powered() )
