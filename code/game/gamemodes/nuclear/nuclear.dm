@@ -357,7 +357,7 @@
 
 
 /*/proc/nukelastname(var/mob/M as mob) //--All praise goes to NEO|Phyte, all blame goes to DH, and it was Cindi-Kate's idea. Also praise Urist for copypasta ho.
-	var/randomname = pick(last_names)
+	var/randomname = pick(last_names_male)
 	var/newname = copytext(sanitize(input(M,"You are the nuke operative [pick("Czar", "Boss", "Commander", "Chief", "Kingpin", "Director", "Overlord")]. Please choose a last name for your family.", "Name change",randomname)),1,MAX_NAME_LEN)
 
 	if (!newname)
@@ -374,8 +374,8 @@
 	for(var/datum/mind/synd_mind in syndicates)
 		switch(synd_mind.current.gender)
 			if(MALE)
-				synd_mind.name = "[pick(first_names_male)] [pick(last_names)]"
+				synd_mind.name = "[pick(first_names_male)] [pick(last_names_male)]"
 			if(FEMALE)
-				synd_mind.name = "[pick(first_names_female)] [pick(last_names)]"
+				synd_mind.name = "[pick(first_names_female)] [pick(last_names_female)]"
 		synd_mind.current.real_name = synd_mind.name
 	return

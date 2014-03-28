@@ -198,7 +198,7 @@ var/syndicate_code_response//Code response for traitors.
 						else
 							code_phrase += pick(pick(first_names_male,first_names_female))
 							code_phrase += " "
-							code_phrase += pick(last_names)
+							code_phrase += pick(last_names_male)
 					if(2)
 						code_phrase += pick(get_all_jobs())//Returns a job.
 				safety -= 1
@@ -246,7 +246,7 @@ var/syndicate_code_response//Code response for traitors.
 			syndicate_code_phrase += " "
 			syndicate_code_phrase += pick(pick(first_names_male,first_names_female))
 			syndicate_code_phrase += " "
-			syndicate_code_phrase += pick(last_names)
+			syndicate_code_phrase += pick(last_names_male)
 			syndicate_code_phrase += "."
 		if(2)
 			syndicate_code_phrase += pick("How do I get to","How do I find","Where is","Where do I find")
@@ -296,7 +296,7 @@ var/syndicate_code_response//Code response for traitors.
 				if(prob(50))
 					syndicate_code_response += pick(pick(first_names_male,first_names_female))
 					syndicate_code_response += " "
-					syndicate_code_response += pick(last_names)
+					syndicate_code_response += pick(last_names_male)
 				else
 					syndicate_code_response += " the "
 					syndicate_code_response += "[pic(get_all_jobs())]"
