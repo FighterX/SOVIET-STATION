@@ -592,24 +592,13 @@
 || A Deck of Cards for playing various games of chance ||
 */
 
-
-
 obj/item/toy/cards
 	var/parentdeck = null
 	var/deckstyle = "nanotrasen"
-	var/card_hitsound = null
-	var/card_force = 0
-	var/card_throwforce = 0
-	var/card_throw_speed = 3
-	var/card_throw_range = 7
-	var/list/card_attack_verb = list("attacked")
+	var/card_type = /obj/item/toy/cards/singlecard
 
 obj/item/toy/cards/New()
 	..()
-
-obj/item/toy/cards/proc/apply_card_vars(obj/item/toy/cards/newobj, obj/item/toy/cards/sourceobj) // Applies variables for supporting multiple types of card deck
-	if(!istype(sourceobj))
-		return
 
 obj/item/toy/cards/deck
 	name = "deck of cards"
@@ -624,28 +613,48 @@ obj/item/toy/cards/deck
 obj/item/toy/cards/deck/New()
 	..()
 	icon_state = "deck_[deckstyle]_full"
-	for(var/i = 2; i <= 10; i++)
+	cards += "Ace of Diamonds"
+	cards += "Ace of Clubs"
+	cards += "Ace of Spades"
+	cards += "Ace of Hearts"
+	cards += "Jack of Diamonds"
+	cards += "Jack of Clubs"
+	cards += "Jack of Spades"
+	cards += "Jack of Hearts"
+	cards += "Queen of Diamonds"
+	cards += "Queen of Clubs"
+	cards += "Queen of Spades"
+	cards += "Queen of Hearts"
+	cards += "King of Diamonds"
+	cards += "King of Clubs"
+	cards += "King of Spades"
+	cards += "King of Hearts"
+	for(var/i = 10; i >= 6; i--)
 		cards += "[i] of Hearts"
 		cards += "[i] of Spades"
 		cards += "[i] of Clubs"
 		cards += "[i] of Diamonds"
-	cards += "King of Hearts"
-	cards += "King of Spades"
-	cards += "King of Clubs"
-	cards += "King of Diamonds"
-	cards += "Queen of Hearts"
-	cards += "Queen of Spades"
-	cards += "Queen of Clubs"
-	cards += "Queen of Diamonds"
-	cards += "Jack of Hearts"
-	cards += "Jack of Spades"
-	cards += "Jack of Clubs"
-	cards += "Jack of Diamonds"
-	cards += "Ace of Hearts"
-	cards += "Ace of Spades"
-	cards += "Ace of Clubs"
-	cards += "Ace of Diamonds"
 
+obj/item/toy/cards/deck/shortdeck
+	desc = "A short deck of space-grade playing cards."
+
+obj/item/toy/cards/deck/fulldeck
+	desc = "A full deck of space-grade playing cards."
+
+obj/item/toy/cards/deck/fulldeck/New()
+	..()
+	for(var/i = 5; i >= 2; i--)
+		cards += "[i] of Hearts"
+		cards += "[i] of Spades"
+		cards += "[i] of Clubs"
+		cards += "[i] of Diamonds"
+
+obj/item/toy/cards/deck/fulldeck/syndicate
+	name = "suspicious looking deck of cards"
+	desc = "A deck of space-grade playing cards. They seem unusually rigid."
+	deckstyle = "syndicate"
+	icon_state = "deck_syndicate_full"
+	card_type = /obj/item/toy/cards/singlecard/syndicate
 
 obj/item/toy/cards/deck/attack_hand(mob/user as mob)
 	var/choice = null
@@ -653,12 +662,10 @@ obj/item/toy/cards/deck/attack_hand(mob/user as mob)
 		src.icon_state = "deck_[deckstyle]_empty"
 		user << "<span class='notice'>There are no more cards to draw.</span>"
 		return
-	var/obj/item/toy/cards/singlecard/H = new/obj/item/toy/cards/singlecard(user.loc)
+	var/obj/item/toy/cards/singlecard/H = new src.card_type
 	choice = cards[1]
 	H.cardname = choice
 	H.parentdeck = src
-	var/O = src
-	H.apply_card_vars(H,O)
 	src.cards -= choice
 	H.pickup(user)
 	user.put_in_active_hand(H)
@@ -739,8 +746,6 @@ obj/item/toy/cards/deck/attackby(obj/item/toy/cards/cardhand/C, mob/living/user)
 	else
 		usr << "<span class='notice'>You can't reach it from here.</span>"
 
-
-
 obj/item/toy/cards/cardhand
 	name = "hand of cards"
 	desc = "A number of cards not in a deck, customarily held in ones hand."
@@ -772,15 +777,13 @@ obj/item/toy/cards/cardhand/Topic(href, href_list)
 	if(usr.stat || !ishuman(usr) || !usr.canmove)
 		return
 	var/mob/living/carbon/human/cardUser = usr
-	var/O = src
 	if(href_list["pick"])
-		if (cardUser.get_active_hand() == src || cardUser.get_active_hand() == src)
+		if (cardUser.get_active_hand() == src || cardUser.get_inactive_hand() == src)
 			var/choice = href_list["pick"]
-			var/obj/item/toy/cards/singlecard/C = new/obj/item/toy/cards/singlecard(cardUser.loc)
+			var/obj/item/toy/cards/singlecard/C = new src.card_type(cardUser.loc)
 			src.currenthand -= choice
 			C.parentdeck = src.parentdeck
 			C.cardname = choice
-			C.apply_card_vars(C,O)
 			C.pickup(cardUser)
 			cardUser.put_in_any_hand_if_possible(C)
 			cardUser.visible_message("<span class='notice'>[cardUser] draws a card from \his hand.</span>", "<span class='notice'>You take the [C.cardname] from your hand.</span>")
@@ -793,10 +796,9 @@ obj/item/toy/cards/cardhand/Topic(href, href_list)
 			else if(src.currenthand.len < 5)
 				src.icon_state = "[deckstyle]_hand4"
 			if(src.currenthand.len == 1)
-				var/obj/item/toy/cards/singlecard/N = new/obj/item/toy/cards/singlecard(src.loc)
+				var/obj/item/toy/cards/singlecard/N = new src.card_type(cardUser.loc)
 				N.parentdeck = src.parentdeck
 				N.cardname = src.currenthand[1]
-				N.apply_card_vars(N,O)
 				cardUser.u_equip(src)
 				N.pickup(cardUser)
 				cardUser.put_in_any_hand_if_possible(N)
@@ -822,27 +824,32 @@ obj/item/toy/cards/cardhand/attackby(obj/item/toy/cards/singlecard/C, mob/living
 		else
 			user << "<span class='notice'>You can't mix cards from other decks.</span>"
 
-obj/item/toy/cards/cardhand/apply_card_vars(obj/item/toy/cards/newobj,obj/item/toy/cards/sourceobj)
-	..()
-	newobj.deckstyle = sourceobj.deckstyle
-	newobj.icon_state = "[deckstyle]_hand2" // Another dumb hack, without this the hand is invisible (or has the default deckstyle) until another card is added.
-	newobj.card_hitsound = sourceobj.card_hitsound
-	newobj.card_force = sourceobj.card_force
-	newobj.card_throwforce = sourceobj.card_throwforce
-	newobj.card_throw_speed = sourceobj.card_throw_speed
-	newobj.card_throw_range = sourceobj.card_throw_range
-	newobj.card_attack_verb = sourceobj.card_attack_verb
-
-
 obj/item/toy/cards/singlecard
 	name = "card"
 	desc = "a card"
 	icon = 'icons/obj/toy.dmi'
-	icon_state = "singlecard_nanotrasen_down"
+	icon_state = "singlecard_down_nanotrasen"
+	deckstyle = "nanotrasen"
 	w_class = 1.0
 	var/cardname = null
 	var/flipped = 0
 	pixel_x = -5
+	force = 0
+	throwforce = 0
+	throw_speed = 3
+	throw_range = 7
+	attack_verb = list("attacked")
+
+obj/item/toy/cards/singlecard/syndicate
+	icon_state = "singlecard_down_syndicate"
+	deckstyle = "syndicate"
+	hitsound = 'sound/weapons/bladeslice.ogg'
+	force = 5
+	throwforce = 10
+	throw_speed = 3
+	throw_range = 7
+	attack_verb = list("attacked", "sliced", "diced", "slashed", "cut")
+	card_type = /obj/item/toy/cards/singlecard/syndicate
 
 
 obj/item/toy/cards/singlecard/examine()
@@ -884,7 +891,9 @@ obj/item/toy/cards/singlecard/attackby(obj/item/I, mob/living/user)
 			H.currenthand += C.cardname
 			H.currenthand += src.cardname
 			H.parentdeck = C.parentdeck
-			H.apply_card_vars(H,C)
+			H.card_type = C.card_type
+			H.deckstyle = C.deckstyle
+			H.icon_state = "[H.deckstyle]_hand2"
 			user.u_equip(C)
 			H.pickup(user)
 			user.put_in_active_hand(H)
@@ -911,25 +920,7 @@ obj/item/toy/cards/singlecard/attackby(obj/item/I, mob/living/user)
 		else
 			user << "<span class='notice'>You can't mix cards from other decks.</span>"
 
-
 obj/item/toy/cards/singlecard/attack_self(mob/user)
 	if(usr.stat || !ishuman(usr) || !usr.canmove || usr.restrained())
 		return
 	Flip()
-
-obj/item/toy/cards/singlecard/apply_card_vars(obj/item/toy/cards/singlecard/newobj,obj/item/toy/cards/sourceobj)
-	..()
-	newobj.deckstyle = sourceobj.deckstyle
-	newobj.icon_state = "singlecard_down_[deckstyle]" // Without this the card is invisible until flipped. It's an ugly hack, but it works.
-	newobj.card_hitsound = sourceobj.card_hitsound
-	newobj.hitsound = newobj.card_hitsound
-	newobj.card_force = sourceobj.card_force
-	newobj.force = newobj.card_force
-	newobj.card_throwforce = sourceobj.card_throwforce
-	newobj.throwforce = newobj.card_throwforce
-	newobj.card_throw_speed = sourceobj.card_throw_speed
-	newobj.throw_speed = newobj.card_throw_speed
-	newobj.card_throw_range = sourceobj.card_throw_range
-	newobj.throw_range = newobj.card_throw_range
-	newobj.card_attack_verb = sourceobj.card_attack_verb
-	newobj.attack_verb = newobj.card_attack_verb

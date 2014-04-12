@@ -32,7 +32,8 @@
 							/obj/item/toy/prize/mauler						= 1,
 							/obj/item/toy/prize/odysseus					= 1,
 							/obj/item/toy/prize/phazon						= 1,
-							/obj/item/toy/cards/deck						= 2
+							/obj/item/toy/cards/deck/shortdeck				= 2,
+							/obj/item/toy/cards/deck/fulldeck				= 1
 							)
 
 /obj/machinery/computer/arcade
