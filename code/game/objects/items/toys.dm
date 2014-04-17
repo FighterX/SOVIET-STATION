@@ -294,7 +294,7 @@
 
 /obj/item/toy/ammo/crossbow
 	name = "foam dart"
-	desc = "Its nerf or nothing! Ages 8 and up."
+	desc = "It's nerf or nothing! Ages 8 and up."
 	icon = 'icons/obj/toy.dmi'
 	icon_state = "foamdart"
 	flags = FPRINT | TABLEPASS
@@ -365,7 +365,7 @@
 
 /obj/item/toy/crayon
 	name = "crayon"
-	desc = "A colourful crayon. Looks tasty. Mmmm..."
+	desc = "A colourful crayon. Please refrain from eating it or putting it in your nose."
 	icon = 'icons/obj/crayons.dmi'
 	icon_state = "crayonred"
 	w_class = 1.0
@@ -577,6 +577,29 @@
 	w_class = 3
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced")
 
+/obj/item/toy/nuke
+	name = "\improper Nuclear Fission Explosive toy"
+	desc = "A plastic model of a Nuclear Fission Explosive."
+	icon = 'icons/obj/toy.dmi'
+	icon_state = "nuketoyidle"
+	w_class = 2.0
+	var/cooldown = 0
+
+/obj/item/toy/nuke/attack_self(mob/user)
+	if (cooldown < world.time)
+		cooldown = world.time + 1800 //3 minutes
+		user.visible_message("<span class='warning'>[user] presses a button on [src]</span>", "<span class='notice'>You activate [src], it plays a loud noise!</span>", "<span class='notice'>You hear the click of a button.</span>")
+		spawn(5) //gia said so
+			icon_state = "nuketoy"
+			playsound(src, 'sound/machines/Alarm.ogg', 100, 0, surround = 0)
+			sleep(135)
+			icon_state = "nuketoycool"
+			sleep(cooldown - world.time)
+			icon_state = "nuketoyidle"
+	else
+		var/timeleft = (cooldown - world.time)
+		user << "<span class='alert'>Nothing happens, and '</span>[round(timeleft/10)]<span class='alert'>' appears on a small display.</span>"
+
 /* NYET.
 /obj/item/weapon/toddler
 	icon_state = "toddler"
@@ -593,7 +616,6 @@
 */
 
 obj/item/toy/cards
-	var/parentdeck = null
 	var/deckstyle = "nanotrasen"
 	var/card_type = /obj/item/toy/cards/singlecard
 
@@ -665,7 +687,6 @@ obj/item/toy/cards/deck/attack_hand(mob/user as mob)
 	var/obj/item/toy/cards/singlecard/H = new src.card_type
 	choice = cards[1]
 	H.cardname = choice
-	H.parentdeck = src
 	src.cards -= choice
 	H.pickup(user)
 	user.put_in_active_hand(H)
@@ -691,7 +712,7 @@ obj/item/toy/cards/deck/attack_self(mob/user as mob)
 obj/item/toy/cards/deck/attackby(obj/item/toy/cards/singlecard/C, mob/living/user)
 	..()
 	if(istype(C))
-		if(C.parentdeck == src)
+		if(C.deckstyle == src.deckstyle)
 			if(!user.u_equip(C))
 				user << "<span class='notice'>The card is stuck to your hand, you can't add it to the deck!</span>"
 				return
@@ -711,7 +732,7 @@ obj/item/toy/cards/deck/attackby(obj/item/toy/cards/singlecard/C, mob/living/use
 obj/item/toy/cards/deck/attackby(obj/item/toy/cards/cardhand/C, mob/living/user)
 	..()
 	if(istype(C))
-		if(C.parentdeck == src)
+		if(C.deckstyle == src.deckstyle)
 			if(!user.u_equip(C))
 				user << "<span class='notice'>The hand of cards is stuck to your hand, you can't add it to the deck!</span>"
 				return
@@ -745,6 +766,15 @@ obj/item/toy/cards/deck/attackby(obj/item/toy/cards/cardhand/C, mob/living/user)
 				usr << "<span class='notice'>You pick up the deck.</span>"
 	else
 		usr << "<span class='notice'>You can't reach it from here.</span>"
+
+obj/item/toy/cards/deck/examine()
+	set src in usr.contents
+	if(ishuman(usr))
+		var/mob/living/carbon/human/cardUser = usr
+		if(cardUser.get_active_hand() == src || cardUser.get_inactive_hand() == src)
+			cardUser.visible_message("<span class='notice'>[cardUser] checked cards in deck.</span>", "<span class='notice'>[src.cards.len] cards in deck.</span>")
+		else
+			cardUser << "<span class='notice'>You need to have the card in your hand to check it.</span>"
 
 obj/item/toy/cards/cardhand
 	name = "hand of cards"
@@ -782,12 +812,10 @@ obj/item/toy/cards/cardhand/Topic(href, href_list)
 			var/choice = href_list["pick"]
 			var/obj/item/toy/cards/singlecard/C = new src.card_type(cardUser.loc)
 			src.currenthand -= choice
-			C.parentdeck = src.parentdeck
 			C.cardname = choice
 			C.pickup(cardUser)
 			cardUser.put_in_any_hand_if_possible(C)
 			cardUser.visible_message("<span class='notice'>[cardUser] draws a card from \his hand.</span>", "<span class='notice'>You take the [C.cardname] from your hand.</span>")
-
 			interact(cardUser)
 			if(src.currenthand.len < 3)
 				src.icon_state = "[deckstyle]_hand2"
@@ -797,7 +825,6 @@ obj/item/toy/cards/cardhand/Topic(href, href_list)
 				src.icon_state = "[deckstyle]_hand4"
 			if(src.currenthand.len == 1)
 				var/obj/item/toy/cards/singlecard/N = new src.card_type(cardUser.loc)
-				N.parentdeck = src.parentdeck
 				N.cardname = src.currenthand[1]
 				cardUser.u_equip(src)
 				N.pickup(cardUser)
@@ -809,7 +836,7 @@ obj/item/toy/cards/cardhand/Topic(href, href_list)
 
 obj/item/toy/cards/cardhand/attackby(obj/item/toy/cards/singlecard/C, mob/living/user)
 	if(istype(C))
-		if(C.parentdeck == src.parentdeck)
+		if(C.deckstyle == src.deckstyle)
 			src.currenthand += C.cardname
 			user.u_equip(C)
 			user.visible_message("<span class='notice'>[user] adds a card to their hand.</span>", "<span class='notice'>You add the [C.cardname] to your hand.</span>")
@@ -845,7 +872,7 @@ obj/item/toy/cards/singlecard/syndicate
 	deckstyle = "syndicate"
 	hitsound = 'sound/weapons/bladeslice.ogg'
 	force = 5
-	throwforce = 10
+	throwforce = 15
 	throw_speed = 3
 	throw_range = 7
 	attack_verb = list("attacked", "sliced", "diced", "slashed", "cut")
@@ -856,7 +883,7 @@ obj/item/toy/cards/singlecard/examine()
 	set src in usr.contents
 	if(ishuman(usr))
 		var/mob/living/carbon/human/cardUser = usr
-		if(cardUser.get_active_hand() == src || cardUser.get_active_hand() == src)
+		if(cardUser.get_active_hand() == src || cardUser.get_inactive_hand() == src)
 			cardUser.visible_message("<span class='notice'>[cardUser] checks \his card.</span>", "<span class='notice'>The card reads: [src.cardname]</span>")
 		else
 			cardUser << "<span class='notice'>You need to have the card in your hand to check it.</span>"
@@ -886,11 +913,10 @@ obj/item/toy/cards/singlecard/verb/Flip()
 obj/item/toy/cards/singlecard/attackby(obj/item/I, mob/living/user)
 	if(istype(I, /obj/item/toy/cards/singlecard/))
 		var/obj/item/toy/cards/singlecard/C = I
-		if(C.parentdeck == src.parentdeck)
+		if(C.deckstyle == src.deckstyle)
 			var/obj/item/toy/cards/cardhand/H = new/obj/item/toy/cards/cardhand(user.loc)
 			H.currenthand += C.cardname
 			H.currenthand += src.cardname
-			H.parentdeck = C.parentdeck
 			H.card_type = C.card_type
 			H.deckstyle = C.deckstyle
 			H.icon_state = "[H.deckstyle]_hand2"
@@ -905,7 +931,7 @@ obj/item/toy/cards/singlecard/attackby(obj/item/I, mob/living/user)
 
 	if(istype(I, /obj/item/toy/cards/cardhand/))
 		var/obj/item/toy/cards/cardhand/H = I
-		if(H.parentdeck == parentdeck)
+		if(H.deckstyle == src.deckstyle)
 			H.currenthand += cardname
 			user.u_equip(src)
 			user.visible_message("<span class='notice'>[user] adds a card to \his hand.</span>", "<span class='notice'>You add the [cardname] to your hand.</span>")
