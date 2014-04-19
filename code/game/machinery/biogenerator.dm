@@ -101,7 +101,9 @@
 					dat += "<A href='?src=\ref[src];action=create;item=tbelt;cost=300'>Utility belt</A> <FONT COLOR=blue>(300)</FONT><BR>"
 					dat += "<A href='?src=\ref[src];action=create;item=satchel;cost=400'>Leather Satchel</A> <FONT COLOR=blue>(400)</FONT><BR>"
 					dat += "<A href='?src=\ref[src];action=create;item=cashbag;cost=400'>Cash Bag</A> <FONT COLOR=blue>(400)</FONT><BR>"
-					//dat += "Other<BR>"
+					dat += "Other<BR>"
+					dat += "<A href='?src=\ref[src];action=create;item=shortdeck;cost=20'>Short deck</A> <FONT COLOR=blue>(20)</FONT><BR>"
+					dat += "<A href='?src=\ref[src];action=create;item=fulldeck;cost=30'>Full deck</A> <FONT COLOR=blue>(30)</FONT><BR>"
 					//dat += "<A href='?src=\ref[src];action=create;item=monkey;cost=500'>Monkey</A> <FONT COLOR=blue>(500)</FONT><BR>"
 				else
 					dat += "<BR><FONT COLOR=red>No beaker inside. Please insert a beaker.</FONT><BR>"
@@ -199,6 +201,10 @@
 			new/obj/item/weapon/storage/bag/cash(src.loc)
 		if("monkey")
 			new/mob/living/carbon/monkey(src.loc)
+		if("shortdeck")
+			new/obj/item/toy/cards/deck/shortdeck(src.loc)
+		if("fulldeck")
+			new/obj/item/toy/cards/deck/fulldeck(src.loc)
 	processing = 0
 	menustat = "complete"
 	update_icon()
