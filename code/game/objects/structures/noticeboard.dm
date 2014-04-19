@@ -78,3 +78,36 @@
 				usr << browse("<HTML><HEAD><TITLE>[P.name]</TITLE></HEAD><BODY><TT>[P.info]</TT></BODY></HTML>", "window=[P.name]")
 				onclose(usr, "[P.name]")
 	return
+
+/obj/structure/noticeboard/assistant_nb
+
+/obj/structure/noticeboard/assistant_nb/attackby(var/obj/item/weapon/O as obj, var/mob/user as mob)
+	if(istype(O, /obj/item/weapon/paper))
+		if(notices < 5)
+			O.add_fingerprint(user)
+			add_fingerprint(user)
+			user.drop_item()
+			O.loc = src
+			notices++
+			icon_state = "nboard0[notices]"
+			for(var/obj/structure/noticeboard/nBoard in world)
+				if(nBoard != src)
+					world <<"1"
+					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
+					P.name = O:name
+					P.info = O:info
+					P.info_links = O:info_links
+					P.stamps = O:stamps
+					P.fields = O:fields
+					P.update_icon()
+					P.updateinfolinks()
+					P.stamped = O:stamped
+					P.overlays = O:overlays
+					P.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+				else
+					world << "2"
+			user << "<span class='notice'>You pin the paper to the noticeboard.</span>"
+		else
+			user << "<span class='notice'>You reach to pin your paper to the board but hesitate. You are certain your paper will not be seen among the many others already attached.</span>"
