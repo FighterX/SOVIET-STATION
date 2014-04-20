@@ -705,10 +705,9 @@
 	vend_delay = 34
 	icon_state = "cigs"
 	products = list(/obj/item/weapon/storage/fancy/cigarettes = 10,/obj/item/weapon/storage/box/matches = 10,/obj/item/weapon/lighter/random = 4)
-	contraband = list(/obj/item/weapon/lighter/zippo = 4)
+	contraband = list(/obj/item/weapon/lighter/zippo = 4,/obj/item/clothing/mask/cigarette/cigar/weed = 5)
 	premium = list(/obj/item/clothing/mask/cigarette/cigar/havana = 2)
 	prices = list(/obj/item/weapon/storage/fancy/cigarettes = 15,/obj/item/weapon/storage/box/matches = 1,/obj/item/weapon/lighter/random = 2)
-
 
 /obj/machinery/vending/medical
 	name = "NanoMed Plus"
