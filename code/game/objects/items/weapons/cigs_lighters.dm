@@ -112,6 +112,8 @@ CIGARETTE PACKETS ARE IN FANCY.DM
 	user.update_inv_l_hand(0)
 	user.update_inv_r_hand(1)
 	return
+	
+
 
 
 /obj/item/clothing/mask/cigarette/afterattack(obj/item/weapon/reagent_containers/glass/glass, mob/user as mob, proximity)
@@ -220,6 +222,20 @@ CIGARETTE PACKETS ARE IN FANCY.DM
 	icon_off = "cigar2off"
 	smoketime = 7200
 	chem_volume = 30
+	
+/obj/item/clothing/mask/cigarette/cigar/weed
+	name = "Weed cig"
+	desc = "Roll of weed! Smoke it every day!"
+	icon_state = "cigaroff"
+	icon_on = "cigaron"
+	icon_off = "cigaroff"
+	type_butt = /obj/item/weapon/cigbutt/cigarbutt
+	item_state = "cigaroff"
+	smoketime = 120
+	chem_volume = 30
+		..()
+		reagents.add_reagent("space_drugs", 15)
+                reagents.add_reagent("impedrezene", 15)
 
 /obj/item/weapon/cigbutt
 	name = "cigarette butt"
