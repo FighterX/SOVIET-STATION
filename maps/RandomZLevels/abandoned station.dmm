@@ -1,0 +1,160 @@
+"aa" = (/turf/space,/area)
+"ab" = (/obj/machinery/light/small,/turf/simulated/floor/airless{icon_state = "circuit"},/area)
+"ac" = (/obj/machinery/access_button{master_tag = "SN_2"; name = "Exterior access button door 2"; pixel_x = 25; pixel_y = -25},/turf/simulated/floor/airless{icon_state = "circuit"},/area)
+"ad" = (/turf/simulated/floor/airless{icon_state = "circuit"},/area)
+"ae" = (/obj/structure/lattice,/turf/space,/area)
+"af" = (/turf/simulated/wall/r_wall,/area)
+"ag" = (/obj/machinery/door/airlock/external{frequency = 1381; icon_state = "door_locked"; id_tag = "Door_SN_2_OUT"; locked = 1; name = "External Access"; req_access = null; req_access_txt = "13"},/turf/simulated/floor/plating,/area)
+"ah" = (/obj/machinery/airlock_sensor{id_tag = "Airlock_sensor_SN_2"; pixel_x = 25; pixel_y = 0},/obj/machinery/atmospherics/unary/vent_pump/high_volume{id_tag = "Air_Vent_SN_2"},/obj/machinery/embedded_controller/radio/airlock_controller{airpump_tag = "Air_Vent_SN_2"; exterior_door_tag = "Door_SN_2_OUT"; id_tag = "SN_2"; interior_door_tag = "Door_SN_2_IN"; pixel_x = -25},/obj/machinery/light/small{dir = 4},/turf/simulated/floor/plating,/area)
+"ai" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced,/obj/structure/window/reinforced{dir = 8},/turf/simulated/floor/plating,/area)
+"aj" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced,/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced{dir = 1},/turf/simulated/floor/plating,/area)
+"ak" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/machinery/atmospherics/pipe/simple,/obj/machinery/door/airlock/external{frequency = 1381; icon_state = "door_locked"; id_tag = "Door_SN_2_IN"; locked = 1; name = "External Access"; req_access = null; req_access_txt = "13"},/turf/simulated/floor/plating,/area)
+"al" = (/obj/structure/sign/vacuum,/turf/simulated/wall/r_wall,/area)
+"am" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced,/turf/simulated/floor/plating,/area)
+"an" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 1},/turf/simulated/floor/plating,/area)
+"ao" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced{dir = 4},/turf/simulated/floor/plating,/area)
+"ap" = (/turf/simulated/floor/plating,/area)
+"aq" = (/obj/machinery/atmospherics/unary/vent_pump,/turf/simulated/floor/plating,/area)
+"ar" = (/obj/machinery/atmospherics/portables_connector{dir = 4},/obj/machinery/portable_atmospherics/canister/air,/turf/simulated/floor/plating,/area)
+"as" = (/obj/machinery/atmospherics/pipe/simple{dir = 9},/obj/machinery/access_button{master_tag = "SN_2"; name = "Interior access button door 2"; pixel_x = -25; pixel_y = 25},/turf/simulated/floor,/area)
+"at" = (/turf/simulated/floor,/area)
+"au" = (/obj/machinery/atmospherics/unary/vent_scrubber{on = 1; scrub_N2O = 0; scrub_Toxins = 0},/turf/simulated/floor,/area)
+"av" = (/obj/machinery/light{icon_state = "tube1"; dir = 8},/turf/simulated/floor,/area)
+"aw" = (/obj/machinery/atmospherics/pipe/simple/supply/hidden,/turf/simulated/floor/plating,/area)
+"ax" = (/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden,/turf/simulated/floor,/area)
+"ay" = (/obj/item/weapon/paper{info = "ќтчет: <br> “ест крови показал изменение на генетическом уровне , вид коллеги тоже изменился, так же появились признаки безумия. ѕрошу поскорее отправить к нам шатл для перевоза груза."; name = "Personal Diary Day 9"},/turf/simulated/floor,/area)
+"az" = (/obj/structure/sign/electricshock,/turf/simulated/wall/r_wall,/area)
+"aA" = (/obj/machinery/floodlight,/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 9},/area)
+"aB" = (/obj/machinery/light{dir = 1},/obj/machinery/power/port_gen/pacman,/obj/structure/cable{icon_state = "0-2"; d2 = 2},/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 1},/area)
+"aC" = (/obj/machinery/atmospherics/pipe/tank/air,/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 1},/area)
+"aD" = (/obj/machinery/atmospherics/pipe/tank/air,/obj/effect/decal/cleanable/cobweb2,/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 5},/area)
+"aE" = (/obj/machinery/atmospherics/pipe/simple/supply/hidden{dir = 5},/turf/simulated/floor/plating,/area)
+"aF" = (/obj/machinery/atmospherics/pipe/simple/supply/hidden{dir = 4},/turf/simulated/floor,/area)
+"aG" = (/obj/machinery/atmospherics/pipe/simple/supply/hidden{dir = 4},/obj/structure/cable{icon_state = "0-4"; d2 = 4},/obj/machinery/power/apc{name = "Abandoned Station APC"; pixel_y = -25},/turf/simulated/floor,/area)
+"aH" = (/obj/machinery/atmospherics/pipe/simple/supply/hidden{dir = 4},/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden,/obj/structure/cable{d1 = 4; d2 = 8; icon_state = "4-8"; pixel_x = 0},/turf/simulated/floor,/area)
+"aI" = (/obj/machinery/atmospherics/pipe/manifold{pipe_color = "blue"; dir = 1; icon_state = "manifold-b-f"; level = 1; name = "pipe manifold"},/obj/structure/cable{d1 = 4; d2 = 8; icon_state = "4-8"; pixel_x = 0},/turf/simulated/floor,/area)
+"aJ" = (/obj/structure/cable{d1 = 4; d2 = 8; icon_state = "4-8"; pixel_x = 0},/obj/machinery/atmospherics/pipe/simple/supply/hidden{dir = 4},/turf/simulated/floor,/area)
+"aK" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/machinery/door/airlock/maintenance_hatch{frequency = 1233; icon_state = "door_closed"; id_tag = "engine_airlock_exterior"; locked = 0; name = "Engine Access"; req_access_txt = "10"},/obj/machinery/atmospherics/pipe/simple/supply/hidden{dir = 4},/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 8},/area)
+"aL" = (/obj/structure/cable{d1 = 4; d2 = 8; icon_state = "4-8"; pixel_x = 0},/obj/machinery/atmospherics/pipe/simple{color = "blue"; dir = 4; icon_state = "intact-b"; initialize_directions = 6; level = 2; name = "pipe"},/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 8},/area)
+"aM" = (/obj/structure/cable{d1 = 4; d2 = 8; icon_state = "4-8"; pixel_x = 0},/obj/machinery/atmospherics/binary/pump{dir = 8},/obj/structure/cable{d1 = 1; d2 = 4; icon_state = "1-4"},/turf/simulated/floor/plating,/area)
+"aN" = (/obj/structure/cable{d1 = 2; d2 = 8; icon_state = "2-8"},/obj/machinery/atmospherics/pipe/manifold{icon_state = "manifold"; level = 2},/obj/structure/cable{d2 = 8; icon_state = "0-8"},/obj/machinery/power/terminal,/turf/simulated/floor/plating,/area)
+"aO" = (/obj/machinery/atmospherics/pipe/simple{dir = 9; icon_state = "intact"; level = 2},/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 4},/area)
+"aP" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced{dir = 8},/turf/simulated/floor/plating,/area)
+"aQ" = (/turf/simulated/wall,/area)
+"aR" = (/obj/machinery/light{icon_state = "tube1"; dir = 8},/obj/machinery/atmospherics/pipe/manifold{pipe_color = "red"; dir = 8; icon_state = "manifold-r-f"; initialize_directions = 11; level = 1; name = "pipe manifold"},/turf/simulated/floor/plating,/area)
+"aS" = (/obj/machinery/atmospherics/pipe/simple{pipe_color = "blue"; icon_state = "intact-b"; level = 2},/turf/simulated/floor/plating,/area)
+"aT" = (/obj/machinery/atmospherics/pipe/simple{pipe_color = "red"; dir = 4; icon_state = "intact-r"; level = 2},/turf/simulated/floor/plating,/area)
+"aU" = (/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{dir = 4},/turf/simulated/wall/r_wall,/area)
+"aV" = (/obj/machinery/atmospherics/pipe/simple{pipe_color = "red"; dir = 4; icon_state = "intact-r"; level = 2},/obj/structure/dispenser/oxygen,/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 10},/area)
+"aW" = (/obj/machinery/atmospherics/binary/pump{dir = 4},/turf/simulated/floor/plating{dir = 2; icon_state = "warnplate"},/area)
+"aX" = (/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{dir = 4},/obj/structure/cable,/obj/machinery/power/smes,/turf/simulated/floor/plating{dir = 2; icon_state = "warnplate"},/area)
+"aY" = (/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{dir = 4},/obj/machinery/space_heater,/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 6},/area)
+"aZ" = (/obj/structure/grille,/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/window/reinforced,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 4},/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{dir = 4},/turf/simulated/floor/plating,/area)
+"ba" = (/obj/machinery/atmospherics/unary/outlet_injector{dir = 8; frequency = 1441; icon_state = "on"; id = "waste_in"; on = 1; pixel_y = 1},/turf/simulated/floor/airless{icon_state = "circuit"},/area)
+"bb" = (/obj/structure/sink{icon_state = "sink"; dir = 8; pixel_x = -12; pixel_y = 2},/obj/structure/mirror{dir = 4; pixel_x = -32; pixel_y = 0},/obj/effect/decal/cleanable/cobweb,/turf/simulated/floor{icon_state = "freezerfloor"},/area)
+"bc" = (/obj/effect/decal/cleanable/blood,/turf/simulated/floor{icon_state = "freezerfloor"},/area)
+"bd" = (/turf/simulated/floor{icon_state = "freezerfloor"},/area)
+"be" = (/obj/effect/decal/cleanable/blood/gibs/limb,/turf/simulated/floor{icon_state = "freezerfloor"},/area)
+"bf" = (/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden,/turf/simulated/floor/plating,/area)
+"bg" = (/obj/effect/decal/mecha_wreckage/ripley,/turf/simulated/floor/plating,/area)
+"bh" = (/obj/machinery/light{icon_state = "tube1"; dir = 8},/obj/effect/decal/cleanable/blood/gibs,/turf/simulated/floor{icon_state = "freezerfloor"},/area)
+"bi" = (/obj/effect/decal/cleanable/blood,/mob/living/simple_animal/hostile/alien/sentinel,/turf/simulated/floor{icon_state = "freezerfloor"},/area)
+"bj" = (/obj/effect/decal/cleanable/blood/gibs/core,/turf/simulated/floor{icon_state = "freezerfloor"},/area)
+"bk" = (/obj/machinery/alarm{dir = 4; icon_state = "alarm0"; pixel_x = -22},/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden,/turf/simulated/floor/plating,/area)
+"bl" = (/obj/structure/barricade/wooden,/turf/simulated/floor/plating,/area)
+"bm" = (/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 1},/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/turf/simulated/floor/plating,/area)
+"bn" = (/obj/machinery/light{dir = 1},/turf/simulated/floor,/area)
+"bo" = (/obj/effect/decal/cleanable/blood,/turf/simulated/floor,/area)
+"bp" = (/obj/effect/decal/cleanable/xenoblood/xgibs/body,/turf/simulated/floor,/area)
+"bq" = (/obj/structure/table,/obj/item/device/flashlight/lamp,/obj/item/clothing/glasses/welding,/turf/simulated/floor,/area)
+"br" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced{dir = 1},/turf/simulated/floor/plating,/area)
+"bs" = (/obj/structure/toilet{dir = 4},/turf/simulated/floor{icon_state = "freezerfloor"},/area)
+"bt" = (/obj/machinery/washing_machine,/turf/simulated/floor{icon_state = "freezerfloor"},/area)
+"bu" = (/obj/structure/girder,/turf/simulated/floor/plating,/area)
+"bv" = (/obj/structure/grille{density = 0; icon_state = "brokengrille"},/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/item/stack/rods,/turf/simulated/floor/plating,/area)
+"bw" = (/obj/effect/decal/cleanable/xenoblood/xgibs/limb,/turf/simulated/floor/plating,/area)
+"bx" = (/obj/item/clothing/gloves/black,/turf/simulated/floor,/area)
+"by" = (/obj/effect/decal/cleanable/xenoblood,/mob/living/simple_animal/hostile/alien{health = -114},/turf/simulated/floor,/area)
+"bz" = (/obj/structure/rack,/obj/item/clothing/shoes/magboots,/obj/item/clothing/suit/space/rig/syndi/tajara,/obj/item/clothing/head/helmet/space/rig/syndi/tajara,/turf/simulated/floor,/area)
+"bA" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced,/turf/simulated/floor/plating,/area)
+"bB" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/door_assembly,/obj/effect/decal/cleanable/blood,/turf/simulated/floor,/area)
+"bC" = (/obj/structure/sign/poster,/turf/simulated/wall,/area)
+"bD" = (/obj/machinery/atmospherics/pipe/simple/supply/hidden,/turf/simulated/floor,/area)
+"bE" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/turf/simulated/floor/plating,/area)
+"bF" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille{density = 0; icon_state = "brokengrille"},/obj/item/stack/rods,/turf/simulated/floor/plating,/area)
+"bG" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced,/turf/simulated/floor/plating,/area)
+"bH" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/machinery/door/airlock/glass{name = "Diner"},/obj/effect/decal/cleanable/xenoblood/xgibs/up,/turf/simulated/floor,/area)
+"bI" = (/obj/structure/barricade/wooden,/turf/simulated/floor,/area)
+"bJ" = (/obj/effect/decal/cleanable/blood/tracks,/obj/structure/grille,/turf/simulated/floor,/area)
+"bK" = (/obj/structure/grille{density = 0; icon_state = "brokengrille"},/turf/simulated/floor,/area)
+"bL" = (/obj/machinery/atmospherics/unary/vent_scrubber{dir = 4; icon_state = "off"; on = 1; scrub_N2O = 0; scrub_Toxins = 0},/turf/simulated/floor,/area)
+"bM" = (/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{dir = 4},/turf/simulated/floor,/area)
+"bN" = (/obj/machinery/atmospherics/pipe/manifold{pipe_color = "red"; icon_state = "manifold-r-f"; level = 1; name = "pipe manifold"},/turf/simulated/floor,/area)
+"bO" = (/obj/machinery/atmospherics/pipe/simple/supply/hidden,/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{dir = 4},/obj/effect/decal/cleanable/blood,/turf/simulated/floor,/area)
+"bP" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{dir = 4},/turf/simulated/floor/plating,/area)
+"bQ" = (/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{dir = 4},/obj/structure/table,/obj/item/device/flashlight,/obj/item/ammo_magazine/a12mm/empty,/turf/simulated/floor,/area)
+"bR" = (/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{dir = 4},/obj/structure/table,/obj/machinery/microwave,/turf/simulated/floor,/area)
+"bS" = (/obj/machinery/atmospherics/unary/vent_scrubber{dir = 8; on = 1; scrub_Toxins = 0},/turf/simulated/floor,/area)
+"bT" = (/obj/machinery/atmospherics/unary/vent_pump,/obj/effect/decal/cleanable/blood/tracks,/turf/simulated/floor,/area)
+"bU" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced,/obj/structure/window/reinforced{dir = 4},/turf/simulated/floor/plating,/area)
+"bV" = (/obj/structure/table,/obj/machinery/juicer,/turf/simulated/floor,/area)
+"bW" = (/obj/item/trash/raisins,/turf/simulated/floor,/area)
+"bX" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 4},/turf/simulated/floor/plating,/area)
+"bY" = (/obj/machinery/atmospherics/pipe/simple/supply/hidden{dir = 5},/obj/effect/decal/cleanable/blood/tracks,/turf/simulated/floor,/area)
+"bZ" = (/obj/machinery/atmospherics/pipe/simple/supply/hidden{dir = 4},/turf/simulated/floor/plating,/area)
+"ca" = (/obj/machinery/atmospherics/pipe/manifold{pipe_color = "blue"; icon_state = "manifold-b-f"; level = 1; name = "pipe manifold"},/obj/item/clothing/mask/gas,/turf/simulated/floor,/area)
+"cb" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/machinery/atmospherics/pipe/simple/supply/hidden{dir = 4},/obj/structure/barricade/wooden,/obj/machinery/door/airlock/glass{name = "Diner"},/turf/simulated/floor,/area)
+"cc" = (/obj/item/weapon/gun/projectile/automatic/c20r,/turf/simulated/floor,/area)
+"cd" = (/obj/machinery/atmospherics/unary/vent_pump{dir = 8; on = 1},/turf/simulated/floor,/area)
+"ce" = (/obj/effect/decal/cleanable/oil,/turf/simulated/floor/plating,/area)
+"cf" = (/obj/structure/stool/bed/chair,/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating,/area)
+"cg" = (/obj/machinery/atmospherics/portables_connector{dir = 4},/obj/machinery/portable_atmospherics/canister/air,/turf/simulated/floor,/area)
+"ch" = (/obj/machinery/atmospherics/pipe/simple{dir = 10; icon_state = "intact-f"; initialize_directions = 10},/obj/machinery/access_button{master_tag = "SN_1"; name = "Interior access button door 1"; pixel_x = 25; pixel_y = -25},/turf/simulated/floor,/area)
+"ci" = (/obj/machinery/light,/turf/simulated/floor,/area)
+"cj" = (/obj/machinery/vending/sovietsoda,/turf/simulated/floor,/area)
+"ck" = (/obj/structure/table,/obj/item/trash/candle,/turf/simulated/floor/plating,/area)
+"cl" = (/obj/structure/table,/obj/item/weapon/paper{info = "ќтчет <br> ¬о время операции мой коллега был пролил на себя какую-то баночку, неизвестное вещество попало в кровь, состав определить не удалось. Ѕолее проишествий не было, товар доставлен и хранится у нас."; name = "Personal Diary Day 1"},/turf/simulated/floor,/area)
+"cm" = (/obj/machinery/vending/snack,/turf/simulated/floor,/area)
+"cn" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/machinery/atmospherics/pipe/simple,/obj/machinery/door/airlock/external{frequency = 1381; icon_state = "door_locked"; id_tag = "Door_SN_1_IN"; locked = 1; name = "External Access"; req_access = null; req_access_txt = "13"},/turf/simulated/floor/plating{icon_state = "warnplate"; dir = 1},/area)
+"co" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced,/turf/simulated/floor/plating,/area)
+"cp" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced,/turf/simulated/floor/plating,/area)
+"cq" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced,/obj/structure/window/reinforced{dir = 8},/turf/simulated/floor/plating,/area)
+"cr" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced,/turf/simulated/floor/plating,/area)
+"cs" = (/obj/machinery/door/firedoor/border_only{dir = 4; name = "Firelock East"},/obj/structure/grille,/obj/structure/window/reinforced,/turf/simulated/floor/plating,/area)
+"ct" = (/obj/machinery/airlock_sensor{id_tag = "Airlock_sensor_SN_1"; pixel_x = 25; pixel_y = 0},/obj/machinery/atmospherics/unary/vent_pump/high_volume{dir = 1; frequency = 1379; id_tag = "Air_Vent_SN_1"},/obj/machinery/embedded_controller/radio/airlock_controller{airpump_tag = "Air_Vent_SN_1"; exterior_door_tag = "Door_SN_1_OUT"; id_tag = "SN_1"; interior_door_tag = "Door_SN_1_IN"; pixel_x = -25},/obj/machinery/light/small{dir = 4},/turf/simulated/floor/plating,/area)
+"cu" = (/obj/machinery/door/airlock/external{frequency = 1381; icon_state = "door_locked"; id_tag = "Door_SN_1_OUT"; locked = 1; name = "External Access"; req_access = null; req_access_txt = "13"},/turf/simulated/floor/plating{dir = 2; icon_state = "warnplate"},/area)
+"cv" = (/obj/machinery/light/small{dir = 1},/turf/simulated/floor/airless{icon_state = "circuit"},/area)
+"cw" = (/obj/machinery/access_button{master_tag = "SN_1"; name = "Exterior access button door 1"; pixel_x = 25; pixel_y = 25},/turf/simulated/floor/airless{icon_state = "circuit"},/area)
+
+(1,1,1) = {"
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaabacadaeaeaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaeafagafaaaaaaaeaeaeaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaeaaafahafaaaaaaaeaaaaaaaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afaiajafakalamanaoafaaaaaaaaaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afapaqarasatauatatafafafafafafaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afavawapapataxayatazaAaBaCaDaoaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afataEaFaFaGaHaIaJaKaLaMaNaOaPaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afaQaQaQaQaQaRaSaTaUaVaWaXaYaZbaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afbbbcbdbeaQbfbgapafafafafafafaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afbhbcbibjaQbkapblbmbnbobpbqbraaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afbsbcbjbtbuaxaSapbvbwbxbybzbAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afaQbBaQaQbCaxbDatbEbFbGbHaQafaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afbIbJbKbLbMbNbObMbPbQbRbSatafaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+bratbTatapatatbDatbUbVatbWatbraaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+bXatbYbZbZbZaFcaaFcbccbZcdatbXaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+bAatatatceapatatataQavcfapatbAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afcgchciatatatatatbCcjckclcmafaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+afalcnafafafcocpafafcqcrcsajafaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaafctafaaaaaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaafcuafaaaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aacvcwadaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+"}
