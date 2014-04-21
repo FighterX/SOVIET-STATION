@@ -85,7 +85,14 @@
 
 /mob/living/proc/adjustOxyLoss(var/amount)
 	if(status_flags & GODMODE)	return 0	//godmode
-	oxyloss = min(max(oxyloss + amount, 0),(maxHealth*2))
+	if(amount > 0)
+		world << "suffocation"
+		suffocation++
+	if(amount <= 0)
+		suffocation = 0
+	if(suffocation > 15)
+		world << "suff"
+		oxyloss = min(max(oxyloss + amount, 0),(maxHealth*2))
 
 /mob/living/proc/setOxyLoss(var/amount)
 	if(status_flags & GODMODE)	return 0	//godmode
@@ -93,6 +100,9 @@
 
 /mob/living/proc/getToxLoss()
 	return toxloss
+
+/mob/living
+	var/suffocation = 0
 
 /mob/living/proc/adjustToxLoss(var/amount)
 	if(status_flags & GODMODE)	return 0	//godmode
