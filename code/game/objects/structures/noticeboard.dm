@@ -92,7 +92,6 @@
 			icon_state = "nboard0[notices]"
 			for(var/obj/structure/noticeboard/nBoard in world)
 				if(nBoard != src)
-					world <<"1"
 					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
 					P.name = O:name
 					P.info = O:info
@@ -106,8 +105,6 @@
 					P.loc = nBoard
 					nBoard.notices++
 					nBoard.icon_state = "nboard0[nBoard.notices]"
-				else
-					world << "2"
 			user << "<span class='notice'>You pin the paper to the noticeboard.</span>"
 		else
 			user << "<span class='notice'>You reach to pin your paper to the board but hesitate. You are certain your paper will not be seen among the many others already attached.</span>"
