@@ -1,4 +1,3 @@
-
 /mob/living/verb/succumb()
 	set hidden = 1
 	if ((src.health < 0 && src.health > -95.0))
@@ -86,12 +85,10 @@
 /mob/living/proc/adjustOxyLoss(var/amount)
 	if(status_flags & GODMODE)	return 0	//godmode
 	if(amount > 0)
-		world << "suffocation"
 		suffocation++
 	if(amount <= 0)
 		suffocation = 0
 	if(suffocation > 15)
-		world << "suff"
 		oxyloss = min(max(oxyloss + amount, 0),(maxHealth*2))
 
 /mob/living/proc/setOxyLoss(var/amount)
