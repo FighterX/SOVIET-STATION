@@ -159,6 +159,9 @@
 /turf/simulated/floor/beach/water
 	name = "Water"
 	icon_state = "water"
+	blocks_air = 1
+	oxygen = 10
+	nitrogen = 90
 
 /turf/simulated/floor/beach/water/New()
 	..()
