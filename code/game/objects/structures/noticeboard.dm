@@ -90,7 +90,7 @@
 			O.loc = src
 			notices++
 			icon_state = "nboard0[notices]"
-			for(var/obj/structure/noticeboard/nBoard in world)
+			for(var/obj/structure/noticeboard/assistant_nb/nBoard in world)
 				if(nBoard != src)
 					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
 					P.name = O:name
