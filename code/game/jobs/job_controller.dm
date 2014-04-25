@@ -344,6 +344,131 @@ var/global/datum/controller/occupations/job_master
 				unassigned -= player
 		return 1
 
+	proc/NBupdate(var/rank)
+		switch(rank)
+			if("Station Engineer")
+				for(var/obj/structure/noticeboard/assistant_nb/nBoard in world)
+					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
+					P.name = "Помощник инженера"
+					P.info = "<b>\t ТребуетсЯ помощник инженера. По данному вопросу обращайтесь к главному инженеру или другим сотрудникам отдела инженерии.</b>"
+					P.update_icon()
+					P.updateinfolinks()
+					P.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+				return
+			if("Roboticist")
+				for(var/obj/structure/noticeboard/assistant_nb/nBoard in world)
+					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
+					P.name = "Помощник роботиста"
+					P.info = "<b>\t ТребуетсЯ помощник роботиста. По данному вопросу обращайтесь в роботику или непосредственно к начальнику отдела исследований.</b>"
+					P.update_icon()
+					P.updateinfolinks()
+					P.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+					var/obj/item/weapon/paper/PP = new /obj/item/weapon/paper(nBoard.loc)
+					PP.name = "КиборгизациЯ"
+					PP.info = "\
+					\tВсе желающие могут пройти процедуру киборгизации. ДлЯ этого заполните данный бланк и обратитесь к роботисту.<br>\
+					<center><b>Контракт на кибернетизацию</b><br>\
+					ИмЯ,фамилиЯ: <span class=\"paper_field\"></span><br>\
+					Должность: <span class=\"paper_field\"></span><br>\
+					<b><i> NanoTrasen NSS Exodus </b></i></center><hr>\
+					Я, нижеподписавшийсЯ, тем самым согласившийсЯ добровольно пройти операцию на мозге с целью кибернетизироватьсЯ или освоить ИИ, я в курсе последствий такого акта. Я также понимаю, что эта операциЯ может быть необратимой, и что мой трудовой договор будет расторгнут.<hr>\
+					Подпись объекта: <span class=\"paper_field\"></span><br><br>\
+					Подпись капитана, командного офицера или другого главы с наибольшим рангом: <span class=\"paper_field\"></span><br><br>\
+					Печать капитана, командного офицера или другого главы с наибольшим рангом:"
+					PP.fields = 4
+					PP.updateinfolinks()
+					PP.update_icon()
+					PP.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+					var/obj/item/weapon/paper/PPP = new /obj/item/weapon/paper(nBoard.loc)
+					PPP.name = "АугментациЯ"
+					PPP.info = "\
+					\tВсе желающие могут пройти процедуру аугментации. ДлЯ этого заполните данный бланк и обратитесь к роботисту.<br>\
+					<center><b>Контракт на аугментацию</b><br>\
+					ИмЯ,фамилиЯ: <span class=\"paper_field\"></span><br>\
+					Должность: <span class=\"paper_field\"></span><br>\
+					<b><i> NanoTrasen NSS Exodus </b></i></center><hr>\
+					Я, нижеподписавшийсЯ, тем самым согласившийсЯ добровольно пройти операцию кибернетической аугментации конечности. Я в курсе последствий такого акта. Я также понимаю, что эта операциЯ необратима.<hr>\
+					Конечность длЯ аугментации: <span class=\"paper_field\"></span><br><br>\
+					Подпись объекта: <span class=\"paper_field\"></span><br><br>\
+					Подпись роботиста или лица, его заменЯющего: <span class=\"paper_field\"></span><br><br>"
+					PPP.fields = 5
+					PPP.updateinfolinks()
+					PPP.update_icon()
+					PPP.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+				return
+			if("Medical Doctor")
+				for(var/obj/structure/noticeboard/assistant_nb/nBoard in world)
+					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
+					P.name = "Интерн"
+					P.info = "<b>\t В медбее проходит набор в интернатуру. По данному вопросу обращайтесь в медбей или непосредственно к главному врачу.</b>"
+					P.update_icon()
+					P.updateinfolinks()
+					P.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+				return
+			if("Geneticist")
+				for(var/obj/structure/noticeboard/assistant_nb/nBoard in world)
+					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
+					P.name = "Генетические эксперименты"
+					P.info = "\
+					<b>\tЖелающие посвЯтить себЯ науке могут принЯть участие в генетических эксперментах. ДлЯ этого необходимо заполнить данный бланк и обратитьсЯ к гентику или непосредственно к главному врачу.</b><br>\
+					<center><b>Контракт на проведение доброволььных гентических экспериментов</b><br>\
+					ИмЯ,фамилиЯ: <span class=\"paper_field\"></span><br>\
+					Должность: <span class=\"paper_field\"></span><br>\
+					<b><i> NanoTrasen NSS Exodus </b></i></center><hr>\
+					Я, нижеподписавшийсЯ, тем самым согласившийсЯ добровольно принЯть участие в генетических экспериментах. Я в курсе последствий такого акта. Я также понимаю, что данный акт может нанести непоправимый вред моему здоровью, вплоть до смерти. Всю ответственность за последствиЯ беру на себЯ и обЯзуюсь не предъЯвлять никаких претензий компании 'НаноТразен' или непосредствено учёным, проводившим эксперимент.<hr>\
+					Подпись объекта: <span class=\"paper_field\"></span><br><br>\
+					Подпись капитана, командного офицера или другого главы с наибольшим рангом: <span class=\"paper_field\"></span><br><br>\
+					Печать капитана, командного офицера или другого главы с наибольшим рангом:"
+					P.update_icon()
+					P.fields = 4
+					P.updateinfolinks()
+					P.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+				return
+			if("Scientist")
+				for(var/obj/structure/noticeboard/assistant_nb/nBoard in world)
+					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
+					P.name = "Помощник учёного"
+					P.info = "<b>\t Желающие посвЯтить себЯ науке могут стать помщниками старшего учёного состава. ДлЯ этого необходимо обратитьсЯ в отдел исследований или непосредственно к главе данного отдела</b>"
+					P.update_icon()
+					P.updateinfolinks()
+					P.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+				return
+			if("Chef")
+				for(var/obj/structure/noticeboard/assistant_nb/nBoard in world)
+					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
+					P.name = "Су-шеф"
+					P.info = "<b>\t ТребуетсЯ су-шеф. По данному вопросу обращайтесь к повару.</b>"
+					P.update_icon()
+					P.updateinfolinks()
+					P.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+				return
+			if("Quartermaster")
+				for(var/obj/structure/noticeboard/assistant_nb/nBoard in world)
+					var/obj/item/weapon/paper/P = new /obj/item/weapon/paper(nBoard.loc)
+					P.name = "Грузчик"
+					P.info = "<b>\t В отдел поставок требуетсЯ грузчик. По данному вопросу обращайтесь к квартирмейстру.</b>"
+					P.update_icon()
+					P.updateinfolinks()
+					P.loc = nBoard
+					nBoard.notices++
+					nBoard.icon_state = "nboard0[nBoard.notices]"
+				return
 
 	proc/EquipRank(var/mob/living/carbon/human/H, var/rank, var/joined_late = 0)
 		if(!H)	return 0
@@ -423,7 +548,7 @@ var/global/datum/controller/occupations/job_master
 							var/obj/item/weapon/storage/backpack/BPK = new/obj/item/weapon/storage/backpack/satchel(H)
 							new /obj/item/weapon/storage/box/survival(BPK)
 							H.equip_to_slot_or_del(BPK, slot_back,1)
-
+		NBupdate(rank)
 		H << "<B>You are the [alt_title ? alt_title : rank].</B>"
 		H << "<b>As the [alt_title ? alt_title : rank] you answer directly to [job.supervisors]. Special circumstances may change this.</b>"
 		if(job.req_admin_notify)
