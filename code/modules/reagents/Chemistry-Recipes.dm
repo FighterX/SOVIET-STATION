@@ -22,6 +22,12 @@ datum
 
 		//I recommend you set the result amount to the total volume of all components.
 
+		luminol
+			name = "Luminol"
+			id = "luminol"
+			result = "luminol"
+			required_reagents = list("hydrogen" = 3, "carbon" = 3, "ammonia" = 3)
+
 		explosion_potassium
 			name = "Explosion"
 			id = "explosion_potassium"
