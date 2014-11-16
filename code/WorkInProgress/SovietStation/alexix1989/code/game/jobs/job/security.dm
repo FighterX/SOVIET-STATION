@@ -86,8 +86,8 @@
 	flag = DETECTIVE
 	department_flag = ENGSEC
 	faction = "Station"
-	total_positions = 2
-	spawn_positions = 2
+	total_positions = 1
+	spawn_positions = 1
 	supervisors = "the head of security"
 	selection_color = "#ffeeee"
 

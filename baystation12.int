@@ -1,9 +1,11 @@
 // BEGIN_INTERNALS
 /*
 MAP_ICON_TYPE: 0
+WINDOW: code\game\jobs\jobs.dm;code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\jobs.dm;code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\job\security.dm
 LAST_COMPILE_VERSION: 506.1247
-DIR: code\game\machinery code\game\machinery\computer code\WorkInProgress code\WorkInProgress\computer3 code\WorkInProgress\computer3\computers code\WorkInProgress\SovietStation\alexix1989 code\WorkInProgress\SovietStation\alexix1989\code code\WorkInProgress\SovietStation\alexix1989\code\_onclick code\WorkInProgress\SovietStation\alexix1989\code\_onclick\hud 
-LAST_COMPILE_TIME: 1416157886
+DIR: code code\game\machinery code\game\machinery\computer code\WorkInProgress code\WorkInProgress\SovietStation code\WorkInProgress\SovietStation\alexix1989 code\WorkInProgress\SovietStation\alexix1989\code code\WorkInProgress\SovietStation\alexix1989\code\game code\WorkInProgress\SovietStation\alexix1989\code\game\jobs code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\job 
+FILE: code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\job\security.dm
+LAST_COMPILE_TIME: 1416158727
 AUTO_FILE_DIR: OFF
 */
 // END_INTERNALS
