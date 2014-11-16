@@ -12,7 +12,24 @@
 	var/obj/machinery/alarm/current
 	var/overridden = 0 //not set yet, can't think of a good way to do it
 	req_access = list(access_ce)
+	var/list/monitored_alarm_ids = null
+	var/list/monitored_alarms = null
 
+/obj/machinery/computer/atmoscontrol/laptop
+	name = "Atmospherics Laptop"
+	desc = "Cheap Nanotrasen Laptop."
+	icon_state = "medlaptop"
+	density = 0
+
+/obj/machinery/computer/atmoscontrol/initialize()
+	..()
+	if(!monitored_alarms && monitored_alarm_ids)
+		monitored_alarms = new
+		for(var/obj/machinery/alarm/alarm in machines)
+			if(alarm.alarm_id && alarm.alarm_id in monitored_alarm_ids)
+				monitored_alarms += alarm
+		// machines may not yet be ordered at this point
+		monitored_alarms = dd_sortedObjectList(monitored_alarms)
 
 /obj/machinery/computer/atmoscontrol/attack_ai(var/mob/user as mob)
 	return interact(user)
@@ -32,10 +49,12 @@
 	else if(!emagged)
 		overridden = 0
 	var/dat = "<a href='?src=\ref[src]&reset=1'>Main Menu</a><hr>"
+	if(monitored_alarms && monitored_alarms.len == 1)
+		current = monitored_alarms[1]
 	if(current)
 		dat += specific()
 	else
-		for(var/obj/machinery/alarm/alarm in machines)
+		for(var/obj/machinery/alarm/alarm in monitored_alarms ? monitored_alarms : machines)
 			dat += "<a href='?src=\ref[src]&alarm=\ref[alarm]'>"
 			switch(max(alarm.danger_level, alarm.alarm_area.atmosalm))
 				if (0)
@@ -44,7 +63,7 @@
 					dat += "<font color=blue>"
 				if (2)
 					dat += "<font color=red>"
-			dat += "[alarm]</font></a><br/>"
+			dat += "[sanitize(alarm.name)]</font></a><br/>"
 	user << browse(dat, "window=atmoscontrol")
 
 /obj/machinery/computer/atmoscontrol/attackby(var/obj/item/I as obj, var/mob/user as mob)
@@ -156,12 +175,14 @@
 				src.updateUsrDialog()
 			return
 
-		if(href_list["atmos_unlock"])
-			switch(href_list["atmos_unlock"])
-				if("0")
-					current.air_doors_close(1)
-				if("1")
-					current.air_doors_open(1)
+		//commenting this out because it causes compile errors
+		//I tried fixing it but wasn't sucessful.
+		//if(href_list["atmos_unlock"])
+		//	switch(href_list["atmos_unlock"])
+		//		if("0")
+		//			current.alarm_area.air_doors_close()
+		//		if("1")
+		//			current.alarm_area.air_doors_open()
 
 		if(href_list["atmos_alarm"])
 			if (current.alarm_area.atmosalert(2))
@@ -282,7 +303,7 @@ siphoning
 Carbon Dioxide
 <A href='?src=\ref[src];alarm=\ref[current];id_tag=[id_tag];command=co2_scrub;val=[!data["filter_co2"]]'>[data["filter_co2"]?"on":"off"]</A>;
 Toxins
-<A href='?src=\ref[src];alarm=\ref[current];id_tag=[id_tag];command=tox_scrub;val=[!data["filter_toxins"]]'>[data["filter_toxins"]?"on":"off"]</A>;
+<A href='?src=\ref[src];alarm=\ref[current];id_tag=[id_tag];command=tox_scrub;val=[!data["filter_phoron"]]'>[data["filter_phoron"]?"on":"off"]</A>;
 Nitrous Oxide
 <A href='?src=\ref[src];alarm=\ref[current];id_tag=[id_tag];command=n2o_scrub;val=[!data["filter_n2o"]]'>[data["filter_n2o"]?"on":"off"]</A>
 <BR>
@@ -332,7 +353,7 @@ table tr:first-child th:first-child { border: none;}
 			var/list/gases = list(
 				"oxygen"         = "O<sub>2</sub>",
 				"carbon dioxide" = "CO<sub>2</sub>",
-				"plasma"         = "Toxin",
+				"phoron"         = "Toxin",
 				"other"          = "Other",
 			)
 			var/list/tlv

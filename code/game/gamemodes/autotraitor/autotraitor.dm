@@ -123,7 +123,8 @@
 				var/mob/living/newtraitor = pick(possible_traitors)
 				//message_admins("[newtraitor.real_name] is the new Traitor.")
 
-				forge_traitor_objectives(newtraitor.mind)
+				if (!config.objectives_disabled)
+					forge_traitor_objectives(newtraitor.mind)
 
 				if(istype(newtraitor, /mob/living/silicon))
 					add_law_zero(newtraitor)
@@ -134,11 +135,10 @@
 				newtraitor << "\red <B>ATTENTION:</B> \black It is time to pay your debt to the Syndicate..."
 				newtraitor << "<B>You are now a traitor.</B>"
 				newtraitor.mind.special_role = "traitor"
-				var/obj_count = 1
-				newtraitor << "\blue Your current objectives:"
-				for(var/datum/objective/objective in newtraitor.mind.objectives)
-					newtraitor << "<B>Objective #[obj_count]</B>: [objective.explanation_text]"
-					obj_count++
+				newtraitor.hud_updateflag |= 1 << SPECIALROLE_HUD
+				newtraitor << "<i>You have been selected this round as an antagonist!</i>"
+				show_objectives(newtraitor.mind)
+
 			//else
 				//message_admins("No new traitor being added.")
 		//else
@@ -183,16 +183,15 @@
 			//message_admins("The probability of a new traitor is [traitor_prob]%")
 			if(prob(traitor_prob))
 				message_admins("New traitor roll passed.  Making a new Traitor.")
-				forge_traitor_objectives(character.mind)
+				if (!config.objectives_disabled)
+					forge_traitor_objectives(character.mind)
 				equip_traitor(character)
 				traitors += character.mind
 				character << "\red <B>You are the traitor.</B>"
 				character.mind.special_role = "traitor"
-				var/obj_count = 1
-				character << "\blue Your current objectives:"
-				for(var/datum/objective/objective in character.mind.objectives)
-					character << "<B>Objective #[obj_count]</B>: [objective.explanation_text]"
-					obj_count++
+				character << "<i>You have been selected this round as an antagonist</i>!"
+				show_objectives(character.mind)
+
 			//else
 				//message_admins("New traitor roll failed.  No new traitor.")
 	//else

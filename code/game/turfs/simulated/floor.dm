@@ -75,6 +75,21 @@ var/list/wood_icons = list("wood","wood-broken")
 				src.hotspot_expose(1000,CELL_VOLUME)
 	return
 
+/turf/simulated/floor/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+	if(!burnt && prob(5))
+		burn_tile()
+	else if(prob(1) && !is_plating())
+		make_plating()
+		burn_tile()
+	return
+
+/turf/simulated/floor/adjacent_fire_act(turf/simulated/floor/adj_turf, datum/gas_mixture/adj_air, adj_temp, adj_volume)
+	var/dir_to = get_dir(src, adj_turf)
+
+	for(var/obj/structure/window/W in src)
+		if(W.dir == dir_to || W.is_fulltile()) //Same direction or diagonal (full tile)
+			W.fire_act(adj_air, adj_temp, adj_volume)
+
 /turf/simulated/floor/blob_act()
 	return
 
@@ -455,7 +470,7 @@ turf/simulated/floor/proc/update_icon()
 				new floor_tile.type(src)
 
 		make_plating()
-		playsound(src.loc, 'sound/items/Crowbar.ogg', 80, 1)
+		playsound(src, 'sound/items/Crowbar.ogg', 80, 1)
 
 		return
 
@@ -468,22 +483,23 @@ turf/simulated/floor/proc/update_icon()
 				new floor_tile.type(src)
 
 		make_plating()
-		playsound(src.loc, 'sound/items/Screwdriver.ogg', 80, 1)
+		playsound(src, 'sound/items/Screwdriver.ogg', 80, 1)
 
 		return
 
 	if(istype(C, /obj/item/stack/rods))
 		var/obj/item/stack/rods/R = C
 		if (is_plating())
-			if (R.amount >= 2)
-				user << "\blue Reinforcing the floor..."
-				if(do_after(user, 30) && R && R.amount >= 2 && is_plating())
+			if (R.get_amount() < 2)
+				user << "<span class='warning'>You need more rods.</span>"
+				return
+			user << "\blue Reinforcing the floor..."
+			if(do_after(user, 30) && is_plating())
+				if (R.use(2))
 					ChangeTurf(/turf/simulated/floor/engine)
-					playsound(src.loc, 'sound/items/Deconstruct.ogg', 80, 1)
-					R.use(2)
-					return
+					playsound(src, 'sound/items/Deconstruct.ogg', 80, 1)
+				return
 			else
-				user << "\red You need more rods."
 		else
 			user << "\red You must remove the plating first."
 		return
@@ -492,6 +508,8 @@ turf/simulated/floor/proc/update_icon()
 		if(is_plating())
 			if(!broken && !burnt)
 				var/obj/item/stack/tile/T = C
+				if (T.get_amount() < 1)
+					return
 				floor_tile = new T.type
 				intact = 1
 				if(istype(T,/obj/item/stack/tile/light))
@@ -512,14 +530,14 @@ turf/simulated/floor/proc/update_icon()
 				T.use(1)
 				update_icon()
 				levelupdate()
-				playsound(src.loc, 'sound/weapons/Genhit.ogg', 50, 1)
+				playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
 			else
 				user << "\blue This section is too damaged to support a tile. Use a welder to fix the damage."
 
 
-	if(istype(C, /obj/item/weapon/cable_coil))
+	if(istype(C, /obj/item/stack/cable_coil))
 		if(is_plating())
-			var/obj/item/weapon/cable_coil/coil = C
+			var/obj/item/stack/cable_coil/coil = C
 			coil.turf_place(src, user)
 		else
 			user << "\red You must remove the plating first."
@@ -539,7 +557,7 @@ turf/simulated/floor/proc/update_icon()
 			if(broken || burnt)
 				if(welder.remove_fuel(0,user))
 					user << "\red You fix some dents on the broken plating."
-					playsound(src.loc, 'sound/items/Welder.ogg', 80, 1)
+					playsound(src, 'sound/items/Welder.ogg', 80, 1)
 					icon_state = "plating"
 					burnt = 0
 					broken = 0

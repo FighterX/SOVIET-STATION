@@ -20,8 +20,8 @@
 /datum/game_mode/cult
 	name = "cult"
 	config_tag = "cult"
-	restricted_jobs = list("Chaplain","AI", "Cyborg", "Security Officer", "Warden", "Detective", "Head of Security", "Captain")
-	protected_jobs = list()
+	restricted_jobs = list("Chaplain","AI", "Cyborg", "Internal Affairs Agent", "Head of Security", "Captain")
+	protected_jobs = list("Security Officer", "Warden", "Detective")
 	required_players = 5
 	required_players_secret = 15
 	required_enemies = 3
@@ -53,12 +53,13 @@
 
 
 /datum/game_mode/cult/pre_setup()
-	if(prob(50))
-		objectives += "survive"
-		objectives += "sacrifice"
-	else
-		objectives += "eldergod"
-		objectives += "sacrifice"
+	if(!config.objectives_disabled)
+		if(prob(50))
+			objectives += "survive"
+			objectives += "sacrifice"
+		else
+			objectives += "eldergod"
+			objectives += "sacrifice"
 
 	if(config.protect_roles_from_antagonist)
 		restricted_jobs += protected_jobs
@@ -97,7 +98,9 @@
 		grant_runeword(cult_mind.current)
 		update_cult_icons_added(cult_mind)
 		cult_mind.current << "\blue You are a member of the cult!"
-		memoize_cult_objectives(cult_mind)
+		if(!config.objectives_disabled)
+			memorize_cult_objectives(cult_mind)
+		show_objectives(cult_mind)
 		cult_mind.special_role = "Cultist"
 
 	spawn (rand(waittime_l, waittime_h))
@@ -105,7 +108,7 @@
 	..()
 
 
-/datum/game_mode/cult/proc/memoize_cult_objectives(var/datum/mind/cult_mind)
+/datum/game_mode/cult/proc/memorize_cult_objectives(var/datum/mind/cult_mind)
 	for(var/obj_count = 1,obj_count <= objectives.len,obj_count++)
 		var/explanation
 		switch(objectives[obj_count])
@@ -181,7 +184,8 @@
 /datum/game_mode/cult/add_cultist(datum/mind/cult_mind) //INHERIT
 	if (!..(cult_mind))
 		return
-	memoize_cult_objectives(cult_mind)
+	if (!config.objectives_disabled)
+		memorize_cult_objectives(cult_mind)
 
 
 /datum/game_mode/proc/remove_cultist(datum/mind/cult_mind, show_message = 1)
@@ -276,7 +280,8 @@
 
 
 /datum/game_mode/cult/declare_completion()
-
+	if(config.objectives_disabled)
+		return 1
 	if(!check_cult_victory())
 		feedback_set_details("round_end_result","win - cult win")
 		feedback_set("round_end_result",acolytes_survived)
@@ -287,38 +292,38 @@
 		world << "\red <FONT size = 3><B> The staff managed to stop the cult!</B></FONT>"
 
 	var/text = "<b>Cultists escaped:</b> [acolytes_survived]"
-
-	if(objectives.len)
-		text += "<br><b>The cultists' objectives were:</b>"
-		for(var/obj_count=1, obj_count <= objectives.len, obj_count++)
-			var/explanation
-			switch(objectives[obj_count])
-				if("survive")
-					if(!check_survive())
-						explanation = "Make sure at least [acolytes_needed] acolytes escape on the shuttle. <font color='green'><B>Success!</B></font>"
-						feedback_add_details("cult_objective","cult_survive|SUCCESS|[acolytes_needed]")
-					else
-						explanation = "Make sure at least [acolytes_needed] acolytes escape on the shuttle. <font color='red'>Fail.</font>"
-						feedback_add_details("cult_objective","cult_survive|FAIL|[acolytes_needed]")
-				if("sacrifice")
-					if(sacrifice_target)
-						if(sacrifice_target in sacrificed)
-							explanation = "Sacrifice [sacrifice_target.name], the [sacrifice_target.assigned_role]. <font color='green'><B>Success!</B></font>"
-							feedback_add_details("cult_objective","cult_sacrifice|SUCCESS")
-						else if(sacrifice_target && sacrifice_target.current)
-							explanation = "Sacrifice [sacrifice_target.name], the [sacrifice_target.assigned_role]. <font color='red'>Fail.</font>"
-							feedback_add_details("cult_objective","cult_sacrifice|FAIL")
+	if(!config.objectives_disabled)
+		if(objectives.len)
+			text += "<br><b>The cultists' objectives were:</b>"
+			for(var/obj_count=1, obj_count <= objectives.len, obj_count++)
+				var/explanation
+				switch(objectives[obj_count])
+					if("survive")
+						if(!check_survive())
+							explanation = "Make sure at least [acolytes_needed] acolytes escape on the shuttle. <font color='green'><B>Success!</B></font>"
+							feedback_add_details("cult_objective","cult_survive|SUCCESS|[acolytes_needed]")
+						else
+							explanation = "Make sure at least [acolytes_needed] acolytes escape on the shuttle. <font color='red'>Fail.</font>"
+							feedback_add_details("cult_objective","cult_survive|FAIL|[acolytes_needed]")
+					if("sacrifice")
+						if(sacrifice_target)
+							if(sacrifice_target in sacrificed)
+								explanation = "Sacrifice [sacrifice_target.name], the [sacrifice_target.assigned_role]. <font color='green'><B>Success!</B></font>"
+								feedback_add_details("cult_objective","cult_sacrifice|SUCCESS")
+							else if(sacrifice_target && sacrifice_target.current)
+								explanation = "Sacrifice [sacrifice_target.name], the [sacrifice_target.assigned_role]. <font color='red'>Fail.</font>"
+								feedback_add_details("cult_objective","cult_sacrifice|FAIL")
 						else
 							explanation = "Sacrifice [sacrifice_target.name], the [sacrifice_target.assigned_role]. <font color='red'>Fail (Gibbed).</font>"
 							feedback_add_details("cult_objective","cult_sacrifice|FAIL|GIBBED")
-				if("eldergod")
-					if(!eldergod)
-						explanation = "Summon Nar-Sie. <font color='green'><B>Success!</B></font>"
-						feedback_add_details("cult_objective","cult_narsie|SUCCESS")
-					else
-						explanation = "Summon Nar-Sie. <font color='red'>Fail.</font>"
+					if("eldergod")
+						if(!eldergod)
+							explanation = "Summon Nar-Sie. <font color='green'><B>Success!</B></font>"
+							feedback_add_details("cult_objective","cult_narsie|SUCCESS")
+						else
+							explanation = "Summon Nar-Sie. <font color='red'>Fail.</font>"
 						feedback_add_details("cult_objective","cult_narsie|FAIL")
-			text += "<br><B>Objective #[obj_count]</B>: [explanation]"
+				text += "<br><B>Objective #[obj_count]</B>: [explanation]"
 
 	world << text
 	..()
@@ -329,17 +334,7 @@
 	if( cult.len || (ticker && istype(ticker.mode,/datum/game_mode/cult)) )
 		var/text = "<FONT size = 2><B>The cultists were:</B></FONT>"
 		for(var/datum/mind/cultist in cult)
-
-			text += "<br>[cultist.key] was [cultist.name] ("
-			if(cultist.current)
-				if(cultist.current.stat == DEAD)
-					text += "died"
-				else
-					text += "survived"
-				if(cultist.current.real_name != cultist.name)
-					text += " as [cultist.current.real_name]"
-			else
-				text += "body destroyed"
-			text += ")"
+			text += printplayer(cultist)
+		text += "<br>"
 
 		world << text

@@ -31,34 +31,38 @@
 	attack_hand(user)
 
 /obj/structure/grille/attack_hand(mob/user as mob)
+
 	playsound(loc, 'sound/effects/grillehit.ogg', 80, 1)
-	user.visible_message("<span class='warning'>[user] kicks [src].</span>", \
+
+	var/damage_dealt
+	if(istype(user,/mob/living/carbon/human))
+		var/mob/living/carbon/human/H = user
+		if(H.species.can_shred(H))
+			damage_dealt = 5
+			user.visible_message("<span class='warning'>[user] mangles [src].</span>", \
+					 "<span class='warning'>You mangle [src].</span>", \
+					 "You hear twisting metal.")
+
+	if(!damage_dealt)
+		user.visible_message("<span class='warning'>[user] kicks [src].</span>", \
 						 "<span class='warning'>You kick [src].</span>", \
 						 "You hear twisting metal.")
 
 	if(shock(user, 70))
 		return
+
 	if(HULK in user.mutations)
-		health -= 5
+		damage_dealt += 5
 	else
-		health -= 3
+		damage_dealt += 1
+
+	health -= damage_dealt
 	healthcheck()
 
-/obj/structure/grille/attack_alien(mob/user as mob)
-	if(istype(user, /mob/living/carbon/alien/larva))	return
-
-	playsound(loc, 'sound/effects/grillehit.ogg', 80, 1)
-	user.visible_message("<span class='warning'>[user] mangles [src].</span>", \
-						 "<span class='warning'>You mangle [src].</span>", \
-						 "You hear twisting metal.")
-
-	if(!shock(user, 70))
-		health -= 5
-		healthcheck()
-		return
-
 /obj/structure/grille/attack_slime(mob/user as mob)
-	if(!istype(user, /mob/living/carbon/slime/adult))	return
+	var/mob/living/carbon/slime/S = user
+	if (!S.is_adult)
+		return
 
 	playsound(loc, 'sound/effects/grillehit.ogg', 80, 1)
 	user.visible_message("<span class='warning'>[user] smashes against [src].</span>", \
@@ -93,7 +97,13 @@
 			return !density
 
 /obj/structure/grille/bullet_act(var/obj/item/projectile/Proj)
+
 	if(!Proj)	return
+
+	//Tasers and the like should not damage grilles.
+	if(Proj.damage_type == HALLOSS)
+		return
+
 	src.health -= Proj.damage*0.2
 	healthcheck()
 	return 0
@@ -113,7 +123,8 @@
 			return
 
 //window placing begin
-	else if( istype(W,/obj/item/stack/sheet/rglass) || istype(W,/obj/item/stack/sheet/glass) )
+	else if(istype(W,/obj/item/stack/sheet/rglass) || istype(W,/obj/item/stack/sheet/glass))
+		var/obj/item/stack/sheet/ST = W
 		var/dir_to_set = 1
 		if(loc == user.loc)
 			dir_to_set = user.dir
@@ -138,24 +149,22 @@
 				return
 		user << "<span class='notice'>You start placing the window.</span>"
 		if(do_after(user,20))
-			if(!src) return //Grille destroyed while waiting
 			for(var/obj/structure/window/WINDOW in loc)
 				if(WINDOW.dir == dir_to_set)//checking this for a 2nd time to check if a window was made while we were waiting.
 					user << "<span class='notice'>There is already a window facing this way there.</span>"
 					return
-			var/obj/structure/window/WD
-			if(istype(W,/obj/item/stack/sheet/rglass))
-				WD = new/obj/structure/window/reinforced(loc) //reinforced window
-			else
-				WD = new/obj/structure/window/basic(loc) //normal window
-			WD.dir = dir_to_set
-			WD.ini_dir = dir_to_set
-			WD.anchored = 0
-			WD.state = 0
-			var/obj/item/stack/ST = W
-			ST.use(1)
-			user << "<span class='notice'>You place the [WD] on [src].</span>"
-			WD.update_icon()
+			if (ST.use(1))
+				var/obj/structure/window/WD
+				if(istype(W, /obj/item/stack/sheet/rglass))
+					WD = new/obj/structure/window/reinforced(loc) //reinforced window
+				else
+					WD = new/obj/structure/window/basic(loc) //normal window
+				WD.dir = dir_to_set
+				WD.ini_dir = dir_to_set
+				WD.anchored = 0
+				WD.state = 0
+				user << "<span class='notice'>You place the [WD] on [src].</span>"
+				WD.update_icon()
 		return
 //window placing end
 
@@ -192,6 +201,7 @@
 // returns 1 if shocked, 0 otherwise
 
 /obj/structure/grille/proc/shock(mob/user as mob, prb)
+
 	if(!anchored || destroyed)		// anchored/destroyed grilles are never connected
 		return 0
 	if(!prob(prb))
@@ -210,7 +220,7 @@
 			return 0
 	return 0
 
-/obj/structure/grille/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/structure/grille/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	if(!destroyed)
 		if(exposed_temperature > T0C + 1500)
 			health -= 1

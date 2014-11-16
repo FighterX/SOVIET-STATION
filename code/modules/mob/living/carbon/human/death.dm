@@ -19,8 +19,12 @@
 			// Override the current limb status and don't cause an explosion
 			E.droplimb(1,1)
 
-	flick("gibbed-h", animation)
-	hgibs(loc, viruses, dna)
+	if(species)
+		flick(species.gibbed_anim, animation)
+		hgibs(loc, viruses, dna, species.flesh_color, species.blood_color)
+	else
+		flick("gibbed-h", animation)
+		hgibs(loc, viruses, dna)
 
 	spawn(15)
 		if(animation)	del(animation)
@@ -39,8 +43,8 @@
 	animation.icon = 'icons/mob/mob.dmi'
 	animation.master = src
 
-	flick("dust-h", animation)
-	new /obj/effect/decal/remains/human(loc)
+	flick(species.dusted_anim, animation)
+	new species.remains_type(loc)
 
 	spawn(15)
 		if(animation)	del(animation)
@@ -50,9 +54,18 @@
 /mob/living/carbon/human/death(gibbed)
 	if(stat == DEAD)	return
 	if(healths)		healths.icon_state = "health5"
+
 	stat = DEAD
 	dizziness = 0
 	jitteriness = 0
+
+	hud_updateflag |= 1 << HEALTH_HUD
+	hud_updateflag |= 1 << STATUS_HUD
+
+	handle_hud_list()
+
+	//Handle species-specific deaths.
+	if(species) species.handle_death(src)
 
 	//Handle brain slugs.
 	var/datum/organ/external/head = get_organ("head")
@@ -73,6 +86,8 @@
 
 		verbs -= /mob/living/carbon/proc/release_control
 
+	callHook("death", list(src, gibbed))
+
 	//Check for heist mode kill count.
 	if(ticker.mode && ( istype( ticker.mode,/datum/game_mode/heist) ) )
 		//Check for last assailant's mutantrace.
@@ -83,7 +98,9 @@
 		vox_kills++ //Bad vox. Shouldn't be killing humans.
 
 	if(!gibbed)
-		emote("deathgasp") //let the world KNOW WE ARE DEAD
+
+		emote("deathgasp") //let the world KNOW WE ARE DEAD // Doing this with the deathgasp emote seems odd.
+		if(species && species.death_sound) playsound(loc, species.death_sound, 80, 1, 1)
 
 		//For ninjas exploding when they die.
 		if( istype(wear_suit, /obj/item/clothing/suit/space/space_ninja) && wear_suit:s_initialized )

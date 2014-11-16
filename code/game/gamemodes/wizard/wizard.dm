@@ -50,7 +50,8 @@
 
 /datum/game_mode/wizard/post_setup()
 	for(var/datum/mind/wizard in wizards)
-		forge_wizard_objectives(wizard)
+		if(!config.objectives_disabled)
+			forge_wizard_objectives(wizard)
 		//learn_basic_spells(wizard.current)
 		equip_wizard(wizard.current)
 		name_wizard(wizard.current)
@@ -63,6 +64,9 @@
 
 
 /datum/game_mode/proc/forge_wizard_objectives(var/datum/mind/wizard)
+	if (config.objectives_disabled)
+		return
+
 	switch(rand(1,100))
 		if(1 to 30)
 
@@ -131,14 +135,7 @@
 /datum/game_mode/proc/greet_wizard(var/datum/mind/wizard, var/you_are=1)
 	if (you_are)
 		wizard.current << "<B>\red You are the Space Wizard!</B>"
-	wizard.current << "<B>The Space Wizards Federation has given you the following tasks:</B>"
-
-	var/obj_count = 1
-	for(var/datum/objective/objective in wizard.objectives)
-		wizard.current << "<B>Objective #[obj_count]</B>: [objective.explanation_text]"
-		obj_count++
-	return
-
+	show_objectives(wizard)
 
 /*/datum/game_mode/proc/learn_basic_spells(mob/living/carbon/human/wizard_mob)
 	if (!istype(wizard_mob))
@@ -231,22 +228,23 @@
 
 			var/count = 1
 			var/wizardwin = 1
-			for(var/datum/objective/objective in wizard.objectives)
-				if(objective.check_completion())
-					text += "<br><B>Objective #[count]</B>: [objective.explanation_text] <font color='green'><B>Success!</B></font>"
-					feedback_add_details("wizard_objective","[objective.type]|SUCCESS")
-				else
-					text += "<br><B>Objective #[count]</B>: [objective.explanation_text] <font color='red'>Fail.</font>"
-					feedback_add_details("wizard_objective","[objective.type]|FAIL")
-					wizardwin = 0
-				count++
+			if(!config.objectives_disabled)
+				for(var/datum/objective/objective in wizard.objectives)
+					if(objective.check_completion())
+						text += "<br><B>Objective #[count]</B>: [objective.explanation_text] <font color='green'><B>Success!</B></font>"
+						feedback_add_details("wizard_objective","[objective.type]|SUCCESS")
+					else
+						text += "<br><B>Objective #[count]</B>: [objective.explanation_text] <font color='red'>Fail.</font>"
+						feedback_add_details("wizard_objective","[objective.type]|FAIL")
+						wizardwin = 0
+					count++
 
-			if(wizard.current && wizard.current.stat!=2 && wizardwin)
-				text += "<br><font color='green'><B>The wizard was successful!</B></font>"
-				feedback_add_details("wizard_success","SUCCESS")
-			else
-				text += "<br><font color='red'><B>The wizard has failed!</B></font>"
-				feedback_add_details("wizard_success","FAIL")
+				if(wizard.current && wizard.current.stat!=2 && wizardwin)
+					text += "<br><font color='green'><B>The wizard was successful!</B></font>"
+					feedback_add_details("wizard_success","SUCCESS")
+				else
+					text += "<br><font color='red'><B>The wizard has failed!</B></font>"
+					feedback_add_details("wizard_success","FAIL")
 
 		world << text
 	return 1

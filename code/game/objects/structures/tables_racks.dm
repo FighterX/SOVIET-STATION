@@ -19,7 +19,10 @@
 	anchored = 1.0
 	layer = 2.8
 	throwpass = 1	//You can throw objects over this, despite it's density.")
-	var/parts = /obj/item/weapon/table_parts
+	climbable = 1
+	breakable = 1
+	parts = /obj/item/weapon/table_parts
+
 	var/flipped = 0
 	var/health = 100
 
@@ -40,16 +43,6 @@
 /obj/structure/table/Del()
 	update_adjacent()
 	..()
-
-/obj/structure/table/proc/destroy()
-	new parts(loc)
-	density = 0
-	del(src)
-
-/obj/structure/rack/proc/destroy()
-	new parts(loc)
-	density = 0
-	del(src)
 
 /obj/structure/table/update_icon()
 	spawn(2) //So it properly updates when deleting
@@ -224,6 +217,22 @@
 					icon_state = "wood_tabledir2"
 				if(6)
 					icon_state = "wood_tabledir3"
+		else if(istype(src,/obj/structure/table/gamblingtable))
+			switch(table_type)
+				if(0)
+					icon_state = "gamble_table"
+				if(1)
+					icon_state = "gamble_1tileendtable"
+				if(2)
+					icon_state = "gamble_1tilethick"
+				if(3)
+					icon_state = "gamble_tabledir"
+				if(4)
+					icon_state = "gamble_middle"
+				if(5)
+					icon_state = "gamble_tabledir2"
+				if(6)
+					icon_state = "gamble_tabledir3"
 		else
 			switch(table_type)
 				if(0)
@@ -245,49 +254,6 @@
 		else
 			dir = 2
 
-/obj/structure/table/ex_act(severity)
-	switch(severity)
-		if(1.0)
-			del(src)
-			return
-		if(2.0)
-			if (prob(50))
-				del(src)
-				return
-		if(3.0)
-			if (prob(25))
-				destroy()
-		else
-	return
-
-
-/obj/structure/table/blob_act()
-	if(prob(75))
-		destroy()
-
-/obj/structure/table/attack_paw(mob/user)
-	if(HULK in user.mutations)
-		user.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
-		visible_message("<span class='danger'>[user] smashes the [src] apart!</span>")
-		destroy()
-
-
-/obj/structure/table/attack_alien(mob/user)
-	visible_message("<span class='danger'>[user] slices [src] apart!</span>")
-
-/obj/structure/table/attack_animal(mob/living/simple_animal/user)
-	if(user.wall_smash)
-		visible_message("<span class='danger'>[user] smashes [src] apart!</span>")
-		destroy()
-
-
-
-/obj/structure/table/attack_hand(mob/user)
-	if(HULK in user.mutations)
-		visible_message("<span class='danger'>[user] smashes [src] apart!</span>")
-		user.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
-		destroy()
-
 /obj/structure/table/attack_tk() // no telehulk sorry
 	return
 
@@ -296,6 +262,8 @@
 	if(istype(mover,/obj/item/projectile))
 		return (check_cover(mover,target))
 	if(istype(mover) && mover.checkpass(PASSTABLE))
+		return 1
+	if(locate(/obj/structure/table) in get_turf(mover))
 		return 1
 	if (flipped)
 		if (get_dir(loc, target) == dir)
@@ -342,8 +310,9 @@
 	return 1
 
 /obj/structure/table/MouseDrop_T(obj/O as obj, mob/user as mob)
+
 	if ((!( istype(O, /obj/item/weapon) ) || user.get_active_hand() != O))
-		return
+		return ..()
 	if(isrobot(user))
 		return
 	user.drop_item()
@@ -412,30 +381,25 @@
 			return 0
 	return T.straight_table_check(direction)
 
-/obj/structure/table/verb/can_touch(var/mob/user)
-	if (!user)
-		return 0
-	if (user.stat)	//zombie goasts go away
-		return 0
-	if (issilicon(user))
-		user << "<span class='notice'>You need hands for this.</span>"
-		return 0
-	return 1
-
 /obj/structure/table/verb/do_flip()
 	set name = "Flip table"
 	set desc = "Flips a non-reinforced table"
 	set category = "Object"
 	set src in oview(1)
-	if(ismouse(usr))
+
+	if (!can_touch(usr) || ismouse(usr))
 		return
-	if (!can_touch(usr))
-		return
+
 	if(!flip(get_cardinal_dir(usr,src)))
 		usr << "<span class='notice'>It won't budge.</span>"
-	else
-		usr.visible_message("<span class='warning'>[usr] flips \the [src]!</span>")
 		return
+
+	usr.visible_message("<span class='warning'>[usr] flips \the [src]!</span>")
+
+	if(climbable)
+		structure_shaken()
+
+	return
 
 /obj/structure/table/proc/unflipping_check(var/direction)
 	for(var/mob/M in oview(src,0))
@@ -484,6 +448,7 @@
 	dir = direction
 	if(dir != NORTH)
 		layer = 5
+	climbable = 0 //flipping tables allows them to be used as makeshift barriers
 	flipped = 1
 	flags |= ON_BORDER
 	for(var/D in list(turn(direction, 90), turn(direction, -90)))
@@ -501,6 +466,7 @@
 
 	layer = initial(layer)
 	flipped = 0
+	climbable = initial(climbable)
 	flags &= ~ON_BORDER
 	for(var/D in list(turn(dir, 90), turn(dir, -90)))
 		var/obj/structure/table/T = locate() in get_step(src.loc,D)
@@ -519,6 +485,15 @@
 	desc = "Do not apply fire to this. Rumour says it burns easily."
 	icon_state = "wood_table"
 	parts = /obj/item/weapon/table_parts/wood
+	health = 50
+/*
+ * Gambling tables
+ */
+/obj/structure/table/gamblingtable
+	name = "gambling table"
+	desc = "A curved wooden table with a thin carpet of green fabric."
+	icon_state = "gamble_table"
+	parts = /obj/item/weapon/table_parts/gambling
 	health = 50
 /*
  * Reinforced tables
@@ -576,29 +551,9 @@
 	flags = FPRINT
 	anchored = 1.0
 	throwpass = 1	//You can throw objects over this, despite it's density.
-	var/parts = /obj/item/weapon/rack_parts
-
-/obj/structure/rack/ex_act(severity)
-	switch(severity)
-		if(1.0)
-			del(src)
-		if(2.0)
-			del(src)
-			if(prob(50))
-				new /obj/item/weapon/rack_parts(src.loc)
-		if(3.0)
-			if(prob(25))
-				del(src)
-				new /obj/item/weapon/rack_parts(src.loc)
-
-/obj/structure/rack/blob_act()
-	if(prob(75))
-		del(src)
-		return
-	else if(prob(50))
-		new /obj/item/weapon/rack_parts(src.loc)
-		del(src)
-		return
+	breakable = 1
+	climbable = 1
+	parts = /obj/item/weapon/rack_parts
 
 /obj/structure/rack/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
 	if(air_group || (height==0)) return 1
@@ -629,32 +584,4 @@
 		return
 	user.drop_item()
 	if(W && W.loc)	W.loc = src.loc
-	return
-
-/obj/structure/rack/meteorhit(obj/O as obj)
-	del(src)
-
-
-/obj/structure/table/attack_hand(mob/user)
-	if(HULK in user.mutations)
-		visible_message("<span class='danger'>[user] smashes [src] apart!</span>")
-		user.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
-		destroy()
-
-/obj/structure/rack/attack_paw(mob/user)
-	if(HULK in user.mutations)
-		user.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
-		visible_message("<span class='danger'>[user] smashes [src] apart!</span>")
-		destroy()
-
-/obj/structure/rack/attack_alien(mob/user)
-	visible_message("<span class='danger'>[user] slices [src] apart!</span>")
-	destroy()
-
-/obj/structure/rack/attack_animal(mob/living/simple_animal/user)
-	if(user.wall_smash)
-		visible_message("<span class='danger'>[user] smashes [src] apart!</span>")
-		destroy()
-
-/obj/structure/rack/attack_tk() // no telehulk sorry
 	return

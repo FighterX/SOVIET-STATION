@@ -1,6 +1,6 @@
 /obj/machinery/igniter
 	name = "igniter"
-	desc = "It's useful for igniting plasma."
+	desc = "It's useful for igniting flammable items."
 	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "igniter1"
 	var/id = null
@@ -14,8 +14,6 @@
 	return src.attack_hand(user)
 
 /obj/machinery/igniter/attack_paw(mob/user as mob)
-	if ((ticker && ticker.mode.name == "monkey"))
-		return src.attack_hand(user)
 	return
 
 /obj/machinery/igniter/attack_hand(mob/user as mob)
@@ -40,6 +38,7 @@
 	icon_state = "igniter[on]"
 
 /obj/machinery/igniter/power_change()
+	..()
 	if(!( stat & NOPOWER) )
 		icon_state = "igniter[src.on]"
 	else
@@ -62,12 +61,12 @@
 	..()
 
 /obj/machinery/sparker/power_change()
-	if ( powered() && disable == 0 )
-		stat &= ~NOPOWER
+	..()
+	if ( !(stat & NOPOWER) && disable == 0 )
+		
 		icon_state = "[base_state]"
 //		src.sd_SetLuminosity(2)
 	else
-		stat |= ~NOPOWER
 		icon_state = "[base_state]-p"
 //		src.sd_SetLuminosity(0)
 

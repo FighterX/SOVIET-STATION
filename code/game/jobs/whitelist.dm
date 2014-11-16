@@ -26,7 +26,7 @@ var/list/whitelist = list()
 /proc/load_alienwhitelist()
 	var/text = file2text("config/alienwhitelist.txt")
 	if (!text)
-		diary << "Failed to load config/alienwhitelist.txt\n"
+		log_misc("Failed to load config/alienwhitelist.txt")
 	else
 		alien_whitelist = text2list(text, "\n")
 
@@ -46,7 +46,6 @@ var/list/whitelist = list()
 				return 1
 			if(findtext(s,"[M.ckey] - All"))
 				return 1
-
 	return 0
 
 #undef WHITELISTFILE

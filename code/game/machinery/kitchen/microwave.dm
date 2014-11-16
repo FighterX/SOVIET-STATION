@@ -26,7 +26,7 @@
 ********************/
 
 /obj/machinery/microwave/New()
-	//..() //do not need this
+	..()
 	reagents = new/datum/reagents(100)
 	reagents.my_atom = src
 	if (!available_recipes)
@@ -42,6 +42,11 @@
 				acceptable_reagents |= reagent
 			if (recipe.items)
 				max_n_of_items = max(max_n_of_items,recipe.items.len)
+
+		// This will do until I can think of a fun recipe to use dionaea in -
+		// will also allow anything using the holder item to be microwaved into
+		// impure carbon. ~Z
+		acceptable_items |= /obj/item/weapon/holder
 
 /*******************
 *   Item Adding
@@ -99,9 +104,10 @@
 		if (contents.len>=max_n_of_items)
 			user << "\red This [src] is full of ingredients, you cannot put more."
 			return 1
-		if (istype(O,/obj/item/stack) && O:amount>1)
+		if(istype(O, /obj/item/stack) && O:get_amount() > 1) // This is bad, but I can't think of how to change it
+			var/obj/item/stack/S = O
 			new O.type (src)
-			O:use(1)
+			S.use(1)
 			user.visible_message( \
 				"\blue [user] has added one of [O] to \the [src].", \
 				"\blue You add one of [O] to \the [src].")

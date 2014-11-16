@@ -8,7 +8,7 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 
 /obj/machinery/requests_console
 	name = "Requests Console"
-	desc = "A console intended to send requests to diferent departments on the station."
+	desc = "A console intended to send requests to different departments on the station."
 	anchored = 1
 	icon = 'icons/obj/terminals.dmi'
 	icon_state = "req_comp0"
@@ -55,6 +55,7 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 	var/dpt = ""; //the department which will be receiving the message
 	var/priority = -1 ; //Priority of the message being sent
 	luminosity = 0
+	var/datum/announcement/announcement = new
 
 /obj/machinery/requests_console/power_change()
 	..()
@@ -70,6 +71,10 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 
 /obj/machinery/requests_console/New()
 	..()
+
+	announcement.title = "[department] announcement"
+	announcement.newscast = 1
+
 	name = "[department] Requests Console"
 	allConsoles += src
 	//req_console_departments += department
@@ -389,8 +394,9 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 			var/obj/item/weapon/card/id/ID = O
 			if (access_RC_announce in ID.GetAccess())
 				announceAuth = 1
+				announcement.announcer = ID.assignment ? "[ID.assignment] [ID.registered_name]" : ID.registered_name
 			else
-				announceAuth = 0
+				reset_announce()
 				user << "\red You are not authorized to send announcements."
 			updateUsrDialog()
 	if (istype(O, /obj/item/weapon/stamp))
@@ -399,3 +405,8 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 			msgStamped = text("<font color='blue'><b>Stamped with the [T.name]</b></font>")
 			updateUsrDialog()
 	return
+
+/obj/machinery/requests_console/proc/reset_announce()
+	announceAuth = 0
+	message = ""
+	announcement.announcer = ""

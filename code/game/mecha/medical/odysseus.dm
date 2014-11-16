@@ -108,6 +108,22 @@
 				holder.icon_state = "hudxeno"
 			else if(foundVirus)
 				holder.icon_state = "hudill"
+			else if(patient.has_brain_worms())
+				var/mob/living/simple_animal/borer/B = patient.has_brain_worms()
+				if(B.controlling)
+					holder.icon_state = "hudbrainworm"
+				else
+					holder.icon_state = "hudhealthy"
 			else
 				holder.icon_state = "hudhealthy"
+
 			C.images += holder
+
+/obj/mecha/medical/odysseus/loaded/New()
+	..()
+	var/obj/item/mecha_parts/mecha_equipment/ME = new /obj/item/mecha_parts/mecha_equipment/tool/sleeper
+	ME.attach(src)
+	ME = new /obj/item/mecha_parts/mecha_equipment/tool/sleeper
+	ME.attach(src)
+	ME = new /obj/item/mecha_parts/mecha_equipment/tool/syringe_gun
+	ME.attach(src)

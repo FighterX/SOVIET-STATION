@@ -19,6 +19,10 @@
 		if(istype(M, /mob/living/carbon/human/dummy))
 			return..()
 
+		if(M.has_brain_worms()) //Borer stuff - RR
+			user << "<span class='warning'>This being is corrupted by an alien intelligence and cannot be soul trapped.</span>"
+			return..()
+
 		M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has had their soul captured with [src.name] by [user.name] ([user.ckey])</font>")
 		user.attack_log += text("\[[time_stamp()]\] <font color='red'>Used the [src.name] to capture the soul of [M.name] ([M.ckey])</font>")
 		msg_admin_attack("[user.name] ([user.ckey]) used the [src.name] to capture the soul of [M.name] ([M.ckey]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
@@ -175,7 +179,6 @@
 						del(T)
 						Z << "<B>You are playing a Juggernaut. Though slow, you can withstand extreme punishment, and rip apart enemies and walls alike.</B>"
 						Z << "<B>You are still bound to serve your creator, follow their orders and help them complete their goals at all costs.</B>"
-						Z.spell_list += new /obj/effect/proc_holder/spell/aoe_turf/conjure/lesserforcewall(Z)
 						Z.cancel_camera()
 						del(C)
 
@@ -191,7 +194,6 @@
 						del(T)
 						Z << "<B>You are playing a Wraith. Though relatively fragile, you are fast, deadly, and even able to phase through walls.</B>"
 						Z << "<B>You are still bound to serve your creator, follow their orders and help them complete their goals at all costs.</B>"
-						Z.spell_list += new /obj/effect/proc_holder/spell/targeted/ethereal_jaunt/shift(Z)
 						Z.cancel_camera()
 						del(C)
 
@@ -207,10 +209,6 @@
 						del(T)
 						Z << "<B>You are playing an Artificer. You are incredibly weak and fragile, but you are able to construct fortifications, repair allied constructs (by clicking on them), and even create new constructs</B>"
 						Z << "<B>You are still bound to serve your creator, follow their orders and help them complete their goals at all costs.</B>"
-						Z.spell_list += new /obj/effect/proc_holder/spell/aoe_turf/conjure/construct/lesser(Z)
-						Z.spell_list += new /obj/effect/proc_holder/spell/aoe_turf/conjure/wall(Z)
-						Z.spell_list += new /obj/effect/proc_holder/spell/aoe_turf/conjure/floor(Z)
-						Z.spell_list += new /obj/effect/proc_holder/spell/aoe_turf/conjure/soulstone(Z)
 						Z.cancel_camera()
 						del(C)
 			else

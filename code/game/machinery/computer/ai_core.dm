@@ -62,15 +62,19 @@
 				user << "\blue You unfasten the circuit board."
 				state = 1
 				icon_state = "1"
-			if(istype(P, /obj/item/weapon/cable_coil))
-				if(P:amount >= 5)
-					playsound(loc, 'sound/items/Deconstruct.ogg', 50, 1)
-					if(do_after(user, 20))
-						P:amount -= 5
-						if(!P:amount) del(P)
-						user << "\blue You add cables to the frame."
+			if(istype(P, /obj/item/stack/cable_coil))
+				var/obj/item/stack/cable_coil/C = P
+				if (C.get_amount() < 5)
+					user << "<span class='warning'>You need five coils of wire to add them to the frame.</span>"
+					return
+				user << "<span class='notice'>You start to add cables to the frame.</span>"
+				playsound(loc, 'sound/items/Deconstruct.ogg', 50, 1)
+				if (do_after(user, 20) && state == 2)
+					if (C.use(5))
 						state = 3
 						icon_state = "3"
+						user << "<span class='notice'>You add cables to the frame.</span>"
+				return
 		if(3)
 			if(istype(P, /obj/item/weapon/wirecutters))
 				if (brain)
@@ -80,19 +84,21 @@
 					user << "\blue You remove the cables."
 					state = 2
 					icon_state = "2"
-					var/obj/item/weapon/cable_coil/A = new /obj/item/weapon/cable_coil( loc )
+					var/obj/item/stack/cable_coil/A = new /obj/item/stack/cable_coil( loc )
 					A.amount = 5
 
 			if(istype(P, /obj/item/stack/sheet/rglass))
-				if(P:amount >= 2)
-					playsound(loc, 'sound/items/Deconstruct.ogg', 50, 1)
-					if(do_after(user, 20))
-						if (P)
-							P:amount -= 2
-							if(!P:amount) del(P)
-							user << "\blue You put in the glass panel."
-							state = 4
-							icon_state = "4"
+				var/obj/item/stack/sheet/rglass/RG = P
+				if (RG.get_amount() < 2)
+					user << "<span class='warning'>You need two sheets of glass to put in the glass panel.</span>"
+					return
+				user << "<span class='notice'>You start to put in the glass panel.</span>"
+				playsound(loc, 'sound/items/Deconstruct.ogg', 50, 1)
+				if (do_after(user, 20) && state == 3)
+					if(RG.use(2))
+						user << "<span class='notice'>You put in the glass panel.</span>"
+						state = 4
+						icon_state = "4"
 
 			if(istype(P, /obj/item/weapon/aiModule/asimov))
 				laws.add_inherent_law("You may not injure a human being or, through inaction, allow a human being to come to harm.")
@@ -231,6 +237,7 @@ That prevents a few funky behaviors.
 								new /obj/structure/AIcore/deactivated(T.loc)
 								T.aiRestorePowerRoutine = 0
 								T.control_disabled = 1
+								T.aiRadio.disabledAi = 1
 								T.loc = C
 								C.AI = T
 								T.cancel_camera()
@@ -245,6 +252,7 @@ That prevents a few funky behaviors.
 						var/mob/living/silicon/ai/A = locate() in C//I love locate(). Best proc ever.
 						if(A)//If AI exists on the card. Else nothing since both are empty.
 							A.control_disabled = 0
+							A.aiRadio.disabledAi = 0
 							A.loc = T.loc//To replace the terminal.
 							C.icon_state = "aicard"
 							C.name = "inteliCard"
@@ -262,7 +270,7 @@ That prevents a few funky behaviors.
 							A.loc = T.loc
 							A.cancel_camera()
 							A << "You have been uploaded to a stationary terminal. Remote device connection restored."
-							U << "\blue <b>Transfer succesful</b>: \black [A.name] ([rand(1000,9999)].exe) installed and executed succesfully. Local copy has been removed."
+							U << "\blue <b>Transfer successful</b>: \black [A.name] ([rand(1000,9999)].exe) installed and executed successfully. Local copy has been removed."
 							del(T)
 			if("AIFIXER")//AI Fixer terminal.
 				var/obj/machinery/computer/aifixer/T = target
@@ -286,7 +294,7 @@ That prevents a few funky behaviors.
 								T.overlays -= image('icons/obj/computer.dmi', "ai-fixer-empty")
 								A.cancel_camera()
 								A << "You have been uploaded to a stationary terminal. Sadly, there is no remote access from here."
-								U << "\blue <b>Transfer successful</b>: \black [A.name] ([rand(1000,9999)].exe) installed and executed succesfully. Local copy has been removed."
+								U << "\blue <b>Transfer successful</b>: \black [A.name] ([rand(1000,9999)].exe) installed and executed successfully. Local copy has been removed."
 						else
 							if(!C.contents.len && T.occupant && !T.active)
 								C.name = "inteliCard - [T.occupant.name]"
@@ -298,7 +306,7 @@ That prevents a few funky behaviors.
 									C.icon_state = "aicard-full"
 									T.overlays -= image('icons/obj/computer.dmi', "ai-fixer-full")
 								T.occupant << "You have been downloaded to a mobile storage device. Still no remote access."
-								U << "\blue <b>Transfer succesful</b>: \black [T.occupant.name] ([rand(1000,9999)].exe) removed from host terminal and stored within local memory."
+								U << "\blue <b>Transfer successful</b>: \black [T.occupant.name] ([rand(1000,9999)].exe) removed from host terminal and stored within local memory."
 								T.occupant.loc = C
 								T.occupant.cancel_camera()
 								T.occupant = null
@@ -323,7 +331,7 @@ That prevents a few funky behaviors.
 								T.overlays -= image('icons/obj/computer.dmi', "ai-fixer-empty")
 								A.cancel_camera()
 								A << "You have been uploaded to a stationary terminal. Sadly, there is no remote access from here."
-								U << "\blue <b>Transfer successful</b>: \black [A.name] ([rand(1000,9999)].exe) installed and executed succesfully. Local copy has been removed."
+								U << "\blue <b>Transfer successful</b>: \black [A.name] ([rand(1000,9999)].exe) installed and executed successfully. Local copy has been removed."
 						else
 							if(!C.AI && T.occupant && !T.active)
 								if (T.occupant.stat)

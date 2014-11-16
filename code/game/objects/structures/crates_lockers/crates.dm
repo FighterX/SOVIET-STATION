@@ -7,6 +7,7 @@
 	icon_state = "crate"
 	icon_opened = "crateopen"
 	icon_closed = "crate"
+	climbable = 1
 //	mouse_drag_pointer = MOUSE_ACTIVE_POINTER	//???
 	var/rigged = 0
 
@@ -36,6 +37,9 @@
 		O.loc = get_turf(src)
 	icon_state = icon_opened
 	src.opened = 1
+
+	if(climbable)
+		structure_shaken()
 	return 1
 
 /obj/structure/closet/crate/close()
@@ -71,15 +75,15 @@
 			W.loc = src.loc
 	else if(istype(W, /obj/item/weapon/packageWrap))
 		return
-	else if(istype(W, /obj/item/weapon/cable_coil))
+	else if(istype(W, /obj/item/stack/cable_coil))
+		var/obj/item/stack/cable_coil/C = W
 		if(rigged)
 			user << "<span class='notice'>[src] is already rigged!</span>"
 			return
-		user  << "<span class='notice'>You rig [src].</span>"
-		user.drop_item()
-		del(W)
-		rigged = 1
-		return
+		if (C.use(1))
+			user  << "<span class='notice'>You rig [src].</span>"
+			rigged = 1
+			return
 	else if(istype(W, /obj/item/device/radio/electropack))
 		if(rigged)
 			user  << "<span class='notice'>You attach [W] to [src].</span>"
@@ -178,7 +182,7 @@
 		src.toggle(user)
 
 /obj/structure/closet/crate/secure/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(is_type_in_list(W, list(/obj/item/weapon/packageWrap, /obj/item/weapon/cable_coil, /obj/item/device/radio/electropack, /obj/item/weapon/wirecutters)))
+	if(is_type_in_list(W, list(/obj/item/weapon/packageWrap, /obj/item/stack/cable_coil, /obj/item/device/radio/electropack, /obj/item/weapon/wirecutters)))
 		return ..()
 	if(locked && (istype(W, /obj/item/weapon/card/emag)||istype(W, /obj/item/weapon/melee/energy/blade)))
 		overlays.Cut()
@@ -276,6 +280,36 @@
 	new /obj/item/weapon/rcd_ammo(src)
 	new /obj/item/weapon/rcd(src)
 
+/obj/structure/closet/crate/solar
+	name = "Solar Pack crate"
+
+/obj/structure/closet/crate/solar/New()
+	..()
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/solar_assembly(src)
+	new /obj/item/weapon/circuitboard/solar_control(src)
+	new /obj/item/weapon/tracker_electronics(src)
+	new /obj/item/weapon/paper/solar(src)
+
 /obj/structure/closet/crate/freezer
 	desc = "A freezer."
 	name = "Freezer"
@@ -289,12 +323,7 @@
 		var/datum/gas_mixture/gas = (..())
 		if(!gas)	return null
 		var/datum/gas_mixture/newgas = new/datum/gas_mixture()
-		newgas.oxygen = gas.oxygen
-		newgas.carbon_dioxide = gas.carbon_dioxide
-		newgas.nitrogen = gas.nitrogen
-		newgas.toxins = gas.toxins
-		newgas.volume = gas.volume
-		newgas.temperature = gas.temperature
+		newgas.copy_from(gas)
 		if(newgas.temperature <= target_temp)	return
 
 		if((newgas.temperature - cooling_power) > target_temp)
@@ -303,6 +332,15 @@
 			newgas.temperature = target_temp
 		return newgas
 
+/obj/structure/closet/crate/freezer/rations //Fpr use in the escape shuttle
+	desc = "A crate of emergency rations."
+	name = "Emergency Rations"
+
+
+/obj/structure/closet/crate/freezer/rations/New()
+	..()
+	new /obj/item/weapon/storage/box/donkpockets(src)
+	new /obj/item/weapon/storage/box/donkpockets(src)
 
 /obj/structure/closet/crate/bin
 	desc = "A large bin."
@@ -336,12 +374,12 @@
 	icon_opened = "weaponcrateopen"
 	icon_closed = "weaponcrate"
 
-/obj/structure/closet/crate/secure/plasma
-	desc = "A secure plasma crate."
-	name = "Plasma crate"
-	icon_state = "plasmacrate"
-	icon_opened = "plasmacrateopen"
-	icon_closed = "plasmacrate"
+/obj/structure/closet/crate/secure/phoron
+	desc = "A secure phoron crate."
+	name = "Phoron crate"
+	icon_state = "phoroncrate"
+	icon_opened = "phoroncrateopen"
+	icon_closed = "phoroncrate"
 
 /obj/structure/closet/crate/secure/gear
 	desc = "A secure gear crate."

@@ -9,7 +9,7 @@
 	var/oxygen = 0
 	var/carbon_dioxide = 0
 	var/nitrogen = 0
-	var/toxins = 0
+	var/phoron = 0
 
 	//Properties for airtight tiles (/wall)
 	var/thermal_conductivity = 0.05
@@ -21,6 +21,10 @@
 	var/blocks_air = 0
 	var/icon_old = null
 	var/pathweight = 1
+
+	//Mining resource generation stuff.
+	var/has_resources
+	var/list/resources
 
 /turf/New()
 	..()
@@ -126,16 +130,10 @@
 
 		else if(!istype(src, /turf/space))
 			M:inertia_dir = 0
+			var/mob/M1 = M
+			M1.make_floating(0)
 	..()
 	var/objects = 0
-	for(var/atom/A as mob|obj|turf|area in src)
-		if(objects > loopsanity)	break
-		objects++
-		spawn( 0 )
-			if ((A && M))
-				A.HasEntered(M, 1)
-			return
-	objects = 0
 	for(var/atom/A as mob|obj|turf|area in range(1))
 		if(objects > loopsanity)	break
 		objects++
@@ -143,6 +141,9 @@
 			if ((A && M))
 				A.HasProximity(M, 1)
 			return
+	return
+
+/turf/proc/adjacent_fire_act(turf/simulated/floor/source, temperature, volume)
 	return
 
 /turf/proc/is_plating()
@@ -200,15 +201,41 @@
 	if (!N)
 		return
 
+///// Z-Level Stuff ///// This makes sure that turfs are not changed to space when one side is part of a zone
+	if(N == /turf/space)
+		var/turf/controller = locate(1, 1, src.z)
+		for(var/obj/effect/landmark/zcontroller/c in controller)
+			if(c.down)
+				var/turf/below = locate(src.x, src.y, c.down_target)
+				if((air_master.has_valid_zone(below) || air_master.has_valid_zone(src)) && !istype(below, /turf/space)) // dont make open space into space, its pointless and makes people drop out of the station
+					var/turf/W = src.ChangeTurf(/turf/simulated/floor/open)
+					var/list/temp = list()
+					temp += W
+					c.add(temp,3,1) // report the new open space to the zcontroller
+					return W
+///// Z-Level Stuff
+
 	var/old_lumcount = lighting_lumcount - initial(lighting_lumcount)
+	var/obj/fire/old_fire = fire
+
+	//world << "Replacing [src.type] with [N]"
+
+	if(connections) connections.erase_all()
+
+	if(istype(src,/turf/simulated))
+		//Yeah, we're just going to rebuild the whole thing.
+		//Despite this being called a bunch during explosions,
+		//the zone will only really do heavy lifting once.
+		var/turf/simulated/S = src
+		if(S.zone) S.zone.rebuild()
 
 	if(ispath(N, /turf/simulated/floor))
 		//if the old turf had a zone, connect the new turf to it as well - Cael
 		//Adjusted by SkyMarshal 5/10/13 - The air master will handle the addition of the new turf.
-		if(zone)
-			zone.RemoveTurf(src)
-			if(!zone.CheckStatus())
-				zone.SetStatus(ZONE_ACTIVE)
+		//if(zone)
+		//	zone.RemoveTurf(src)
+		//	if(!zone.CheckStatus())
+		//		zone.SetStatus(ZONE_ACTIVE)
 
 		var/turf/simulated/W = new N( locate(src.x, src.y, src.z) )
 		//W.Assimilate_Air()
@@ -218,20 +245,23 @@
 			W.lighting_changed = 1
 			lighting_controller.changed_turfs += W
 
+		if(old_fire)
+			fire = old_fire
+
 		if (istype(W,/turf/simulated/floor))
 			W.RemoveLattice()
 
 		if(air_master)
-			air_master.AddTurfToUpdate(src)
+			air_master.mark_for_update(src)
 
 		W.levelupdate()
 		return W
 
 	else
-		if(zone)
-			zone.RemoveTurf(src)
-			if(!zone.CheckStatus())
-				zone.SetStatus(ZONE_ACTIVE)
+		//if(zone)
+		//	zone.RemoveTurf(src)
+		//	if(!zone.CheckStatus())
+		//		zone.SetStatus(ZONE_ACTIVE)
 
 		var/turf/W = new N( locate(src.x, src.y, src.z) )
 		W.lighting_lumcount += old_lumcount
@@ -239,8 +269,11 @@
 			W.lighting_changed = 1
 			lighting_controller.changed_turfs += W
 
+		if(old_fire)
+			old_fire.RemoveFire()
+
 		if(air_master)
-			air_master.AddTurfToUpdate(src)
+			air_master.mark_for_update(src)
 
 		W.levelupdate()
 		return W

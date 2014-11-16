@@ -315,24 +315,15 @@ ________________________________________________________________________________
 				var/datum/gas_mixture/environment = T.return_air()
 
 				var/pressure = environment.return_pressure()
-				var/total_moles = environment.total_moles()
+				var/total_moles = environment.total_moles
 
 				dat += "Air Pressure: [round(pressure,0.1)] kPa"
 
 				if (total_moles)
-					var/o2_level = environment.oxygen/total_moles
-					var/n2_level = environment.nitrogen/total_moles
-					var/co2_level = environment.carbon_dioxide/total_moles
-					var/plasma_level = environment.toxins/total_moles
-					var/unknown_level =  1-(o2_level+n2_level+co2_level+plasma_level)
 					dat += "<ul>"
-					dat += "<li>Nitrogen: [round(n2_level*100)]%</li>"
-					dat += "<li>Oxygen: [round(o2_level*100)]%</li>"
-					dat += "<li>Carbon Dioxide: [round(co2_level*100)]%</li>"
-					dat += "<li>Plasma: [round(plasma_level*100)]%</li>"
+					for(var/g in environment.gas)
+						dat += "<li>[gas_data.name[g]]: [round((environment.gas[g] / total_moles) * 100)]%</li>"
 					dat += "</ul>"
-					if(unknown_level > 0.01)
-						dat += "OTHER: [round(unknown_level)]%<br>"
 
 					dat += "Temperature: [round(environment.temperature-T0C)]&deg;C"
 		if(2)
@@ -519,7 +510,7 @@ ________________________________________________________________________________
 			var/damage = min(cell.charge, rand(50,150))//Uses either the current energy left over or between 50 and 150.
 			if(damage>1)//So they don't spam it when energy is a factor.
 				spark_system.start()//SPARKS THERE SHALL BE SPARKS
-				U.electrocute_act(damage, src,0.1,1)//The last argument is a safety for the human proc that checks for gloves.
+				U.electrocute_act(damage, src, 0.1)
 				if(cell.charge < damage)
 					cell.use(cell.charge)
 				else
@@ -634,17 +625,21 @@ ________________________________________________________________________________
 			pai.attack_self(U)
 
 		if("Eject pAI")
-			var/turf/T = get_turf(loc)
-			if(!U.get_active_hand())
-				U.put_in_hands(pai)
-				pai.add_fingerprint(U)
-				pai = null
-			else
-				if(T)
-					pai.loc = T
+			if(pai)
+				if(pai.loc != src)
 					pai = null
 				else
-					U << "\red <b>ERROR<b>: \black Could not eject pAI card."
+					var/turf/T = get_turf(loc)
+					if(!U.get_active_hand())
+						U.put_in_hands(pai)
+						pai.add_fingerprint(U)
+						pai = null
+					else
+						if(T)
+							pai.loc = T
+							pai = null
+						else
+							U << "\red <b>ERROR<b>: \black Could not eject pAI card."
 
 		if("Override AI Laws")
 			var/law_zero = A.laws.zeroth//Remembers law zero, if there is one.
@@ -1040,8 +1035,7 @@ ________________________________________________________________________________
 						drain = rand(G.mindrain,G.maxdrain)
 						var/drained = 0
 						if(PN&&do_after(U,10))
-							drained = min(drain, PN.avail)
-							PN.newload += drained
+							drained = PN.draw_power(drain)
 							if(drained < drain)//if no power on net, drain apcs
 								for(var/obj/machinery/power/terminal/T in PN.nodes)
 									if(istype(T.master, /obj/machinery/power/apc))
@@ -1092,8 +1086,7 @@ ________________________________________________________________________________
 				drain = (round((rand(G.mindrain,G.maxdrain))/2))
 				var/drained = 0
 				if(PN&&do_after(U,10))
-					drained = min(drain, PN.avail)
-					PN.newload += drained
+					drained = PN.draw_power(drain)
 					if(drained < drain)//if no power on net, drain apcs
 						for(var/obj/machinery/power/terminal/T in PN.nodes)
 							if(istype(T.master, /obj/machinery/power/apc))
@@ -1184,16 +1177,25 @@ ________________________________________________________________________________
 
 /*
 ===================================================================================
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<SPACE NINJA MASK>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<SPACE NINJA HUD>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ===================================================================================
 */
 
-/obj/item/clothing/mask/gas/voice/space_ninja/New()
-	verbs += /obj/item/clothing/mask/gas/voice/space_ninja/proc/togglev
-	verbs += /obj/item/clothing/mask/gas/voice/space_ninja/proc/switchm
+/obj/item/clothing/glasses/hud/ninja
+	name = "Ninja Scanner HUD"
+	desc = "Assesses targets"
+	body_parts_covered = 0
 
-//This proc is linked to human life.dm. It determines what hud icons to display based on mind special role for most mobs.
-/obj/item/clothing/mask/gas/voice/space_ninja/proc/assess_targets(list/target_list, mob/living/carbon/U)
+/obj/item/clothing/glasses/hud/ninja/process_hud(var/mob/M)
+	var/target_list[] = list()
+	for(var/mob/living/target in oview(M))
+		if(target.mind && (target.mind.special_role || issilicon(target))) //They need to have a mind.
+			target_list += target
+	if(target_list.len)
+		assess_targets(target_list, M)
+	if(!M.druggy)	M.see_invisible = SEE_INVISIBLE_LIVING
+
+/obj/item/clothing/glasses/hud/ninja/proc/assess_targets(list/target_list, mob/living/carbon/U)
 	var/icon/tempHud = 'icons/mob/hud.dmi'
 	for(var/mob/living/target in target_list)
 		if(iscarbon(target))
@@ -1227,6 +1229,42 @@ ________________________________________________________________________________
 					U.client.images += image(tempHud,silicon_target,"hudmalai")
 	return 1
 
+/*
+===================================================================================
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<SPACE NINJA MASK>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+===================================================================================
+*/
+
+/datum/ninja_vision
+	var/mode
+	var/obj/item/clothing/glasses/glasses
+
+/datum/ninja_vision/scouter
+	mode = "Scouter"
+	glasses = new/obj/item/clothing/glasses/hud/ninja
+
+/datum/ninja_vision/nvg
+	mode = "Night Vision"
+	glasses = new/obj/item/clothing/glasses/night
+
+/datum/ninja_vision/thermal
+	mode = "Thermal Scanner"
+	glasses = new/obj/item/clothing/glasses/thermal
+
+/datum/ninja_vision/meson
+	mode = "Meson Scanner"
+	glasses = new/obj/item/clothing/glasses/meson
+
+/obj/item/clothing/mask/gas/voice/space_ninja
+	var/datum/ninja_vision/ninja_vision
+	var/list/datum/ninja_vision/ninja_visions
+
+/obj/item/clothing/mask/gas/voice/space_ninja/New()
+	ninja_visions = list(new/datum/ninja_vision/scouter, new/datum/ninja_vision/nvg, new/datum/ninja_vision/thermal, new/datum/ninja_vision/meson)
+	ninja_vision = ninja_visions[1]
+	verbs += /obj/item/clothing/mask/gas/voice/space_ninja/proc/togglev
+	verbs += /obj/item/clothing/mask/gas/voice/space_ninja/proc/switchm
+
 /obj/item/clothing/mask/gas/voice/space_ninja/proc/togglev()
 	set name = "Toggle Voice"
 	set desc = "Toggles the voice synthesizer on or off."
@@ -1238,7 +1276,7 @@ ________________________________________________________________________________
 		var/chance = rand(1,100)
 		switch(chance)
 			if(1 to 50)//High chance of a regular name.
-				voice = "[rand(0,1)==1?pick(first_names_female):pick(first_names_male)] [pick(last_names_male)]"
+				voice = "[rand(0,1)==1?pick(first_names_female):pick(first_names_male)] [pick(last_names)]"
 			if(51 to 80)//Smaller chance of a clown name.
 				voice = "[pick(clown_names)]"
 			if(81 to 90)//Small chance of a wizard name.
@@ -1259,42 +1297,20 @@ ________________________________________________________________________________
 	set name = "Switch Mode"
 	set desc = "Switches between Night Vision, Meson, or Thermal vision modes."
 	set category = "Ninja Equip"
-	//Have to reset these manually since life.dm is retarded like that. Go figure.
-	//This will only work for humans because only they have the appropriate code for the mask.
+
+	var/index = ninja_visions.Find(ninja_vision) + 1
+	if(index > ninja_visions.len)
+		index = 1
+	ninja_vision = ninja_visions[index]
+
 	var/mob/U = loc
-	switch(mode)
-		if(0)
-			mode=1
-			U << "Switching mode to <B>Night Vision</B>."
-		if(1)
-			mode=2
-			U.see_in_dark = 2
-			U << "Switching mode to <B>Thermal Scanner</B>."
-		if(2)
-			mode=3
-			U.see_invisible = SEE_INVISIBLE_LIVING
-			U.sight &= ~SEE_MOBS
-			U << "Switching mode to <B>Meson Scanner</B>."
-		if(3)
-			mode=0
-			U.sight &= ~SEE_TURFS
-			U << "Switching mode to <B>Scouter</B>."
+	U << "Switching mode to <B>[ninja_vision.mode]</B>."
 
 /obj/item/clothing/mask/gas/voice/space_ninja/examine()
 	set src in view()
 	..()
 
-	var/mode
-	switch(mode)
-		if(0)
-			mode = "Scouter"
-		if(1)
-			mode = "Night Vision"
-		if(2)
-			mode = "Thermal Scanner"
-		if(3)
-			mode = "Meson Scanner"
-	usr << "<B>[mode]</B> is active."//Leaving usr here since it may be on the floor or on a person.
+	usr << "<B>[ninja_vision.mode]</B> is active."//Leaving usr here since it may be on the floor or on a person.
 	usr << "Voice mimicking algorithm is set <B>[!vchange?"inactive":"active"]</B>."
 
 /*
@@ -1367,26 +1383,27 @@ It is possible to destroy the net by the occupant or someone else.
 				playsound(M.loc, 'sound/effects/sparks4.ogg', 50, 1)
 				anim(M.loc,M,'icons/mob/mob.dmi',,"phaseout",,M.dir)
 
-			M.loc = pick(holdingfacility)//Throw mob in to the holding facility.
-			M << "\red You appear in a strange place!"
+			if(holdingfacility.len)
+				M.loc = pick(holdingfacility)//Throw mob in to the holding facility.
+				spawn(0)
+					var/datum/effect/effect/system/spark_spread/spark_system = new /datum/effect/effect/system/spark_spread()
+					spark_system.set_up(5, 0, M.loc)
+					spark_system.start()
+					playsound(M.loc, 'sound/effects/phasein.ogg', 25, 1)
+					playsound(M.loc, 'sound/effects/sparks2.ogg', 50, 1)
+					anim(M.loc,M,'icons/mob/mob.dmi',,"phasein",,M.dir)
+					del(src)//Wait for everything to finish, delete the net. Else it will stop everything once net is deleted, including the spawn(0).
 
-			spawn(0)
-				var/datum/effect/effect/system/spark_spread/spark_system = new /datum/effect/effect/system/spark_spread()
-				spark_system.set_up(5, 0, M.loc)
-				spark_system.start()
-				playsound(M.loc, 'sound/effects/phasein.ogg', 25, 1)
-				playsound(M.loc, 'sound/effects/sparks2.ogg', 50, 1)
-				anim(M.loc,M,'icons/mob/mob.dmi',,"phasein",,M.dir)
-				del(src)//Wait for everything to finish, delete the net. Else it will stop everything once net is deleted, including the spawn(0).
+				M << "\red You appear in a strange place!"
 
-			for(var/mob/O in viewers(src, 3))
-				O.show_message(text("[] vanished!", M), 1, text("You hear sparks flying!"), 2)
+				for(var/mob/O in viewers(src, 3))
+					O.show_message(text("[] vanished!", M), 1, text("You hear sparks flying!"), 2)
 
-			if(!isnull(master))//As long as they still exist.
-				master << "\blue <b>SUCCESS</b>: \black transport procedure of \the [affecting] complete."
+				if(!isnull(master))//As long as they still exist.
+					master << "\blue <b>SUCCESS</b>: \black transport procedure of \the [affecting] complete."
 
-			M.captured = 0 //Important.
-			M.anchored = initial(M.anchored) //Changes the mob's anchored status to the original one; this is not handled by the can_move proc.
+				M.captured = 0 //Important.
+				M.anchored = initial(M.anchored) //Changes the mob's anchored status to the original one; this is not handled by the can_move proc.
 
 		else//And they are free.
 			M << "\blue You are free of the net!"
@@ -1434,31 +1451,33 @@ It is possible to destroy the net by the occupant or someone else.
 		return
 
 	attack_hand()
+
 		if (HULK in usr.mutations)
 			usr << text("\blue You easily destroy the energy net.")
 			for(var/mob/O in oviewers(src))
 				O.show_message(text("\red [] rips the energy net apart!", usr), 1)
 			health-=50
+		else if(istype(usr,/mob/living/carbon/human))
+			var/mob/living/carbon/human/H = usr
+			if(H.species.can_shred(H))
+
+				H << text("\green You claw at the net.")
+				for(var/mob/O in oviewers(src))
+					O.show_message(text("\red [] claws at the energy net!", H), 1)
+
+				playsound(src.loc, 'sound/weapons/slash.ogg', 80, 1)
+				health -= rand(10, 20)
+
+				if(health <= 0)
+					H << text("\green You slice the energy net to pieces.")
+					for(var/mob/O in oviewers(src))
+						O.show_message(text("\red [] slices the energy net apart!", H), 1)
+
 		healthcheck()
 		return
 
 	attack_paw()
 		return attack_hand()
-
-	attack_alien()
-		if (islarva(usr))
-			return
-		usr << text("\green You claw at the net.")
-		for(var/mob/O in oviewers(src))
-			O.show_message(text("\red [] claws at the energy net!", usr), 1)
-		playsound(src.loc, 'sound/weapons/slash.ogg', 80, 1)
-		health -= rand(10, 20)
-		if(health <= 0)
-			usr << text("\green You slice the energy net to pieces.")
-			for(var/mob/O in oviewers(src))
-				O.show_message(text("\red [] slices the energy net apart!", usr), 1)
-		healthcheck()
-		return
 
 	attackby(obj/item/weapon/W as obj, mob/user as mob)
 		var/aforce = W.force

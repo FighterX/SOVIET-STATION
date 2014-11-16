@@ -40,6 +40,14 @@
 			latejoin += loc
 			del(src)
 
+		if("JoinLateGateway")
+			latejoin_gateway += loc
+			del(src)
+
+		if("JoinLateCryo")
+			latejoin_cryo += loc
+			del(src)
+
 		//prisoners
 		if("prisonwarp")
 			prisonwarp += loc
@@ -71,6 +79,14 @@
 
 		if("ninjastart")
 			ninjastart += loc
+			del(src)
+
+		if("voxstart")
+			raider_spawn += loc
+			del(src)
+
+		if("Syndicate-Spawn")
+			synd_spawn += loc
 			del(src)
 
 	landmarks_list += src

@@ -2,12 +2,12 @@
 /obj/item/clothing/suit/armor
 	allowed = list(/obj/item/weapon/gun/energy,/obj/item/weapon/reagent_containers/spray/pepper,/obj/item/weapon/gun/projectile,/obj/item/ammo_magazine,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/handcuffs)
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO
-	flags = FPRINT | TABLEPASS
+	flags = FPRINT | TABLEPASS | THICKMATERIAL
 
 	cold_protection = UPPER_TORSO|LOWER_TORSO
-	min_cold_protection_temperature = ARMOR_MIN_COLD_PROTECITON_TEMPERATURE
+	min_cold_protection_temperature = ARMOR_MIN_COLD_PROTECTION_TEMPERATURE
 	heat_protection = UPPER_TORSO|LOWER_TORSO
-	max_heat_protection_temperature = ARMOR_MAX_HEAT_PROTECITON_TEMPERATURE
+	max_heat_protection_temperature = ARMOR_MAX_HEAT_PROTECTION_TEMPERATURE
 	siemens_coefficient = 0.6
 
 
@@ -31,6 +31,7 @@
 	desc = "An armoured jacket with silver rank pips and livery."
 	icon_state = "warden_jacket"
 	item_state = "armor"
+	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS
 
 
 /obj/item/clothing/suit/armor/riot
@@ -38,7 +39,7 @@
 	desc = "A suit of armor with heavy padding to protect against melee attacks. Looks like it might impair movement."
 	icon_state = "riot"
 	item_state = "swat_suit"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
+	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|ARMS
 	slowdown = 1
 	armor = list(melee = 80, bullet = 10, laser = 10, energy = 10, bomb = 0, bio = 0, rad = 0)
 	flags_inv = HIDEJUMPSUIT
@@ -71,13 +72,13 @@
 	gas_transfer_coefficient = 0.01
 	permeability_coefficient = 0.01
 	flags = FPRINT | TABLEPASS
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
+	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS
 	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_magazine,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/handcuffs,/obj/item/weapon/tank/emergency_oxygen)
 	slowdown = 1
 	armor = list(melee = 80, bullet = 60, laser = 50,energy = 25, bomb = 50, bio = 0, rad = 0)
 	flags_inv = HIDEGLOVES|HIDESHOES|HIDEJUMPSUIT
 	cold_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS | HANDS
-	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECITON_TEMPERATURE
+	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECTION_TEMPERATURE
 	siemens_coefficient = 0.5
 
 
@@ -88,6 +89,7 @@
 	item_state = "det_suit"
 	blood_overlay_type = "coat"
 	flags_inv = 0
+	body_parts_covered = UPPER_TORSO|ARMS
 
 
 /obj/item/clothing/suit/armor/det_suit
@@ -152,7 +154,7 @@
 	allowed = list(/obj/item/weapon/gun/energy,/obj/item/weapon/melee/baton,/obj/item/weapon/handcuffs,/obj/item/weapon/tank/emergency_oxygen)
 	flags_inv = HIDEGLOVES|HIDESHOES|HIDEJUMPSUIT
 	cold_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS | HANDS
-	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECITON_TEMPERATURE
+	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECTION_TEMPERATURE
 	siemens_coefficient = 0
 
 /obj/item/clothing/suit/armor/heavy
@@ -184,3 +186,77 @@
 	icon_state = "tdgreen"
 	item_state = "tdgreen"
 	siemens_coefficient = 1
+
+/obj/item/clothing/suit/armor/tactical
+	name = "tactical armor"
+	desc = "A suit of armor most often used by Special Weapons and Tactics squads. Includes padded vest with pockets along with shoulder and kneeguards."
+	icon_state = "swatarmor"
+	item_state = "armor"
+	var/obj/item/weapon/gun/holstered = null
+	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|ARMS
+	slowdown = 1
+	armor = list(melee = 60, bullet = 60, laser = 60, energy = 40, bomb = 20, bio = 0, rad = 0)
+	siemens_coefficient = 0.7
+
+	/obj/item/clothing/suit/armor/tactical/verb/holster()
+		set name = "Holster"
+		set category = "Object"
+		set src in usr
+		if(!istype(usr, /mob/living)) return
+		if(usr.stat) return
+
+		if(!holstered)
+			if(!istype(usr.get_active_hand(), /obj/item/weapon/gun))
+				usr << "\blue You need your gun equiped to holster it."
+				return
+			var/obj/item/weapon/gun/W = usr.get_active_hand()
+			if (!W.isHandgun())
+				usr << "\red This gun won't fit in \the belt!"
+				return
+			holstered = usr.get_active_hand()
+			usr.drop_item()
+			holstered.loc = src
+			usr.visible_message("\blue \The [usr] holsters \the [holstered].", "You holster \the [holstered].")
+		else
+			if(istype(usr.get_active_hand(),/obj) && istype(usr.get_inactive_hand(),/obj))
+				usr << "\red You need an empty hand to draw the gun!"
+			else
+				if(usr.a_intent == "hurt")
+					usr.visible_message("\red \The [usr] draws \the [holstered], ready to shoot!", \
+					"\red You draw \the [holstered], ready to shoot!")
+				else
+					usr.visible_message("\blue \The [usr] draws \the [holstered], pointing it at the ground.", \
+					"\blue You draw \the [holstered], pointing it at the ground.")
+				usr.put_in_hands(holstered)
+			holstered = null
+
+//Non-hardsuit ERT armor.
+/obj/item/clothing/suit/armor/vest/ert
+	name = "emergency response team armor"
+	desc = "A set of armor worn by members of the NanoTrasen Emergency Response Team."
+	icon_state = "ertarmor_cmd"
+	item_state = "armor"
+	armor = list(melee = 60, bullet = 60, laser = 60, energy = 40, bomb = 20, bio = 0, rad = 0)
+
+//Commander
+/obj/item/clothing/suit/armor/vest/ert/command
+	name = "emergency response team commander armor"
+	desc = "A set of armor worn by the commander of a NanoTrasen Emergency Response Team. Has blue highlights."
+
+//Security
+/obj/item/clothing/suit/armor/vest/ert/security
+	name = "emergency response team security armor"
+	desc = "A set of armor worn by security members of the NanoTrasen Emergency Response Team. Has red highlights."
+	icon_state = "ertarmor_sec"
+
+//Engineer
+/obj/item/clothing/suit/armor/vest/ert/engineer
+	name = "emergency response team engineer armor"
+	desc = "A set of armor worn by engineering members of the NanoTrasen Emergency Response Team. Has orange highlights."
+	icon_state = "ertarmor_eng"
+
+//Medical
+/obj/item/clothing/suit/armor/vest/ert/medical
+	name = "emergency response team medical armor"
+	desc = "A set of armor worn by medical members of the NanoTrasen Emergency Response Team. Has red and white highlights."
+	icon_state = "ertarmor_med"

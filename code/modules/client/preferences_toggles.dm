@@ -17,14 +17,23 @@
 	prefs.save_preferences()
 	feedback_add_details("admin_verb","TGS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
+/client/verb/toggle_ghost_radio()
+	set name = "Enable/Disable GhostRadio"
+	set category = "Preferences"
+	set desc = ".Toggle between hearing all radio chatter, or only from nearby speakers"
+	prefs.toggles ^= CHAT_GHOSTRADIO
+	src << "As a ghost, you will now [(prefs.toggles & CHAT_GHOSTRADIO) ? "hear all radio chat in the world" : "only hear from nearby speakers"]."
+	prefs.save_preferences()
+	feedback_add_details("admin_verb","TGR")
+
 /client/proc/toggle_hear_radio()
 	set name = "Show/Hide RadioChatter"
 	set category = "Preferences"
-	set desc = "Toggle seeing radiochatter from nearby radios and speakers"
+	set desc = "Toggle seeing radiochatter from radios and speakers"
 	if(!holder) return
 	prefs.toggles ^= CHAT_RADIO
 	prefs.save_preferences()
-	usr << "You will [(prefs.toggles & CHAT_RADIO) ? "now" : "no longer"] see radio chatter from nearby radios or speakers"
+	usr << "You will [(prefs.toggles & CHAT_RADIO) ? "now" : "no longer"] see radio chatter from radios or speakers"
 	feedback_add_details("admin_verb","THR") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/toggleadminhelpsound()
@@ -163,10 +172,10 @@
 	icons.Add(usr.zone_sel)
 
 	for(var/obj/screen/I in icons)
-		if(I.color && I.alpha)
-			I.icon = ui_style2icon(UI_style_new)
-			I.color = UI_style_color_new
-			I.alpha = UI_style_alpha_new
+		if(I.name in list("help", "harm", "disarm", "grab")) continue
+		I.icon = ui_style2icon(UI_style_new)
+		I.color = UI_style_color_new
+		I.alpha = UI_style_alpha_new
 
 
 

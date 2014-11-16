@@ -12,6 +12,7 @@ var/global/datum/controller/gameticker/ticker
 
 	var/hide_mode = 0
 	var/datum/game_mode/mode = null
+	var/post_game = 0
 	var/event_time = null
 	var/event = 0
 
@@ -36,6 +37,8 @@ var/global/datum/controller/gameticker/ticker
 
 	var/triai = 0//Global holder for Triumvirate
 
+	var/round_end_announced = 0 // Spam Prevention. Announce round end only once.
+
 /datum/controller/gameticker/proc/pregame()
 	login_music = pick(\
 	/*'sound/music/halloween/skeletons.ogg',\
@@ -56,7 +59,13 @@ var/global/datum/controller/gameticker/ticker
 				vote.process()
 			if(going)
 				pregame_timeleft--
-
+			if(pregame_timeleft == config.vote_autogamemode_timeleft)
+				if(!vote.time_remaining)
+					vote.autogamemode()	//Quit calling this over and over and over and over.
+					while(vote.time_remaining)
+						for(var/i=0, i<10, i++)
+							sleep(1)
+							vote.process()
 			if(pregame_timeleft <= 0)
 				current_state = GAME_STATE_SETTING_UP
 	while (!setup())
@@ -123,6 +132,8 @@ var/global/datum/controller/gameticker/ticker
 	//here to initialize the random events nicely at round start
 	setup_economy()
 
+	shuttle_controller.setup_shuttle_docks()
+
 	spawn(0)//Forking here so we dont have to wait for this to finish
 		mode.post_setup()
 		//Cleanup some stuff
@@ -145,10 +156,11 @@ var/global/datum/controller/gameticker/ticker
 	if(admins_number == 0)
 		send2adminirc("Round has started with no admins online.")
 
-	supply_shuttle.process() 		//Start the supply shuttle regenerating points -- TLE
+	supply_controller.process() 		//Start the supply shuttle regenerating points -- TLE
 	master_controller.process()		//Start master_controller.process()
 	lighting_controller.process()	//Start processing DynamicAreaLighting updates
 
+	for(var/obj/multiz/ladder/L in world) L.connect() //Lazy hackfix for ladders. TODO: move this to an actual controller. ~ Z
 
 	if(config.sql_enabled)
 		spawn(3000)
@@ -262,7 +274,7 @@ var/global/datum/controller/gameticker/ticker
 
 	proc/create_characters()
 		for(var/mob/new_player/player in player_list)
-			if(player.ready && player.mind)
+			if(player && player.ready && player.mind)
 				if(player.mind.assigned_role=="AI")
 					player.close_spawn_windows()
 					player.AIize()
@@ -287,6 +299,7 @@ var/global/datum/controller/gameticker/ticker
 					captainless=0
 				if(player.mind.assigned_role != "MODE")
 					job_master.EquipRank(player, player.mind.assigned_role, 0)
+					UpdateFactionList(player)
 					EquipCustomItems(player)
 		if(captainless)
 			for(var/mob/M in player_list)
@@ -302,8 +315,16 @@ var/global/datum/controller/gameticker/ticker
 
 		emergency_shuttle.process()
 
-		var/mode_finished = mode.check_finished() || (emergency_shuttle.location == 2 && emergency_shuttle.alert == 1)
-		if(!mode.explosion_in_progress && mode_finished)
+		var/game_finished = 0
+		var/mode_finished = 0
+		if (config.continous_rounds)
+			game_finished = (emergency_shuttle.returned() || mode.station_was_nuked)
+			mode_finished = (!post_game && mode.check_finished())
+		else
+			game_finished = (mode.check_finished() || (emergency_shuttle.returned() && emergency_shuttle.evac == 1))
+			mode_finished = game_finished
+
+		if(!mode.explosion_in_progress && game_finished && (mode_finished || post_game))
 			current_state = GAME_STATE_FINISHED
 
 			spawn
@@ -334,6 +355,18 @@ var/global/datum/controller/gameticker/ticker
 				else
 					world << "\blue <B>An admin has delayed the round end</B>"
 
+		else if (mode_finished)
+			post_game = 1
+
+			mode.cleanup()
+
+			//call a transfer shuttle vote
+			spawn(50)
+				if(!round_end_announced) // Spam Prevention. Now it should announce only once.
+					world << "\red The round has ended!"
+					round_end_announced = 1
+				vote.autotransfer()
+
 		return 1
 
 	proc/getfactionbyname(var/name)
@@ -343,10 +376,34 @@ var/global/datum/controller/gameticker/ticker
 
 
 /datum/controller/gameticker/proc/declare_completion()
+	world << "<br><br><br><font size=3><b>The round has ended.</b></font>"
+	for(var/mob/Player in player_list)
+		if(Player.mind && !isnewplayer(Player))
+			if(Player.stat != DEAD)
+				var/turf/playerTurf = get_turf(Player)
+				if(emergency_shuttle.departed && emergency_shuttle.evac)
+					if(playerTurf.z != 2)
+						Player << "<font color='blue'><b>You managed to survive, but were marooned on [station_name()] as [Player.real_name]...</b></font>"
+					else
+						Player << "<font color='green'><b>You managed to survive the events on [station_name()] as [Player.real_name].</b></font>"
+				else if(playerTurf.z == 2)
+					Player << "<font color='green'><b>You successfully underwent crew transfer after events on [station_name()] as [Player.real_name].</b></font>"
+				else if(issilicon(Player))
+					Player << "<font color='green'><b>You remain operational after the events on [station_name()] as [Player.real_name].</b></font>"
+				else
+					Player << "<font color='blue'><b>You missed the crew transfer after the events on [station_name()] as [Player.real_name].</b></font>"
+			else
+				if(istype(Player,/mob/dead/observer))
+					var/mob/dead/observer/O = Player
+					if(!O.started_as_observer)
+						Player << "<font color='red'><b>You did not survive the events on [station_name()]...</b></font>"
+				else
+					Player << "<font color='red'><b>You did not survive the events on [station_name()]...</b></font>"
+	world << "<br>"
 
 	for (var/mob/living/silicon/ai/aiPlayer in mob_list)
 		if (aiPlayer.stat != 2)
-			world << "<b>[aiPlayer.name] (Played by: [aiPlayer.key])'s laws at the end of the game were:</b>"
+			world << "<b>[aiPlayer.name] (Played by: [aiPlayer.key])'s laws at the end of the round were:</b>"
 		else
 			world << "<b>[aiPlayer.name] (Played by: [aiPlayer.key])'s laws when it was deactivated were:</b>"
 		aiPlayer.show_laws(1)
@@ -357,7 +414,14 @@ var/global/datum/controller/gameticker/ticker
 				robolist += "[robo.name][robo.stat?" (Deactivated) (Played by: [robo.key]), ":" (Played by: [robo.key]), "]"
 			world << "[robolist]"
 
+	var/dronecount = 0
+
 	for (var/mob/living/silicon/robot/robo in mob_list)
+
+		if(istype(robo,/mob/living/silicon/robot/drone))
+			dronecount++
+			continue
+
 		if (!robo.connected_ai)
 			if (robo.stat != 2)
 				world << "<b>[robo.name] (Played by: [robo.key]) survived as an AI-less borg! Its laws were:</b>"
@@ -366,6 +430,9 @@ var/global/datum/controller/gameticker/ticker
 
 			if(robo) //How the hell do we lose robo between here and the world messages directly above this?
 				robo.laws.show_laws(world)
+
+	if(dronecount)
+		world << "<b>There [dronecount>1 ? "were" : "was"] [dronecount] industrious maintenance [dronecount>1 ? "drones" : "drone"] at the end of this round."
 
 	mode.declare_completion()//To declare normal completion.
 

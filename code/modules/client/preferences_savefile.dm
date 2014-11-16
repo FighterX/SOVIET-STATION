@@ -84,8 +84,6 @@
 	S["be_special"]			<< be_special
 	S["default_slot"]		<< default_slot
 	S["toggles"]			<< toggles
-	S["UI_style_color"]		<< UI_style_color
-	S["UI_style_alpha"]		<< UI_style_alpha
 
 	return 1
 
@@ -110,6 +108,7 @@
 	S["age"]				>> age
 	S["species"]			>> species
 	S["language"]			>> language
+	S["spawnpoint"]			>> spawnpoint
 
 	//colors to be consolidated into hex strings (requires some work with dna code)
 	S["hair_red"]			>> r_hair
@@ -119,12 +118,16 @@
 	S["facial_green"]		>> g_facial
 	S["facial_blue"]		>> b_facial
 	S["skin_tone"]			>> s_tone
+	S["skin_red"]			>> r_skin
+	S["skin_green"]			>> g_skin
+	S["skin_blue"]			>> b_skin
 	S["hair_style_name"]	>> h_style
 	S["facial_style_name"]	>> f_style
 	S["eyes_red"]			>> r_eyes
 	S["eyes_green"]			>> g_eyes
 	S["eyes_blue"]			>> b_eyes
 	S["underwear"]			>> underwear
+	S["undershirt"]			>> undershirt
 	S["backbag"]			>> backbag
 	S["b_type"]				>> b_type
 
@@ -140,27 +143,52 @@
 	S["job_engsec_med"]		>> job_engsec_med
 	S["job_engsec_low"]		>> job_engsec_low
 
+	//Flavour Text
+	S["flavor_texts_general"]	>> flavor_texts["general"]
+	S["flavor_texts_head"]		>> flavor_texts["head"]
+	S["flavor_texts_face"]		>> flavor_texts["face"]
+	S["flavor_texts_eyes"]		>> flavor_texts["eyes"]
+	S["flavor_texts_torso"]		>> flavor_texts["torso"]
+	S["flavor_texts_arms"]		>> flavor_texts["arms"]
+	S["flavor_texts_hands"]		>> flavor_texts["hands"]
+	S["flavor_texts_legs"]		>> flavor_texts["legs"]
+	S["flavor_texts_feet"]		>> flavor_texts["feet"]
+
 	//Miscellaneous
-	S["flavor_text"]		>> flavor_text
 	S["med_record"]			>> med_record
 	S["sec_record"]			>> sec_record
 	S["gen_record"]			>> gen_record
 	S["be_special"]			>> be_special
 	S["disabilities"]		>> disabilities
-	S["player_alt_titles"]		>> player_alt_titles
+	S["player_alt_titles"]	>> player_alt_titles
 	S["used_skillpoints"]	>> used_skillpoints
 	S["skills"]				>> skills
 	S["skill_specialization"] >> skill_specialization
 	S["organ_data"]			>> organ_data
+	S["gear"]				>> gear
+	S["home_system"] 		>> home_system
+	S["citizenship"] 		>> citizenship
+	S["faction"] 			>> faction
+	S["religion"] 			>> religion
 
 	S["nanotrasen_relation"] >> nanotrasen_relation
 	//S["skin_style"]			>> skin_style
 
+	S["uplinklocation"] >> uplinklocation
+	S["exploit_record"]	>> exploit_record
+
+	S["UI_style_color"]		<< UI_style_color
+	S["UI_style_alpha"]		<< UI_style_alpha
+
 	//Sanitize
 	metadata		= sanitize_text(metadata, initial(metadata))
 	real_name		= reject_bad_name(real_name)
-	if(isnull(species)) species = "Human"
+
+	if(isnull(species) || !(species in whitelisted_species))
+		species = "Human"
+
 	if(isnull(language)) language = "None"
+	if(isnull(spawnpoint)) spawnpoint = "Arrivals Shuttle"
 	if(isnull(nanotrasen_relation)) nanotrasen_relation = initial(nanotrasen_relation)
 	if(!real_name) real_name = random_name(gender)
 	be_random_name	= sanitize_integer(be_random_name, 0, 1, initial(be_random_name))
@@ -173,12 +201,16 @@
 	g_facial		= sanitize_integer(g_facial, 0, 255, initial(g_facial))
 	b_facial		= sanitize_integer(b_facial, 0, 255, initial(b_facial))
 	s_tone			= sanitize_integer(s_tone, -185, 34, initial(s_tone))
+	r_skin			= sanitize_integer(r_skin, 0, 255, initial(r_skin))
+	g_skin			= sanitize_integer(g_skin, 0, 255, initial(g_skin))
+	b_skin			= sanitize_integer(b_skin, 0, 255, initial(b_skin))
 	h_style			= sanitize_inlist(h_style, hair_styles_list, initial(h_style))
 	f_style			= sanitize_inlist(f_style, facial_hair_styles_list, initial(f_style))
 	r_eyes			= sanitize_integer(r_eyes, 0, 255, initial(r_eyes))
 	g_eyes			= sanitize_integer(g_eyes, 0, 255, initial(g_eyes))
 	b_eyes			= sanitize_integer(b_eyes, 0, 255, initial(b_eyes))
 	underwear		= sanitize_integer(underwear, 1, underwear_m.len, initial(underwear))
+	undershirt		= sanitize_integer(undershirt, 1, undershirt_t.len, initial(undershirt))
 	backbag			= sanitize_integer(backbag, 1, backbaglist.len, initial(backbag))
 	b_type			= sanitize_text(b_type, initial(b_type))
 
@@ -198,7 +230,13 @@
 	if(isnull(disabilities)) disabilities = 0
 	if(!player_alt_titles) player_alt_titles = new()
 	if(!organ_data) src.organ_data = list()
+	if(!gear) src.gear = list()
 	//if(!skin_style) skin_style = "Default"
+
+	if(!home_system) home_system = "Unset"
+	if(!citizenship) citizenship = "None"
+	if(!faction)     faction =     "None"
+	if(!religion)    religion =    "None"
 
 	return 1
 
@@ -223,14 +261,19 @@
 	S["facial_green"]		<< g_facial
 	S["facial_blue"]		<< b_facial
 	S["skin_tone"]			<< s_tone
+	S["skin_red"]			<< r_skin
+	S["skin_green"]			<< g_skin
+	S["skin_blue"]			<< b_skin
 	S["hair_style_name"]	<< h_style
 	S["facial_style_name"]	<< f_style
 	S["eyes_red"]			<< r_eyes
 	S["eyes_green"]			<< g_eyes
 	S["eyes_blue"]			<< b_eyes
 	S["underwear"]			<< underwear
+	S["undershirt"]			<< undershirt
 	S["backbag"]			<< backbag
 	S["b_type"]				<< b_type
+	S["spawnpoint"]			<< spawnpoint
 
 	//Jobs
 	S["alternate_option"]	<< alternate_option
@@ -244,8 +287,18 @@
 	S["job_engsec_med"]		<< job_engsec_med
 	S["job_engsec_low"]		<< job_engsec_low
 
+	//Flavour Text
+	S["flavor_texts_general"]	<< flavor_texts["general"]
+	S["flavor_texts_head"]		<< flavor_texts["head"]
+	S["flavor_texts_face"]		<< flavor_texts["face"]
+	S["flavor_texts_eyes"]		<< flavor_texts["eyes"]
+	S["flavor_texts_torso"]		<< flavor_texts["torso"]
+	S["flavor_texts_arms"]		<< flavor_texts["arms"]
+	S["flavor_texts_hands"]		<< flavor_texts["hands"]
+	S["flavor_texts_legs"]		<< flavor_texts["legs"]
+	S["flavor_texts_feet"]		<< flavor_texts["feet"]
+
 	//Miscellaneous
-	S["flavor_text"]		<< flavor_text
 	S["med_record"]			<< med_record
 	S["sec_record"]			<< sec_record
 	S["gen_record"]			<< gen_record
@@ -256,9 +309,20 @@
 	S["skills"]				<< skills
 	S["skill_specialization"] << skill_specialization
 	S["organ_data"]			<< organ_data
+	S["gear"]				<< gear
+	S["home_system"] 		<< home_system
+	S["citizenship"] 		<< citizenship
+	S["faction"] 			<< faction
+	S["religion"] 			<< religion
 
 	S["nanotrasen_relation"] << nanotrasen_relation
 	//S["skin_style"]			<< skin_style
+
+	S["uplinklocation"] << uplinklocation
+	S["exploit_record"]	<< exploit_record
+
+	S["UI_style_color"]		<< UI_style_color
+	S["UI_style_alpha"]		<< UI_style_alpha
 
 	return 1
 

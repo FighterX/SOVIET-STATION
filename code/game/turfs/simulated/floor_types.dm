@@ -9,6 +9,9 @@
 		..()
 		name = "floor"
 
+/turf/simulated/floor/airless/ceiling
+	icon_state = "rockvault"
+
 /turf/simulated/floor/light
 	name = "Light floor"
 	luminosity = 5
@@ -50,6 +53,10 @@
 	icon_state = "engine"
 	thermal_conductivity = 0.025
 	heat_capacity = 325000
+	intact = 0
+
+/turf/simulated/floor/engine/nitrogen
+	oxygen = 0
 
 /turf/simulated/floor/engine/attackby(obj/item/weapon/C as obj, mob/user as mob)
 	if(!C)
@@ -58,7 +65,7 @@
 		return
 	if(istype(C, /obj/item/weapon/wrench))
 		user << "\blue Removing rods..."
-		playsound(src.loc, 'sound/items/Ratchet.ogg', 80, 1)
+		playsound(src, 'sound/items/Ratchet.ogg', 80, 1)
 		if(do_after(user, 30))
 			new /obj/item/stack/rods(src, 2)
 			ChangeTurf(/turf/simulated/floor)
@@ -74,14 +81,7 @@
 /turf/simulated/floor/engine/n20
 	New()
 		. = ..()
-		var/datum/gas_mixture/adding = new
-		var/datum/gas/sleeping_agent/trace_gas = new
-
-		trace_gas.moles = 2000
-		adding.trace_gases += trace_gas
-		adding.temperature = T20C
-
-		assume_air(adding)
+		assume_gas("sleeping_agent", 2000)
 
 /turf/simulated/floor/engine/vacuum
 	name = "vacuum floor"
@@ -139,9 +139,18 @@
 	icon = 'icons/turf/floors.dmi'
 	icon_state = "plating"
 
+/turf/simulated/shuttle/plating/vox	//Vox skipjack plating
+	oxygen = 0
+	nitrogen = MOLES_N2STANDARD + MOLES_O2STANDARD
+
 /turf/simulated/shuttle/floor4 // Added this floor tile so that I have a seperate turf to check in the shuttle -- Polymorph
 	name = "Brig floor"        // Also added it into the 2x3 brig area of the shuttle.
 	icon_state = "floor4"
+
+/turf/simulated/shuttle/floor4/vox	//Vox skipjack floors
+	name = "skipjack floor"
+	oxygen = 0
+	nitrogen = MOLES_N2STANDARD + MOLES_O2STANDARD
 
 /turf/simulated/floor/beach
 	name = "Beach"
@@ -213,3 +222,9 @@
 
 /turf/simulated/floor/plating/snow/ex_act(severity)
 	return
+
+/turf/simulated/floor/plating/airless/catwalk
+	icon = 'icons/turf/catwalks.dmi'
+	icon_state = "Floor3"
+	name = "catwalk"
+	desc = "Cats really don't like these things."

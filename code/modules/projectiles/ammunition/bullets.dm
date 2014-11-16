@@ -46,7 +46,7 @@
 /obj/item/ammo_casing/c45r
 	desc = "A .45 rubber bullet casing."
 	caliber = ".45"
-	projectile_type = "/obj/item/projectile/bullet/weakbullet"
+	projectile_type = "/obj/item/projectile/bullet/weakbullet/rubber"
 
 /obj/item/ammo_casing/a12mm
 	desc = "A 12mm bullet casing."
@@ -60,7 +60,7 @@
 	icon_state = "gshell"
 	caliber = "shotgun"
 	projectile_type = "/obj/item/projectile/bullet"
-	m_amt = 12500
+	matter = list("metal" = 12500)
 
 
 /obj/item/ammo_casing/shotgun/blank
@@ -68,15 +68,15 @@
 	desc = "A blank shell."
 	icon_state = "blshell"
 	projectile_type = ""
-	m_amt = 250
+	matter = list("metal" = 250)
 
 
 /obj/item/ammo_casing/shotgun/beanbag
 	name = "beanbag shell"
 	desc = "A weak beanbag shell."
 	icon_state = "bshell"
-	projectile_type = "/obj/item/projectile/bullet/weakbullet"
-	m_amt = 500
+	projectile_type = "/obj/item/projectile/bullet/weakbullet/beanbag"
+	matter = list("metal" = 500)
 
 
 /obj/item/ammo_casing/shotgun/stunshell
@@ -84,7 +84,7 @@
 	desc = "A stunning shell."
 	icon_state = "stunshell"
 	projectile_type = "/obj/item/projectile/bullet/stunshot"
-	m_amt = 2500
+	matter = list("metal" = 2500)
 
 
 /obj/item/ammo_casing/shotgun/dart
@@ -92,9 +92,22 @@
 	desc = "A dart for use in shotguns."
 	icon_state = "dart"
 	projectile_type = "/obj/item/projectile/energy/dart"
-	m_amt = 12500
+	matter = list("metal" = 12500)
 
 /obj/item/ammo_casing/a762
 	desc = "A 7.62 bullet casing."
 	caliber = "a762"
 	projectile_type = "/obj/item/projectile/bullet/a762"
+
+/obj/item/ammo_casing/rocket
+	name = "rocket shell"
+	desc = "A high explosive designed to be fired from a launcher."
+	icon_state = "rocketshell"
+	projectile_type = "/obj/item/missile"
+	caliber = "rocket"
+
+/obj/item/ammo_casing/chameleon
+	name = "chameleon bullets"
+	desc = "A set of bullets for the Chameleon Gun."
+	projectile_type = "/obj/item/projectile/bullet/chameleon"
+	caliber = ".45"

@@ -9,7 +9,7 @@
 	icon = 'icons/obj/pda.dmi'
 	icon_state = "crap"
 	item_state = "analyzer"
-	w_class = 1.0
+	w_class = 2.0
 	flags = FPRINT | TABLEPASS
 	slot_flags = SLOT_BELT
 	var/list/positive_locations = list()
@@ -28,7 +28,7 @@
 	user.visible_message("\blue [user] scans [A], the air around them humming gently.")
 	if(istype(A,/turf/simulated/mineral))
 		var/turf/simulated/mineral/M = A
-		if(M.finds.len || M.artifact_find)
+		if((M.finds && M.finds.len) || M.artifact_find)
 
 			//create a new scanlog entry
 			var/datum/depth_scan/D = new()
@@ -66,7 +66,7 @@
 			positive_locations.Add(D)
 
 			for(var/mob/L in range(src, 1))
-				L << "\blue \icon[src] [src] pings [pick("madly","wildly","excitedly","crazily")]!."
+				L << "\blue \icon[src] [src] pings [pick("madly","wildly","excitedly","crazily")]!"
 
 /obj/item/device/depth_scanner/attack_self(var/mob/user as mob)
 	return src.interact(user)

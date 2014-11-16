@@ -13,6 +13,8 @@
 /obj/item/projectile/change/proc/wabbajack (mob/M as mob in living_mob_list)
 	if(istype(M, /mob/living) && M.stat != DEAD)
 		if(M.monkeyizing)	return
+		if(M.has_brain_worms()) return //Borer stuff - RR
+
 		M.monkeyizing = 1
 		M.canmove = 0
 		M.icon = null
@@ -47,35 +49,25 @@
 				Robot.mmi = new /obj/item/device/mmi(new_mob)
 				Robot.mmi.transfer_identity(M)	//Does not transfer key/client.
 			if("slime")
-				if(prob(50))		new_mob = new /mob/living/carbon/slime/adult(M.loc)
-				else				new_mob = new /mob/living/carbon/slime(M.loc)
+				new_mob = new /mob/living/carbon/slime(M.loc)
 				new_mob.universal_speak = 1
 			if("xeno")
 				var/alien_caste = pick("Hunter","Sentinel","Drone","Larva")
-				switch(alien_caste)
-					if("Hunter")	new_mob = new /mob/living/carbon/alien/humanoid/hunter(M.loc)
-					if("Sentinel")	new_mob = new /mob/living/carbon/alien/humanoid/sentinel(M.loc)
-					if("Drone")		new_mob = new /mob/living/carbon/alien/humanoid/drone(M.loc)
-					else			new_mob = new /mob/living/carbon/alien/larva(M.loc)
+				new_mob = create_new_xenomorph(alien_caste,M.loc)
 				new_mob.universal_speak = 1
 			if("human")
-				new_mob = new /mob/living/carbon/human(M.loc)
+				new_mob = new /mob/living/carbon/human(M.loc, pick(all_species))
 				if(M.gender == MALE)
 					new_mob.gender = MALE
 					new_mob.name = pick(first_names_male)
-					new_mob.name += " [pick(last_names_male)]"
 				else
 					new_mob.gender = FEMALE
 					new_mob.name = pick(first_names_female)
-					new_mob.name += " [pick(last_names_female)]"
+				new_mob.name += " [pick(last_names)]"
 				new_mob.real_name = new_mob.name
 
 				var/datum/preferences/A = new()	//Randomize appearance for the human
 				A.randomize_appearance_for(new_mob)
-
-				var/mob/living/carbon/human/H = new_mob
-				var/newspecies = pick(all_species)
-				H.set_species(newspecies)
 			else
 				return
 

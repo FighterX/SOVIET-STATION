@@ -285,7 +285,7 @@ datum/objective/hijack
 	check_completion()
 		if(!owner.current || owner.current.stat)
 			return 0
-		if(emergency_shuttle.location<2)
+		if(!emergency_shuttle.returned())
 			return 0
 		if(issilicon(owner.current))
 			return 0
@@ -307,7 +307,7 @@ datum/objective/block
 	check_completion()
 		if(!istype(owner.current, /mob/living/silicon))
 			return 0
-		if(emergency_shuttle.location<2)
+		if(!emergency_shuttle.returned())
 			return 0
 		if(!owner.current)
 			return 0
@@ -325,7 +325,7 @@ datum/objective/silence
 	explanation_text = "Do not allow anyone to escape the station.  Only allow the shuttle to be called when everyone is dead and your story is the only one left."
 
 	check_completion()
-		if(emergency_shuttle.location<2)
+		if(!emergency_shuttle.returned())
 			return 0
 
 		for(var/mob/living/player in player_list)
@@ -350,7 +350,7 @@ datum/objective/escape
 			return 0
 		if(isbrain(owner.current))
 			return 0
-		if(emergency_shuttle.location<2)
+		if(!emergency_shuttle.returned())
 			return 0
 		if(!owner.current || owner.current.stat ==2)
 			return 0
@@ -358,7 +358,7 @@ datum/objective/escape
 		if(!location)
 			return 0
 
-		if(istype(location, /turf/simulated/shuttle/floor4)) // Fails tratiors if they are in the shuttle brig -- Polymorph
+		if(istype(location, /turf/simulated/shuttle/floor4)) // Fails traitors if they are in the shuttle brig -- Polymorph
 			if(istype(owner.current, /mob/living/carbon))
 				var/mob/living/carbon/C = owner.current
 				if (!C.handcuffed)
@@ -489,7 +489,7 @@ datum/objective/steal
 		"a pair of magboots" = /obj/item/clothing/shoes/magboots,
 		"the station blueprints" = /obj/item/blueprints,
 		"a nasa voidsuit" = /obj/item/clothing/suit/space/nasavoid,
-		"28 moles of plasma (full tank)" = /obj/item/weapon/tank,
+		"28 moles of phoron (full tank)" = /obj/item/weapon/tank,
 		"a sample of slime extract" = /obj/item/slime_extract,
 		"a piece of corgi meat" = /obj/item/weapon/reagent_containers/food/snacks/meat/corgi,
 		"a research director's jumpsuit" = /obj/item/clothing/under/rank/research_director,
@@ -551,13 +551,13 @@ datum/objective/steal
 		if(!isliving(owner.current))	return 0
 		var/list/all_items = owner.current.get_contents()
 		switch (target_name)
-			if("28 moles of plasma (full tank)","10 diamonds","50 gold bars","25 refined uranium bars")
+			if("28 moles of phoron (full tank)","10 diamonds","50 gold bars","25 refined uranium bars")
 				var/target_amount = text2num(target_name)//Non-numbers are ignored.
 				var/found_amount = 0.0//Always starts as zero.
 
-				for(var/obj/item/I in all_items) //Check for plasma tanks
+				for(var/obj/item/I in all_items) //Check for phoron tanks
 					if(istype(I, steal_target))
-						found_amount += (target_name=="28 moles of plasma (full tank)" ? (I:air_contents:toxins) : (I:amount))
+						found_amount += (target_name=="28 moles of phoron (full tank)" ? (I:air_contents:gas["phoron"]) : (I:amount))
 				return found_amount>=target_amount
 
 			if("50 coins (in bag)")
@@ -637,29 +637,24 @@ datum/objective/capture
 	check_completion()//Basically runs through all the mobs in the area to determine how much they are worth.
 		var/captured_amount = 0
 		var/area/centcom/holding/A = locate()
-		for(var/mob/living/carbon/human/M in A)//Humans.
+
+		for(var/mob/living/carbon/human/M in A) // Humans (and subtypes).
+			var/worth = M.species.rarity_value
 			if(M.stat==2)//Dead folks are worth less.
-				captured_amount+=0.5
+				worth*=0.5
 				continue
-			captured_amount+=1
+			captured_amount += worth
+
 		for(var/mob/living/carbon/monkey/M in A)//Monkeys are almost worthless, you failure.
 			captured_amount+=0.1
+
 		for(var/mob/living/carbon/alien/larva/M in A)//Larva are important for research.
 			if(M.stat==2)
 				captured_amount+=0.5
 				continue
 			captured_amount+=1
-		for(var/mob/living/carbon/alien/humanoid/M in A)//Aliens are worth twice as much as humans.
-			if(istype(M, /mob/living/carbon/alien/humanoid/queen))//Queens are worth three times as much as humans.
-				if(M.stat==2)
-					captured_amount+=1.5
-				else
-					captured_amount+=3
-				continue
-			if(M.stat==2)
-				captured_amount+=1
-				continue
-			captured_amount+=2
+
+
 		if(captured_amount<target_amount)
 			return 0
 		return 1
@@ -709,7 +704,7 @@ datum/objective/absorb
 			explanation_text = "Our knowledge must live on. Make sure at least 5 acolytes escape on the shuttle to spread their work on an another station."
 
 			check_completion()
-				if(emergency_shuttle.location<2)
+				if(!emergency_shuttle.returned())
 					return 0
 
 				var/cultists_escaped = 0
@@ -867,7 +862,7 @@ datum/objective/heist/salvage
 				target = "plasteel"
 				target_amount = 100
 			if(4)
-				target = "plasma"
+				target = "phoron"
 				target_amount = 100
 			if(5)
 				target = "silver"
@@ -894,12 +889,12 @@ datum/objective/heist/salvage
 			if(istype(O,/obj/item/stack/sheet))
 				if(O.name == target)
 					S = O
-					total_amount += S.amount
+					total_amount += S.get_amount()
 			for(var/obj/I in O.contents)
 				if(istype(I,/obj/item/stack/sheet))
 					if(I.name == target)
 						S = I
-						total_amount += S.amount
+						total_amount += S.get_amount()
 
 		var/datum/game_mode/heist/H = ticker.mode
 		for(var/datum/mind/raider in H.raiders)
@@ -908,7 +903,7 @@ datum/objective/heist/salvage
 					if(istype(O,/obj/item/stack/sheet))
 						if(O.name == target)
 							var/obj/item/stack/sheet/S = O
-							total_amount += S.amount
+							total_amount += S.get_amount()
 
 		if(total_amount >= target_amount) return 1
 		return 0
@@ -922,8 +917,50 @@ datum/objective/heist/inviolate_crew
 		if(H.is_raider_crew_safe()) return 1
 		return 0
 
+#define MAX_VOX_KILLS 10 //Number of kills during the round before the Inviolate is broken.
+						 //Would be nice to use vox-specific kills but is currently not feasible.
+var/global/vox_kills = 0 //Used to check the Inviolate.
+
 datum/objective/heist/inviolate_death
 	explanation_text = "Follow the Inviolate. Minimise death and loss of resources."
 	check_completion()
-		if(vox_kills>5) return 0
+		if(vox_kills > MAX_VOX_KILLS) return 0
 		return 1
+
+//Borer objective(s).
+
+/datum/objective/borer_survive
+	explanation_text = "Survive in a host until the end of the round."
+
+/datum/objective/borer_survive/check_completion()
+	if(owner)
+		var/mob/living/simple_animal/borer/B = owner
+		if(istype(B) && B.stat < 2 && B.host && B.host.stat < 2) return 1
+	return 0
+
+/datum/objective/borer_reproduce
+	explanation_text = "Reproduce at least once."
+
+/datum/objective/borer_reproduce/check_completion()
+	if(owner && owner.current)
+		var/mob/living/simple_animal/borer/B = owner.current
+		if(istype(B) && B.has_reproduced) return 1
+	return 0
+
+/datum/objective/ninja_highlander
+	explanation_text = "You aspire to be a Grand Master of the Spider Clan. Kill all of your fellow acolytes."
+
+/datum/objective/ninja_highlander/check_completion()
+	if(owner)
+		for(var/datum/mind/ninja in ticker.mode.ninjas)
+			if(ninja != owner)
+				if(ninja.current.stat < 2) return 0
+		return 1
+	return 0
+
+/datum/objective/cult_summon
+	explanation_text = "Summon Nar-Sie via the use of the appropriate rune (Hell join self). It will only work if nine cultists stand on and around it."
+
+/datum/objective/cult_summon/check_completion()
+	if(locate(/obj/machinery/singularity/narsie/large) in machines) return 1
+	return 0

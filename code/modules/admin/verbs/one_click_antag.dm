@@ -73,11 +73,11 @@ client/proc/one_click_antag()
 								candidates += applicant
 
 	if(candidates.len)
-		var/numTratiors = min(candidates.len, 3)
+		var/numTraitors = min(candidates.len, 3)
 
-		for(var/i = 0, i<numTratiors, i++)
+		for(var/i = 0, i<numTraitors, i++)
 			H = pick(candidates)
-			H.mind.make_Tratior()
+			H.mind.make_Traitor()
 			candidates.Remove(H)
 
 		return 1
@@ -393,9 +393,9 @@ client/proc/one_click_antag()
 	var/datum/preferences/A = new()
 	A.randomize_appearance_for(new_character)
 	if(new_character.gender == MALE)
-		new_character.real_name = "[pick(first_names_male)] [pick(last_names_male)]"
+		new_character.real_name = "[pick(first_names_male)] [pick(last_names)]"
 	else
-		new_character.real_name = "[pick(first_names_female)] [pick(last_names_female)]"
+		new_character.real_name = "[pick(first_names_female)] [pick(last_names)]"
 	new_character.name = new_character.real_name
 	new_character.age = rand(17,45)
 
@@ -408,7 +408,7 @@ client/proc/one_click_antag()
 	var/mob/living/carbon/human/new_syndicate_commando = new(spawn_location.loc)
 	var/syndicate_commando_leader_rank = pick("Lieutenant", "Captain", "Major")
 	var/syndicate_commando_rank = pick("Corporal", "Sergeant", "Staff Sergeant", "Sergeant 1st Class", "Master Sergeant", "Sergeant Major")
-	var/syndicate_commando_name = pick(last_names_male)
+	var/syndicate_commando_name = pick(last_names)
 
 	new_syndicate_commando.gender = pick(MALE, FEMALE)
 
@@ -480,7 +480,7 @@ client/proc/one_click_antag()
 					break
 
 				new_vox.key = theghost.key
-				new_vox << "\blue You are a Vox Primalis, fresh out of the Shoal. Your ship has arrived at the Tau Ceti system hosting the NSV Exodus... or was it the Luna? NSS? Utopia? Nobody is really sure, but everyong is raring to start pillaging! Your current goal is: \red<B> [input]</B>"
+				new_vox << "\blue You are a Vox Primalis, fresh out of the Shoal. Your ship has arrived at a human-meat system hosting the NSV Exodus... or was it the Luna? NSS? Utopia? Nobody is really sure, who cares about stupid meat-names anyway? Everyone is raring to start pillaging! Your current goal is: \red<B> [input]</B>"
 				new_vox << "\red Don't forget to turn on your nitrogen internals!"
 
 				raiders--
@@ -492,7 +492,7 @@ client/proc/one_click_antag()
 
 /datum/admins/proc/create_vox_raider(obj/spawn_location, leader_chosen = 0)
 
-	var/mob/living/carbon/human/new_vox = new(spawn_location.loc)
+	var/mob/living/carbon/human/new_vox = new(spawn_location.loc, "Vox")
 
 	new_vox.gender = pick(MALE, FEMALE)
 	new_vox.h_style = "Short Vox Quills"
@@ -512,12 +512,16 @@ client/proc/one_click_antag()
 
 	new_vox.dna.ready_dna(new_vox) // Creates DNA.
 	new_vox.dna.mutantrace = "vox"
-	new_vox.set_species("Vox") // Actually makes the vox! How about that.
-	new_vox.add_language("Vox-pidgin")
 	new_vox.mind_initialize()
 	new_vox.mind.assigned_role = "MODE"
 	new_vox.mind.special_role = "Vox Raider"
 	new_vox.mutations |= NOCLONE //Stops the station crew from messing around with their DNA.
+
+	if(ticker.mode && ( istype( ticker.mode,/datum/game_mode/heist ) ) )
+		var/datum/game_mode/heist/M = ticker.mode
+		if(new_vox.internal_organs_by_name["stack"])
+			cortical_stacks |= new_vox.internal_organs_by_name["stack"]
+			M.raiders[new_vox.mind] = new_vox.internal_organs_by_name["stack"]
 
 	ticker.mode.traitors += new_vox.mind
 	new_vox.equip_vox_raider()

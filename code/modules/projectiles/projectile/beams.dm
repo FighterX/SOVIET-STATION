@@ -93,7 +93,7 @@ var/list/beam_master = list()
 /obj/item/projectile/beam/heavylaser
 	name = "heavy laser"
 	icon_state = "heavylaser"
-	damage = 40
+	damage = 60
 
 /obj/item/projectile/beam/xray
 	name = "xray beam"
@@ -105,11 +105,6 @@ var/list/beam_master = list()
 	icon_state = "u_laser"
 	damage = 50
 
-
-/obj/item/projectile/beam/deathlaser
-	name = "death laser"
-	icon_state = "heavylaser"
-	damage = 60
 
 /obj/item/projectile/beam/emitter
 	name = "emitter beam"
@@ -161,3 +156,18 @@ var/list/beam_master = list()
 			if((istype(M.wear_suit, /obj/item/clothing/suit/bluetag))||(istype(M.wear_suit, /obj/item/clothing/suit/redtag)))
 				M.Weaken(5)
 		return 1
+
+/obj/item/projectile/beam/sniper
+	name = "sniper beam"
+	icon_state = "xray"
+	damage = 60
+	stun = 5
+	weaken = 5
+	stutter = 5
+
+/obj/item/projectile/beam/stun
+	name = "stun beam"
+	icon_state = "stun"
+	nodamage = 1
+	agony = 40
+	damage_type = HALLOSS

@@ -25,6 +25,19 @@
 	new /obj/item/clothing/shoes/magboots(src)
 
 
+/obj/structure/closet/syndicate/suit
+	desc = "It's a storage unit for rig suits."
+
+/obj/structure/closet/syndicate/suit/New()
+	..()
+	sleep(2)
+	new /obj/item/weapon/tank/jetpack/oxygen(src)
+	new /obj/item/clothing/shoes/magboots(src)
+	new /obj/item/clothing/suit/space/rig/syndi(src)
+	new /obj/item/clothing/mask/gas/syndicate(src)
+	new /obj/item/clothing/head/helmet/space/rig/syndi(src)
+
+
 /obj/structure/closet/syndicate/nuclear
 	desc = "It's a storage unit for nuclear-operative gear."
 
@@ -82,13 +95,13 @@
 		if(pickednum >= 5)
 			new /obj/item/stack/sheet/glass(src, rand(common_min, common_max))
 
-		//Plasteel (common ore) Because it has a million more uses then plasma
+		//Plasteel (common ore) Because it has a million more uses then phoron
 		if(pickednum >= 10)
 			new /obj/item/stack/sheet/plasteel(src, rand(common_min, common_max))
 
-		//Plasma (rare ore)
+		//Phoron (rare ore)
 		if(pickednum >= 15)
-			new /obj/item/stack/sheet/mineral/plasma(src, rand(rare_min, rare_max))
+			new /obj/item/stack/sheet/mineral/phoron(src, rand(rare_min, rare_max))
 
 		//Silver (rare ore)
 		if(pickednum >= 20)
@@ -121,10 +134,9 @@
 		/obj/item/stack/sheet/glass,
 		/obj/item/stack/sheet/mineral/gold,
 		/obj/item/stack/sheet/mineral/silver,
-		/obj/item/stack/sheet/mineral/plasma,
+		/obj/item/stack/sheet/mineral/phoron,
 		/obj/item/stack/sheet/mineral/uranium,
 		/obj/item/stack/sheet/mineral/diamond,
-		/obj/item/stack/sheet/mineral/clown,
 		/obj/item/stack/sheet/plasteel,
 		/obj/item/stack/rods
 		)

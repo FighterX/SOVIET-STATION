@@ -2,7 +2,7 @@
 // Contains various borg upgrades.
 
 /obj/item/borg/upgrade
-	name = "A borg upgrade module."
+	name = "borg upgrade module."
 	desc = "Protected by FRM."
 	icon = 'icons/obj/module.dmi'
 	icon_state = "cyborg_upgrade"
@@ -30,6 +30,11 @@
 	R.uneq_all()
 	R.hands.icon_state = "nomod"
 	R.icon_state = "robot"
+	//world << R.custom_sprite
+	if(R.custom_sprite == 1)
+		//world << R.icon_state
+		icon = 'icons/mob/custom-synthetic.dmi'
+		R.icon_state = "[R.ckey]-Standard"
 	del(R.module)
 	R.module = null
 	R.camera.network.Remove(list("Engineering","Medical","MINE"))
@@ -133,7 +138,7 @@
 /obj/item/borg/upgrade/jetpack
 	name = "mining robot jetpack"
 	desc = "A carbon dioxide jetpack suitable for low-gravity mining operations."
-	construction_cost = list("metal"=10000,"plasma"=15000,"uranium" = 20000)
+	construction_cost = list("metal"=10000,"phoron"=15000,"uranium" = 20000)
 	icon_state = "cyborg_upgrade3"
 	require_module = 1
 
@@ -153,7 +158,7 @@
 
 
 /obj/item/borg/upgrade/syndicate/
-	name = "Illegal Equipment Module"
+	name = "illegal equipment module"
 	desc = "Unlocks the hidden, deadlier functions of a robot"
 	construction_cost = list("metal"=10000,"glass"=15000,"diamond" = 10000)
 	icon_state = "cyborg_upgrade3"

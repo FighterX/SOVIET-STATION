@@ -20,7 +20,6 @@
 	50;/obj/structure/cult/pylon,\
 	100;/obj/machinery/auto_cloner,\
 	100;/obj/machinery/giga_drill,\
-	100;/obj/mecha/working/hoverpod,\
 	100;/obj/machinery/replicator,\
 	150;/obj/structure/crystal,\
 	1000;/obj/machinery/artifact)
@@ -39,6 +38,7 @@
 	var/excavation_level = 0
 	var/datum/geosample/geological_data
 	var/datum/artifact_find/artifact_find
+	var/last_act = 0
 
 /obj/structure/boulder/New()
 	icon_state = "boulder[rand(1,4)]"
@@ -68,7 +68,13 @@
 	if (istype(W, /obj/item/weapon/pickaxe))
 		var/obj/item/weapon/pickaxe/P = W
 
+		if(last_act + P.digspeed > world.time)//prevents message spam
+			return
+		last_act = world.time
+
 		user << "\red You start [P.drill_verb] [src]."
+
+
 
 		if(!do_after(user,P.digspeed))
 			return
@@ -97,3 +103,22 @@
 				user.visible_message("<font color='red'><b>[src] suddenly crumbles away.</b></font>",\
 				"\blue [src] has been whittled away under your careful excavation, but there was nothing of interest inside.")
 			del(src)
+
+/obj/structure/boulder/Bumped(AM)
+	. = ..()
+	if(istype(AM,/mob/living/carbon/human))
+		var/mob/living/carbon/human/H = AM
+		if((istype(H.l_hand,/obj/item/weapon/pickaxe)) && (!H.hand))
+			attackby(H.l_hand,H)
+		else if((istype(H.r_hand,/obj/item/weapon/pickaxe)) && H.hand)
+			attackby(H.r_hand,H)
+
+	else if(istype(AM,/mob/living/silicon/robot))
+		var/mob/living/silicon/robot/R = AM
+		if(istype(R.module_active,/obj/item/weapon/pickaxe))
+			attackby(R.module_active,R)
+
+	else if(istype(AM,/obj/mecha))
+		var/obj/mecha/M = AM
+		if(istype(M.selected,/obj/item/mecha_parts/mecha_equipment/tool/drill))
+			M.selected.action(src)

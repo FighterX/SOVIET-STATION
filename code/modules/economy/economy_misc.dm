@@ -47,7 +47,7 @@
 #define GEAR_EVA 15
 
 //---- The following corporations are friendly with NanoTrasen and loosely enable trade and travel:
-//Corporation NanoTrasen - Generalised / high tech research and plasma exploitation.
+//Corporation NanoTrasen - Generalised / high tech research and phoron exploitation.
 //Corporation Vessel Contracting - Ship and station construction, materials research.
 //Corporation Osiris Atmospherics - Atmospherics machinery construction and chemical research.
 //Corporation Second Red Cross Society - 26th century Red Cross reborn as a dominating economic force in biomedical science (research and materials).
@@ -78,7 +78,14 @@ var/global/economy_init = 0
 		return 2
 
 	var/datum/feed_channel/newChannel = new /datum/feed_channel
-	newChannel.channel_name = "Tau Ceti Daily"
+	newChannel.channel_name = "Public Station Announcements"
+	newChannel.author = "Automated Announcement Listing"
+	newChannel.locked = 1
+	newChannel.is_admin_channel = 1
+	news_network.network_channels += newChannel
+
+	newChannel = new /datum/feed_channel
+	newChannel.channel_name = "Nyx Daily"
 	newChannel.author = "CentComm Minister of Information"
 	newChannel.locked = 1
 	newChannel.is_admin_channel = 1
@@ -103,7 +110,7 @@ var/global/economy_init = 0
 	create_department_account("Vendor")
 	vendor_account = department_accounts["Vendor"]
 
-	current_date_string = "[num2text(rand(1,31))] [pick("January","February","March","April","May","June","July","August","September","October","November","December")], 2557"
+	current_date_string = "[num2text(rand(1,31))] [pick("January","February","March","April","May","June","July","August","September","October","November","December")], [game_year]"
 
 	economy_init = 1
 	return 1

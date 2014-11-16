@@ -4,6 +4,7 @@
 	var/track_blood = 0
 	var/list/feet_blood_DNA
 	var/track_blood_type
+	var/feet_blood_color
 
 /obj/item/clothing/gloves
 	var/transfer_blood = 0
@@ -22,6 +23,7 @@
 	possible_transfer_amounts = list(5)
 	volume = 5
 	can_be_placed_into = null
+	flags = FPRINT | TABLEPASS | OPENCONTAINER | NOBLUDGEON
 
 /obj/item/weapon/reagent_containers/glass/rag/attack_self(mob/user as mob)
 	return

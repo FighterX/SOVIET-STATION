@@ -22,6 +22,9 @@
 /obj/item/weapon/cell/proc/percent()		// return % charge of cell
 	return 100.0*charge/maxcharge
 
+/obj/item/weapon/cell/proc/fully_charged()
+	return (charge == maxcharge)
+
 // use power from a cell
 /obj/item/weapon/cell/proc/use(var/amount)
 	if(rigged && amount > 0)
@@ -39,15 +42,15 @@
 		return 0
 
 	if(maxcharge < amount)	return 0
-	var/power_used = min(maxcharge-charge,amount)
+	var/amount_used = min(maxcharge-charge,amount)
 	if(crit_fail)	return 0
 	if(!prob(reliability))
 		minor_fault++
 		if(prob(minor_fault))
 			crit_fail = 1
 			return 0
-	charge += power_used
-	return power_used
+	charge += amount_used
+	return amount_used
 
 
 /obj/item/weapon/cell/examine()
@@ -77,12 +80,12 @@
 
 		user << "You inject the solution into the power cell."
 
-		if(S.reagents.has_reagent("plasma", 5))
+		if(S.reagents.has_reagent("phoron", 5))
 
 			rigged = 1
 
-			log_admin("LOG: [user.name] ([user.ckey]) injected a power cell with plasma, rigging it to explode.")
-			message_admins("LOG: [user.name] ([user.ckey]) injected a power cell with plasma, rigging it to explode.")
+			log_admin("LOG: [user.name] ([user.ckey]) injected a power cell with phoron, rigging it to explode.")
+			message_admins("LOG: [user.name] ([user.ckey]) injected a power cell with phoron, rigging it to explode.")
 
 		S.reagents.clear_reagents()
 

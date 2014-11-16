@@ -2,13 +2,12 @@
 VOX HEIST ROUNDTYPE
 */
 
-#define MAX_VOX_KILLS 10 //Number of kills during the round before the Inviolate is broken.
-						 //Would be nice to use vox-specific kills but is currently not feasible.
-
-var/global/vox_kills = 0 //Used to check the Inviolate.
+var/global/list/raider_spawn = list()
+var/global/list/obj/cortical_stacks = list() //Stacks for 'leave nobody behind' objective. Clumsy, rewrite sometime.
 
 /datum/game_mode/
 	var/list/datum/mind/raiders = list()  //Antags.
+	var/list/raid_objectives = list()     //Raid objectives
 
 /datum/game_mode/heist
 	name = "heist"
@@ -17,12 +16,10 @@ var/global/vox_kills = 0 //Used to check the Inviolate.
 	required_players_secret = 25
 	required_enemies = 4
 	recommended_enemies = 6
+	votable = 0
 
 	var/const/waittime_l = 600 //lower bound on time before intercept arrives (in tenths of seconds)
 	var/const/waittime_h = 1800 //upper bound on time before intercept arrives (in tenths of seconds)
-
-	var/list/raid_objectives = list()     //Raid objectives.
-	var/list/obj/cortical_stacks = list() //Stacks for 'leave nobody behind' objective.
 
 /datum/game_mode/heist/announce()
 	world << "<B>The current game mode is - Heist!</B>"
@@ -64,17 +61,9 @@ var/global/vox_kills = 0 //Used to check the Inviolate.
 
 /datum/game_mode/heist/post_setup()
 
-	//Build a list of spawn points.
-	var/list/turf/raider_spawn = list()
-
-	for(var/obj/effect/landmark/L in landmarks_list)
-		if(L.name == "voxstart")
-			raider_spawn += get_turf(L)
-			del(L)
-			continue
-
 	//Generate objectives for the group.
-	raid_objectives = forge_vox_objectives()
+	if(!config.objectives_disabled)
+		raid_objectives = forge_vox_objectives()
 
 	var/index = 1
 
@@ -87,49 +76,63 @@ var/global/vox_kills = 0 //Used to check the Inviolate.
 		raider.current.loc = raider_spawn[index]
 		index++
 
-		var/sounds = rand(2,8)
-		var/i = 0
-		var/newname = ""
-
-		while(i<=sounds)
-			i++
-			newname += pick(list("ti","hi","ki","ya","ta","ha","ka","ya","chi","cha","kah"))
-
-		var/mob/living/carbon/human/vox = raider.current
-
-		vox.real_name = capitalize(newname)
-		vox.name = vox.real_name
-		raider.name = vox.name
-		vox.age = rand(12,20)
-		vox.dna.mutantrace = "vox"
-		vox.set_species("Vox")
-		vox.languages = list() // Removing language from chargen.
-		vox.flavor_text = ""
-		vox.add_language("Vox-pidgin")
-		vox.h_style = "Short Vox Quills"
-		vox.f_style = "Shaved"
-		for(var/datum/organ/external/limb in vox.organs)
-			limb.status &= ~(ORGAN_DESTROYED | ORGAN_ROBOT)
-		vox.equip_vox_raider()
-		vox.regenerate_icons()
-
-		raider.objectives = raid_objectives
+		create_vox(raider)
 		greet_vox(raider)
+
+		if(!config.objectives_disabled && raid_objectives)
+			raider.objectives = raid_objectives
 
 	spawn (rand(waittime_l, waittime_h))
 		send_intercept()
 
-/datum/game_mode/heist/proc/is_raider_crew_safe()
+/datum/game_mode/proc/create_vox(var/datum/mind/newraider)
+
+
+	var/sounds = rand(2,8)
+	var/i = 0
+	var/newname = ""
+
+	while(i<=sounds)
+		i++
+		newname += pick(list("ti","hi","ki","ya","ta","ha","ka","ya","chi","cha","kah"))
+
+	var/mob/living/carbon/human/vox = newraider.current
+
+	vox.real_name = capitalize(newname)
+	vox.name = vox.real_name
+	newraider.name = vox.name
+	vox.age = rand(12,20)
+	vox.dna.mutantrace = "vox"
+	vox.set_species("Vox")
+	vox.languages = list() // Removing language from chargen.
+	vox.flavor_text = ""
+	vox.add_language("Vox-pidgin")
+	vox.add_language("Galactic Common")
+	vox.add_language("Tradeband")
+	vox.h_style = "Short Vox Quills"
+	vox.f_style = "Shaved"
+
+	for(var/datum/organ/external/limb in vox.organs)
+		limb.status &= ~(ORGAN_DESTROYED | ORGAN_ROBOT)
+
+	// Keep track of their stack.
+	if(vox.internal_organs_by_name["stack"])
+		cortical_stacks |= vox.internal_organs_by_name["stack"]
+
+	vox.equip_vox_raider()
+	vox.regenerate_icons()
+
+/datum/game_mode/proc/is_raider_crew_safe()
 
 	if(cortical_stacks.len == 0)
 		return 0
 
-	for(var/obj/stack in cortical_stacks)
-		if (get_area(stack) != locate(/area/shuttle/vox/station))
+	for(var/datum/organ/internal/stack/vox/stack in cortical_stacks)
+		if(stack.organ_holder && get_area(stack.organ_holder) != locate(/area/shuttle/vox/station))
 			return 0
 	return 1
 
-/datum/game_mode/heist/proc/is_raider_crew_alive()
+/datum/game_mode/proc/is_raider_crew_alive()
 
 	for(var/datum/mind/raider in raiders)
 		if(raider.current)
@@ -137,7 +140,7 @@ var/global/vox_kills = 0 //Used to check the Inviolate.
 				return 1
 	return 0
 
-/datum/game_mode/heist/proc/forge_vox_objectives()
+/datum/game_mode/proc/forge_vox_objectives()
 
 	var/i = 1
 	var/max_objectives = pick(2,2,2,2,3,3,3,4)
@@ -163,22 +166,15 @@ var/global/vox_kills = 0 //Used to check the Inviolate.
 	objs += new /datum/objective/heist/inviolate_crew
 	objs += new /datum/objective/heist/inviolate_death
 
-	for(var/datum/objective/heist/O in raid_objectives)
-		O.choose_target()
+	return objs
 
-	return raid_objectives
-
-/datum/game_mode/heist/proc/greet_vox(var/datum/mind/raider)
+/datum/game_mode/proc/greet_vox(var/datum/mind/raider)
 	raider.current << "\blue <B>You are a Vox Raider, fresh from the Shoal!</b>"
-	raider.current << "\blue The Vox are a race of cunning, sharp-eyed nomadic raiders and traders endemic to Tau Ceti and much of the unexplored galaxy. You and the crew have come to the Exodus for plunder, trade or both."
+	raider.current << "\blue The Vox are a race of cunning, sharp-eyed nomadic raiders and traders endemic to the frontier and much of the unexplored galaxy. You and the crew have come to the Exodus for plunder, trade or both."
 	raider.current << "\blue Vox are cowardly and will flee from larger groups, but corner one or find them en masse and they are vicious."
 	raider.current << "\blue Use :V to voxtalk, :H to talk on your encrypted channel, and don't forget to turn on your nitrogen internals!"
 	raider.current << "\red IF YOU HAVE NOT PLAYED A VOX BEFORE, REVIEW THIS THREAD: http://baystation12.net/forums/viewtopic.php?f=6&t=8657."
-	var/obj_count = 1
-	for(var/datum/objective/objective in raider.objectives)
-		raider.current << "<B>Objective #[obj_count]</B>: [objective.explanation_text]"
-		obj_count++
-
+	show_objectives(raider)
 
 /datum/game_mode/heist/declare_completion()
 
@@ -245,28 +241,6 @@ var/global/vox_kills = 0 //Used to check the Inviolate.
 			feedback_add_details("traitor_objective","[objective.type]|FAIL")
 		count++
 
-	var/text = "<FONT size = 2><B>The vox raiders were:</B></FONT>"
-
-	for(var/datum/mind/vox in raiders)
-		text += "<br>[vox.key] was [vox.name] ("
-		var/obj/stack = raiders[vox]
-		if(get_area(stack) != locate(/area/shuttle/vox/station))
-			text += "left behind)"
-			continue
-		else if(vox.current)
-			if(vox.current.stat == DEAD)
-				text += "died"
-			else
-				text += "survived"
-			if(vox.current.real_name != vox.name)
-				text += " as [vox.current.real_name]"
-		else
-			text += "body destroyed"
-		text += ")"
-
-	world << text
-	return 1
-
 	..()
 
 datum/game_mode/proc/auto_declare_completion_heist()
@@ -298,6 +272,16 @@ datum/game_mode/proc/auto_declare_completion_heist()
 	return 1
 
 /datum/game_mode/heist/check_finished()
-	if (!(is_raider_crew_alive()) || (vox_shuttle_location && (vox_shuttle_location == "start")))
+	var/datum/shuttle/multi_shuttle/skipjack = shuttle_controller.shuttles["Vox Skipjack"]
+	if (!(is_raider_crew_alive()) || (skipjack && skipjack.returned_home))
 		return 1
 	return ..()
+
+/datum/game_mode/heist/cleanup()
+	//the skipjack and everything in it have left and aren't coming back, so get rid of them.
+	var/area/skipjack = locate(/area/shuttle/vox/station)
+	for (var/mob/living/M in skipjack.contents)
+		//maybe send the player a message that they've gone home/been kidnapped? Someone responsible for vox lore should write that.
+		del(M)
+	for (var/obj/O in skipjack.contents)
+		del(O)	//no hiding in lockers or anything

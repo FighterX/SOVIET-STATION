@@ -91,41 +91,50 @@ obj/item/weapon/gun/energy/staff
 	var/charge_tick = 0
 	var/mode = 0 //0 = mutate, 1 = yield boost
 
-	New()
-		..()
-		processing_objects.Add(src)
+/obj/item/weapon/gun/energy/floragun/New()
+	..()
+	processing_objects.Add(src)
 
+/obj/item/weapon/gun/energy/floragun/Del()
+	processing_objects.Remove(src)
+	..()
 
-	Del()
-		processing_objects.Remove(src)
-		..()
+/obj/item/weapon/gun/energy/floragun/process()
+	charge_tick++
+	if(charge_tick < 4) return 0
+	charge_tick = 0
+	if(!power_supply) return 0
+	power_supply.give(100)
+	update_icon()
+	return 1
 
+/obj/item/weapon/gun/energy/floragun/attack_self(mob/living/user as mob)
+	switch(mode)
+		if(0)
+			mode = 1
+			charge_cost = 100
+			user << "\red The [src.name] is now set to increase yield."
+			projectile_type = "/obj/item/projectile/energy/florayield"
+			modifystate = "florayield"
+		if(1)
+			mode = 0
+			charge_cost = 100
+			user << "\red The [src.name] is now set to induce mutations."
+			projectile_type = "/obj/item/projectile/energy/floramut"
+			modifystate = "floramut"
+	update_icon()
+	return
 
-	process()
-		charge_tick++
-		if(charge_tick < 4) return 0
-		charge_tick = 0
-		if(!power_supply) return 0
-		power_supply.give(100)
-		update_icon()
-		return 1
+/obj/item/weapon/gun/energy/floragun/afterattack(obj/target, mob/user, flag)
 
-	attack_self(mob/living/user as mob)
-		switch(mode)
-			if(0)
-				mode = 1
-				charge_cost = 100
-				user << "\red The [src.name] is now set to increase yield."
-				projectile_type = "/obj/item/projectile/energy/florayield"
-				modifystate = "florayield"
-			if(1)
-				mode = 0
-				charge_cost = 100
-				user << "\red The [src.name] is now set to induce mutations."
-				projectile_type = "/obj/item/projectile/energy/floramut"
-				modifystate = "floramut"
-		update_icon()
+	if(flag && istype(target,/obj/machinery/portable_atmospherics/hydroponics))
+		var/obj/machinery/portable_atmospherics/hydroponics/tray = target
+		if(load_into_chamber())
+			user.visible_message("\red <b> \The [user] fires \the [src] into \the [tray]!</b>")
+			Fire(target,user)
 		return
+
+	..()
 
 /obj/item/weapon/gun/energy/meteorgun
 	name = "meteor gun"
@@ -194,3 +203,33 @@ obj/item/weapon/gun/energy/staff/focus
 			user << "\red The [src.name] will now strike only a single person."
 			projectile_type = "/obj/item/projectile/forcebolt"
 	*/
+
+/obj/item/weapon/gun/energy/toxgun
+	name = "phoron pistol"
+	desc = "A specialized firearm designed to fire lethal bolts of phoron."
+	icon_state = "toxgun"
+	fire_sound = 'sound/effects/stealthoff.ogg'
+	w_class = 3.0
+	origin_tech = "combat=5;phorontech=4"
+	projectile_type = "/obj/item/projectile/energy/phoron"
+
+/obj/item/weapon/gun/energy/sniperrifle
+	name = "L.W.A.P. Sniper Rifle"
+	desc = "A rifle constructed of lightweight materials, fitted with a SMART aiming-system scope."
+	icon = 'icons/obj/gun.dmi'
+	icon_state = "sniper"
+	fire_sound = 'sound/weapons/marauder.ogg'
+	origin_tech = "combat=6;materials=5;powerstorage=4"
+	projectile_type = "/obj/item/projectile/beam/sniper"
+	slot_flags = SLOT_BACK
+	charge_cost = 250
+	fire_delay = 35
+	w_class = 4.0
+	zoomdevicename = "scope"
+
+/obj/item/weapon/gun/energy/sniperrifle/verb/scope()
+	set category = "Object"
+	set name = "Use Scope"
+	set popup_menu = 1
+
+	zoom()

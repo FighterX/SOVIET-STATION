@@ -14,6 +14,14 @@
 	var/lastbang
 	var/storage_capacity = 30 //This is so that someone can't pack hundreds of items in a locker/crate
 							  //then open it in a populated area to crash clients.
+	var/open_sound = 'sound/machines/click.ogg'
+	var/close_sound = 'sound/machines/click.ogg'
+
+	var/store_misc = 1
+	var/store_items = 1
+	var/store_mobs = 1
+
+	var/const/mob_size = 15
 
 /obj/structure/closet/New()
 	..()
@@ -66,10 +74,7 @@
 
 	src.icon_state = src.icon_opened
 	src.opened = 1
-	if(istype(src, /obj/structure/closet/body_bag))
-		playsound(src.loc, 'sound/items/zip.ogg', 15, 1, -3)
-	else
-		playsound(src.loc, 'sound/machines/click.ogg', 15, 1, -3)
+	playsound(src.loc, open_sound, 15, 1, -3)
 	density = 0
 	return 1
 
@@ -79,28 +84,48 @@
 	if(!src.can_close())
 		return 0
 
-	var/itemcount = 0
+	var/stored_units = 0
 
-	//Cham Projector Exception
+	if(store_misc)
+		stored_units = store_misc(stored_units)
+	if(store_items)
+		stored_units = store_items(stored_units)
+	if(store_mobs)
+		stored_units = store_mobs(stored_units)
+
+	src.icon_state = src.icon_closed
+	src.opened = 0
+
+	playsound(src.loc, close_sound, 15, 1, -3)
+	density = 1
+	return 1
+
+//Cham Projector Exception
+/obj/structure/closet/proc/store_misc(var/stored_units)
 	for(var/obj/effect/dummy/chameleon/AD in src.loc)
-		if(itemcount >= storage_capacity)
+		if(stored_units > storage_capacity)
 			break
 		AD.loc = src
-		itemcount++
+		stored_units++
+	return stored_units
 
+/obj/structure/closet/proc/store_items(var/stored_units)
 	for(var/obj/item/I in src.loc)
-		if(itemcount >= storage_capacity)
-			break
+		var/item_size = Ceiling(I.w_class / 2)
+		if(stored_units + item_size > storage_capacity)
+			continue
 		if(!I.anchored)
 			I.loc = src
-			itemcount++
+			stored_units += item_size
+	return stored_units
 
+/obj/structure/closet/proc/store_mobs(var/stored_units)
 	for(var/mob/M in src.loc)
-		if(itemcount >= storage_capacity)
+		if(stored_units + mob_size > storage_capacity)
 			break
 		if(istype (M, /mob/dead/observer))
 			continue
-		if(M.buckled)
+		if(M.buckled || M.pinned.len)
 			continue
 
 		if(M.client)
@@ -108,20 +133,11 @@
 			M.client.eye = src
 
 		M.loc = src
-		itemcount++
-
-	src.icon_state = src.icon_closed
-	src.opened = 0
-	if(istype(src, /obj/structure/closet/body_bag))
-		playsound(src.loc, 'sound/items/zip.ogg', 15, 1, -3)
-	else
-		playsound(src.loc, 'sound/machines/click.ogg', 15, 1, -3)
-	density = 1
-	return 1
+		stored_units += mob_size
+	return stored_units
 
 /obj/structure/closet/proc/toggle(mob/user as mob)
-	. = src.opened ? src.close() : src.open()
-	if(!.)
+	if(!(src.opened ? src.close() : src.open()))
 		user << "<span class='notice'>It won't budge!</span>"
 	return
 
@@ -156,7 +172,7 @@
 
 	return
 
-/obj/structure/closet/attack_animal(mob/living/simple_animal/user as mob)
+/obj/structure/closet/attack_animal(mob/living/user as mob)
 	if(user.wall_smash)
 		visible_message("\red [user] destroys the [src]. ")
 		for(var/atom/movable/A as mob|obj in src)
@@ -285,3 +301,9 @@
 			overlays += "welded"
 	else
 		icon_state = icon_opened
+
+/obj/structure/closet/hear_talk(mob/M as mob, text)
+	for (var/atom/A in src)
+		if(istype(A,/obj/))
+			var/obj/O = A
+			O.hear_talk(M, text)

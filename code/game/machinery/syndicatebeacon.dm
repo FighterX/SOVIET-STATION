@@ -65,7 +65,7 @@
 					if(1 to 50)
 						objective = "Steal [pick("a hand teleporter", "the Captain's antique laser gun", "a jetpack", "the Captain's ID", "the Captain's jumpsuit")]."
 					if(51 to 60)
-						objective = "Destroy 70% or more of the station's plasma tanks."
+						objective = "Destroy 70% or more of the station's phoron tanks."
 					if(61 to 70)
 						objective = "Cut power to 80% or more of the station's tiles."
 					if(71 to 80)
@@ -86,11 +86,7 @@
 				M << "<B>You have joined the ranks of the Syndicate and become a traitor to the station!</B>"
 
 				message_admins("[N]/([N.ckey]) has accepted a traitor objective from a syndicate beacon.")
-
-				var/obj_count = 1
-				for(var/datum/objective/OBJ in M.mind.objectives)
-					M << "<B>Objective #[obj_count]</B>: [OBJ.explanation_text]"
-					obj_count++
+				show_objectives(M.mind)
 
 		src.add_fingerprint(usr)
 		src.updateUsrDialog()
