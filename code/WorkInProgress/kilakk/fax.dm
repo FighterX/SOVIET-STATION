@@ -98,14 +98,14 @@ var/list/alldepartments = list("Central Command")
 
 			if(dpt == "Central Command")
 				Centcomm_fax(src, tofax.info, tofax.name, usr)
-				sendcooldown = 1800
+				sendcooldown = 300
 
 			else if(dpt == "Sol Government")
 				Solgov_fax(src, tofax.info, tofax.name, usr)
-				sendcooldown = 1800
+				sendcooldown = 600
 			else
 				SendFax(tofax.info, tofax.name, usr, dpt)
-				sendcooldown = 600
+				sendcooldown = 120
 
 			usr << "Message transmitted successfully."
 
