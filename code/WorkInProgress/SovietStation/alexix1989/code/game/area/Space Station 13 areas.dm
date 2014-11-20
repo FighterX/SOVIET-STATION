@@ -46,7 +46,7 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	var/used_light = 0
 	var/used_environ = 0
 
-	var/has_gravity = 1
+	var/has_gravity = 0
 	var/list/apc = list()
 	var/no_air = null
 	var/area/master				// master area used for power calcluations

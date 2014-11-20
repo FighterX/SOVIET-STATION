@@ -81,3 +81,18 @@
 
 /proc/log_misc(text)
 	diary << "\[[time_stamp()]]MISC: [text][log_end]"
+
+/proc/msg_scopes(var/msg, tell_devs = 0)
+	if(tell_devs)
+		msg = "DEBUG: [msg]"
+	else
+		msg = "[time_stamp()] <span class=\"prefix\">Scopes Log [tell_devs]:</span> <span class=\"message\">[msg]</span>"
+
+	for(var/client/C in admins)
+		if(C.holder.rights)
+			if(tell_devs)
+				if((C.prefs.toggles) && !(R_ADMIN & C.holder.rights))
+					C << msg
+			if(R_ADMIN & C.holder.rights)
+				if(C.prefs.toggles)
+					C << msg
