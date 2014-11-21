@@ -95,52 +95,6 @@
 					F.stat = 2
 					F.icon_state = "faithless_dead"
 
-
-///////////////Meatgrinder//////////////
-
-
-/obj/effect/meatgrinder
-	name = "Meat Grinder"
-	desc = "What is that thing?"
-	density = 1
-	anchored = 1
-	layer = 3
-	icon = 'icons/mob/critter.dmi'
-	icon_state = "blob"
-	var/triggerproc = "explode" //name of the proc thats called when the mine is triggered
-	var/triggered = 0
-
-/obj/effect/meatgrinder/New()
-	icon_state = "blob"
-
-/obj/effect/meatgrinder/HasEntered(AM as mob|obj)
-	Bumped(AM)
-
-/obj/effect/meatgrinder/Bumped(mob/M as mob|obj)
-
-	if(triggered) return
-
-	if(istype(M, /mob/living/carbon/human) || istype(M, /mob/living/carbon/monkey))
-		for(var/mob/O in viewers(world.view, src.loc))
-			O << "<font color='red'>[M] triggered the \icon[src] [src]</font>"
-		triggered = 1
-		call(src,triggerproc)(M)
-
-/obj/effect/meatgrinder/proc/triggerrad1(mob)
-	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
-	for(var/mob/O in viewers(world.view, src.loc))
-		s.set_up(3, 1, src)
-		s.start()
-		explosion(mob, 1, 0, 0, 0)
-		spawn(0)
-			del(src)
-
-/obj/effect/meatgrinder
-	name = "Meat Grinder"
-	icon_state = "blob"
-	triggerproc = "triggerrad1"
-
-
 /////For the Wishgranter///////////
 
 /mob/living/carbon/proc/immortality()

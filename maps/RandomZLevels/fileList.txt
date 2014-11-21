@@ -4,3 +4,9 @@
 #SPECIFYING AN INVALID MAP WILL RESULT IN RUNTIMES ON GAME START
 
 #maps/RandomZLevels/awaymission.dmm
+maps/RandomZLevels/Academy.dmm
+maps/RandomZLevels/arcticwaste.dmm
+maps/RandomZLevels/jungle.dmm
+maps/RandomZLevels/spacebattle.dmm
+maps/RandomZLevels/beach.dmm
+maps/RandomZLevels/challenge.dmm
