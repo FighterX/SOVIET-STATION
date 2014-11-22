@@ -1,11 +1,11 @@
 // BEGIN_INTERNALS
 /*
 MAP_ICON_TYPE: 0
-WINDOW: code\game\jobs\jobs.dm;code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\jobs.dm;code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\job\security.dm;code\WorkInProgress\SovietStation\alexix1989\icons\banner.dmi;maps\tgstation2.dmm
+WINDOW: code\game\jobs\jobs.dm;code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\jobs.dm;code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\job\security.dm;code\WorkInProgress\SovietStation\alexix1989\icons\banner.dmi;code\WorkInProgress\SovietStation\alexix1989\code\other\gravitygenerator.dm;code\WorkInProgress\SovietStation\alexix1989\code\modules\mob\mob_movement.dm
 LAST_COMPILE_VERSION: 506.1247
-DIR: code code\game code\game\gamemodes code\game\gamemodes\cult code\game\gamemodes\mutiny\directives code\game\jobs code\game\jobs\job code\game\objects code\game\objects\items code\game\objects\items\weapons code\game\objects\items\weapons\melee code\modules code\WorkInProgress code\WorkInProgress\SovietStation code\WorkInProgress\SovietStation\alexix1989 code\WorkInProgress\SovietStation\alexix1989\code code\WorkInProgress\SovietStation\alexix1989\code\game code\WorkInProgress\SovietStation\alexix1989\code\game\jobs code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\job code\WorkInProgress\SovietStation\alexix1989\icons maps maps\RandomZLevels maps\RandomZLevels\backup 
-FILE: maps\tgstation2.dmm
-LAST_COMPILE_TIME: 1416667344
+DIR: code code\game code\game\gamemodes code\game\gamemodes\cult code\game\gamemodes\mutiny\directives code\game\jobs code\game\jobs\job code\game\objects code\game\objects\items code\game\objects\items\weapons code\game\objects\items\weapons\melee code\modules code\modules\power code\WorkInProgress code\WorkInProgress\SovietStation code\WorkInProgress\SovietStation\alexix1989 code\WorkInProgress\SovietStation\alexix1989\code code\WorkInProgress\SovietStation\alexix1989\code\game code\WorkInProgress\SovietStation\alexix1989\code\game\jobs code\WorkInProgress\SovietStation\alexix1989\code\game\jobs\job code\WorkInProgress\SovietStation\alexix1989\code\modules code\WorkInProgress\SovietStation\alexix1989\code\modules\economy code\WorkInProgress\SovietStation\alexix1989\code\modules\mob code\WorkInProgress\SovietStation\alexix1989\code\other code\WorkInProgress\SovietStation\alexix1989\icons maps 
+FILE: code\WorkInProgress\SovietStation\alexix1989\code\modules\mob\mob_movement.dm
+LAST_COMPILE_TIME: 1416676053
 AUTO_FILE_DIR: OFF
 */
 // END_INTERNALS
