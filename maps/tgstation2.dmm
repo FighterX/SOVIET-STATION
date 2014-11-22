@@ -875,7 +875,7 @@
 "aqQ" = (/obj/structure/disposalpipe/segment,/obj/item/device/radio/intercom{broadcasting = 0; listening = 1; name = "Station Intercom (General)"; pixel_y = -30},/turf/simulated/floor{icon_state = "white"},/area/security/detectives_office)
 "aqR" = (/obj/structure/closet{name = "Evidence Closet"},/obj/item/weapon/storage/box/bodybags,/obj/item/weapon/storage/box/evidence,/turf/simulated/floor{icon_state = "white"},/area/security/detectives_office)
 "aqS" = (/obj/structure/table,/obj/item/weapon/storage/box/slides,/obj/item/weapon/folder,/turf/simulated/floor{icon_state = "white"},/area/security/detectives_office)
-"aqT" = (/obj/structure/table,/obj/item/weapon/forensics/powder,/turf/simulated/floor{icon_state = "white"},/area/security/detectives_office)
+"aqT" = (/obj/structure/table,/obj/item/weapon/forensics/powder,/obj/item/weapon/forensics/fiberkit,/turf/simulated/floor{icon_state = "white"},/area/security/detectives_office)
 "aqU" = (/obj/structure/table,/obj/item/weapon/storage/box/swabs,/obj/item/weapon/storage/box/swabs,/turf/simulated/floor{icon_state = "white"},/area/security/detectives_office)
 "aqV" = (/obj/structure/table,/obj/machinery/microscope,/obj/item/weapon/storage/box/slides,/turf/simulated/floor{icon_state = "white"},/area/security/detectives_office)
 "aqW" = (/obj/structure/disposalpipe/segment,/obj/machinery/light/small{dir = 8},/obj/machinery/alarm{dir = 4; icon_state = "alarm0"; pixel_x = -22},/obj/structure/cable{d1 = 1; d2 = 2; icon_state = "1-2"},/obj/machinery/atmospherics/pipe/simple/hidden/supply,/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,/turf/simulated/floor/plating,/area/maintenance/dormitory)
